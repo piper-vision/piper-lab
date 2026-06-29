@@ -573,8 +573,12 @@ window.addEventListener('pointerdown', (e) => {
   bhTarget.set(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
   bhPos.copy(bhTarget);
 });
-window.addEventListener('pointerup', () => { bhHolding = false; });
-window.addEventListener('pointerleave', () => { bhHolding = false; });
+function releaseBlackHole() {
+  if (!bhHolding) return;
+  bhHolding = false;
+}
+window.addEventListener('pointerup', releaseBlackHole);
+window.addEventListener('pointerleave', releaseBlackHole);
 
 // ---------- Animate ----------
 const clock = new THREE.Clock();
