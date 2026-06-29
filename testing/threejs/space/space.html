@@ -1,0 +1,300 @@
+<title>Cosmos — Particle System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #02000D; }
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    cursor: crosshair;
+  }
+  #ui {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 10;
+    font-family: 'Courier New', monospace;
+  }
+  #wordmark {
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: rgba(200, 210, 255, 0.2);
+  }
+  #hint {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(150, 160, 220, 0.12);
+  }
+</style>
+
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="wordmark">Cosmos</div>
+  <div id="hint">move · click · drag</div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W = 0, H = 0, dpr = 1;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = Math.floor(W * dpr);
+  canvas.height = Math.floor(H * dpr);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  buildNebulae();
+}
+
+// ── Palette ──────────────────────────────────────────────────
+const STAR_COLORS = [
+  [238, 242, 255],
+  [200, 215, 255],
+  [255, 203, 107],
+  [91,  164, 255],
+  [255, 160, 120],
+  [199, 125, 255],
+  [255, 255, 255],
+];
+
+// ── Mouse ────────────────────────────────────────────────────
+const mouse = { x: -999, y: -999, px: -999, py: -999, down: false, vx: 0, vy: 0 };
+
+canvas.addEventListener('mousemove', e => {
+  mouse.px = mouse.x; mouse.py = mouse.y;
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  mouse.vx = mouse.x - mouse.px;
+  mouse.vy = mouse.y - mouse.py;
+});
+canvas.addEventListener('mousedown', e => {
+  mouse.down = true;
+  createNova(e.clientX, e.clientY);
+});
+canvas.addEventListener('mouseup',    () => { mouse.down = false; });
+canvas.addEventListener('mouseleave', () => { mouse.down = false; });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  mouse.px = mouse.x; mouse.py = mouse.y;
+  mouse.x = t.clientX; mouse.y = t.clientY;
+  mouse.vx = mouse.x - mouse.px;
+  mouse.vy = mouse.y - mouse.py;
+}, { passive: false });
+canvas.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  mouse.x = t.clientX; mouse.y = t.clientY;
+  mouse.down = true;
+  createNova(t.clientX, t.clientY);
+});
+canvas.addEventListener('touchend', () => { mouse.down = false; });
+
+// ── Nebulae ──────────────────────────────────────────────────
+let nebulae = [];
+function buildNebulae() {
+  nebulae = [
+    { xf: 0.15, yf: 0.3,  r: Math.min(W,H)*0.55, col: [80, 20,140] },
+    { xf: 0.75, yf: 0.65, r: Math.min(W,H)*0.50, col: [20, 40,110] },
+    { xf: 0.5,  yf: 0.5,  r: Math.min(W,H)*0.65, col: [5,  15, 55] },
+    { xf: 0.85, yf: 0.15, r: Math.min(W,H)*0.35, col: [100,30, 60] },
+    { xf: 0.1,  yf: 0.85, r: Math.min(W,H)*0.30, col: [20, 60,120] },
+  ].map(s => ({ x: W*s.xf, y: H*s.yf, r: s.r, col: s.col }));
+}
+
+// ── Stars ─────────────────────────────────────────────────────
+const NUM_STARS = 1800;
+let stars = [];
+
+function rand(a, b)    { return a + Math.random() * (b - a); }
+function pick(arr)     { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function makeStar() {
+  const layer = Math.random();
+  return {
+    x: rand(0, W), y: rand(0, H),
+    ox: 0, oy: 0, vx: 0, vy: 0,
+    layer,
+    baseRadius: layer < 0.6 ? rand(0.3, 1.1) : rand(1.0, 2.4),
+    col: pick(STAR_COLORS),
+    alpha: rand(0.3, 1.0),
+    twinkleSpeed: rand(0.003, 0.012),
+    twinklePhase: rand(0, Math.PI * 2),
+  };
+}
+
+function initStars() {
+  stars = Array.from({ length: NUM_STARS }, makeStar);
+}
+
+// ── Nova bursts ───────────────────────────────────────────────
+let novas = [];
+function createNova(x, y) {
+  const col = pick(STAR_COLORS);
+  for (let i = 0; i < 80; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = rand(1.5, 7);
+    novas.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      decay: rand(0.012, 0.028),
+      r: rand(0.8, 2.5),
+      col,
+    });
+  }
+}
+
+// ── Shooting stars ────────────────────────────────────────────
+let shooters = [];
+let nextShoot = 3000;
+
+function maybeShoot(ts) {
+  if (ts < nextShoot) return;
+  nextShoot = ts + rand(3000, 9000);
+  const fromRight = Math.random() > 0.5;
+  const sx = fromRight ? rand(W*0.5, W) : rand(0, W*0.5);
+  const angle = rand(0.3, 0.7);
+  const speed = rand(12, 22);
+  const dir = fromRight ? -1 : 1;
+  shooters.push({
+    x: sx, y: rand(0, H*0.5),
+    vx: Math.cos(angle) * speed * dir,
+    vy: Math.sin(angle) * speed,
+    life: 1.0,
+    decay: rand(0.018, 0.032),
+    tail: [],
+  });
+}
+
+// ── Draw loop ─────────────────────────────────────────────────
+function draw(ts) {
+  requestAnimationFrame(draw);
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#02000D';
+  ctx.fillRect(0, 0, W, H);
+
+  // Nebulae
+  for (const n of nebulae) {
+    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+    g.addColorStop(0,   `rgba(${n.col},0.07)`);
+    g.addColorStop(0.5, `rgba(${n.col},0.025)`);
+    g.addColorStop(1,   `rgba(${n.col},0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Mouse glow
+  if (mouse.x > 0) {
+    const rg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, mouse.down ? 300 : 140);
+    rg.addColorStop(0, `rgba(91,164,255,${mouse.down ? 0.07 : 0.04})`);
+    rg.addColorStop(1, 'rgba(91,164,255,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Stars
+  const PULL_R   = mouse.down ? 300 : 170;
+  const PULL_STR = mouse.down ? 0.014 : 0.007;
+
+  for (const s of stars) {
+    const px = s.x + s.ox;
+    const py = s.y + s.oy;
+    const dx = mouse.x - px;
+    const dy = mouse.y - py;
+    const dist2 = dx*dx + dy*dy;
+    const dist  = Math.sqrt(dist2);
+    const infl  = Math.max(0, 1 - dist / PULL_R);
+
+    s.vx += dx * infl * PULL_STR;
+    s.vy += dy * infl * PULL_STR;
+    if (dist < 28) { s.vx -= dx * 0.06; s.vy -= dy * 0.06; }
+    s.vx += mouse.vx * infl * 0.04 * s.layer;
+    s.vy += mouse.vy * infl * 0.04 * s.layer;
+    s.vx *= 0.88; s.vy *= 0.88;
+    s.ox += s.vx;  s.oy += s.vy;
+    s.ox *= 0.985; s.oy *= 0.985;
+
+    const twinkle = 0.6 + 0.4 * Math.sin(ts * s.twinkleSpeed + s.twinklePhase);
+    const alpha   = s.alpha * twinkle;
+    const r       = s.baseRadius + infl * (mouse.down ? 1.4 : 0.7);
+    const spx     = s.x + s.ox;
+    const spy     = s.y + s.oy;
+    const [cr, cg, cb] = s.col;
+
+    if (s.layer > 0.55 && r > 1.3) {
+      const glow = ctx.createRadialGradient(spx, spy, 0, spx, spy, r * 6);
+      glow.addColorStop(0, `rgba(${cr},${cg},${cb},${alpha * 0.22})`);
+      glow.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(spx, spy, r * 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
+    ctx.beginPath();
+    ctx.arc(spx, spy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Nova particles
+  for (let i = novas.length - 1; i >= 0; i--) {
+    const n = novas[i];
+    n.x += n.vx; n.y += n.vy;
+    n.vx *= 0.96; n.vy *= 0.96;
+    n.life -= n.decay;
+    if (n.life <= 0) { novas.splice(i, 1); continue; }
+    const [cr, cg, cb] = n.col;
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${n.life * 0.9})`;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * n.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Shooting stars
+  maybeShoot(ts);
+  for (let i = shooters.length - 1; i >= 0; i--) {
+    const sh = shooters[i];
+    sh.tail.push({ x: sh.x, y: sh.y });
+    sh.x += sh.vx; sh.y += sh.vy;
+    sh.life -= sh.decay;
+    if (sh.life <= 0) { shooters.splice(i, 1); continue; }
+    if (sh.tail.length > 24) sh.tail.shift();
+
+    for (let j = 1; j < sh.tail.length; j++) {
+      const a = (j / sh.tail.length) * sh.life * 0.75;
+      ctx.strokeStyle = `rgba(200,220,255,${a})`;
+      ctx.lineWidth   = (j / sh.tail.length) * 2;
+      ctx.beginPath();
+      ctx.moveTo(sh.tail[j-1].x, sh.tail[j-1].y);
+      ctx.lineTo(sh.tail[j].x,   sh.tail[j].y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = `rgba(240,248,255,${sh.life})`;
+    ctx.beginPath();
+    ctx.arc(sh.x, sh.y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('resize', () => { resize(); initStars(); });
+resize();
+initStars();
+requestAnimationFrame(draw);
+</script>
