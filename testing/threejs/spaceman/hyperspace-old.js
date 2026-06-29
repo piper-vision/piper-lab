@@ -174,7 +174,7 @@ scene.add(nebula);
 
 // ---------- Astronaut model ----------
 let astronaut = null;
-const MODEL_FILE = 'a-futuristic-spaceman-wearing-a-black-su.glb';
+const MODEL_FILE = 'spaceman-falling.glb';
 // In the studio preview the GLB is provided via window.UPLOADED_3D_MODELS.
 // On a real server it won't exist, so fall back to a file sitting next to this script.
 const uploaded = window.UPLOADED_3D_MODELS?.find(m => m.name === MODEL_FILE);
