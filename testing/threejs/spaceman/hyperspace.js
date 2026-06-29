@@ -6,8 +6,6 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
-// NOTE: OutputPass may not exist in three@0.168.0 — we guard against it below
-
 // ---------- Scene / Renderer ----------
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05060f);
@@ -29,7 +27,7 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.1, 0.7, 0.25);
 composer.addPass(bloom);
-if (typeof OutputPass !== 'undefined') composer.addPass(new OutputPass());
+composer.addPass(new OutputPass());
 
 // ---------- Lighting ----------
 const ambient = new THREE.AmbientLight(0x33405a, 0.9);
@@ -261,7 +259,22 @@ function detectSide(node, worldPos) {
     astronaut.position.set(0, -0.3, 4);
     astronaut.rotation.set(0.15 + Math.PI / 6 + Math.PI / 18, -0.2, 0.05);
     scene.add(astronaut);
-  }, undefined, (err) => console.error('Model load error:', err));
+  }, undefined, (err) => {
+    console.error('Model load error:', err);
+    showError('Could not load "' + MODEL_FILE + '".<br>Make sure the .glb file sits in the same folder as hyperspace.js (case-sensitive), and that your server allows .glb files.');
+  });
+}
+
+// ---------- On-screen error overlay ----------
+function showError(html) {
+  let el = document.getElementById('errOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'errOverlay';
+    el.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);max-width:80%;padding:18px 22px;font:14px/1.5 system-ui,-apple-system,sans-serif;color:#fff;background:rgba(20,8,12,0.92);border:1px solid #FF2244;text-align:center;z-index:9999;';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = html;
 }
 
 // ---------- Interaction (subtle parallax) ----------
