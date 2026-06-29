@@ -5,6 +5,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
 // ---------- Scene / Renderer ----------
@@ -70,6 +71,85 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.1, 0.7, 0.25);
 composer.addPass(bloom);
+
+// ---------- Black hole cursor distortion (gravitational lensing) ----------
+// A screen-space fragment shader that bends the rendered image around the
+// cursor: light is pulled toward the singularity, swirled (frame-dragging),
+// chromatically split near the photon ring, and swallowed by a dark core.
+const BlackHoleShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+    uAspect: { value: window.innerWidth / window.innerHeight },
+    uStrength: { value: 0.0 },   // eased in/out with pointer presence
+    uRadius: { value: 0.5 },     // influence radius (in aspect-corrected units)
+    uTime: { value: 0.0 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */`
+    varying vec2 vUv;
+    uniform sampler2D tDiffuse;
+    uniform vec2 uMouse;
+    uniform float uAspect;
+    uniform float uStrength;
+    uniform float uRadius;
+    uniform float uTime;
+
+    void main() {
+      // aspect-correct space so the well is circular, not elliptical
+      vec2 uv = vUv;
+      vec2 p = uv - uMouse;
+      p.x *= uAspect;
+      float dist = length(p);
+
+      float R = uRadius;
+      // normalized distance inside the influence radius
+      float nd = clamp(dist / R, 0.0, 1.0);
+
+      // gravitational pull: strong near the center, falling off smoothly
+      float pull = (1.0 - nd);
+      pull = pull * pull;                      // sharper falloff
+      pull *= uStrength;
+
+      // pull the sampled coordinate TOWARD the singularity
+      vec2 dir = dist > 1e-4 ? p / dist : vec2(0.0);
+      float displace = pull * 0.24;
+
+      // frame-dragging swirl — rotate more the closer you get
+      float swirl = pull * 1.65 + uTime * 0.2;
+      float cs = cos(swirl), sn = sin(swirl);
+      vec2 rotDir = vec2(dir.x * cs - dir.y * sn, dir.x * sn + dir.y * cs);
+
+      // sample offset (undo aspect on x), with chromatic split near photon ring
+      float ca = pull * 0.009;
+      vec2 baseOff = -rotDir * displace;
+      vec2 offR = baseOff * (1.0 + ca);
+      vec2 offB = baseOff * (1.0 - ca);
+      offR.x /= uAspect; baseOff.x /= uAspect; offB.x /= uAspect;
+
+      vec4 colR = texture2D(tDiffuse, uv + offR);
+      vec4 colG = texture2D(tDiffuse, uv + baseOff);
+      vec4 colB = texture2D(tDiffuse, uv + offB);
+      vec4 col = vec4(colR.r, colG.g, colB.b, 1.0);
+
+      // dark event-horizon core that swallows light
+      float core = 1.0 - smoothstep(0.0, R * 0.14, dist);
+      col.rgb *= (1.0 - core * uStrength * 0.675);
+
+      gl_FragColor = col;
+    }
+  `,
+};
+
+const blackHolePass = new ShaderPass(BlackHoleShader);
+composer.addPass(blackHolePass);
+
 composer.addPass(new OutputPass());
 
 // ---------- Lighting ----------
@@ -471,10 +551,30 @@ function showError(html) {
 // ---------- Interaction (subtle parallax) ----------
 const mouse = new THREE.Vector2(0, 0);
 const target = new THREE.Vector2(0, 0);
+// black hole screen-space position (0..1, y flipped for shader space) + presence
+const bhTarget = new THREE.Vector2(0.5, 0.5);
+const bhPos = new THREE.Vector2(0.5, 0.5);
+// The black hole only forms while the pointer is held down. The longer you
+// hold, the deeper the gravity well grows (charging up to a max), then it
+// eases back to zero on release.
+let bhHolding = false;
+let bhCharge = 0.0;            // ramps up while holding, decays when released
+const BH_CHARGE_RATE = 0.55;  // strength gained per second of holding
+const BH_MAX = 1.6;           // maximum well strength
+const BH_DECAY_RATE = 2.2;    // how fast it fades after release
 window.addEventListener('pointermove', (e) => {
   target.x = (e.clientX / window.innerWidth - 0.5) * 2;
   target.y = (e.clientY / window.innerHeight - 0.5) * 2;
+  bhTarget.set(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
 });
+window.addEventListener('pointerdown', (e) => {
+  bhHolding = true;
+  // snap the well directly under the press so it forms where you click
+  bhTarget.set(e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight);
+  bhPos.copy(bhTarget);
+});
+window.addEventListener('pointerup', () => { bhHolding = false; });
+window.addEventListener('pointerleave', () => { bhHolding = false; });
 
 // ---------- Animate ----------
 const clock = new THREE.Clock();
@@ -514,6 +614,18 @@ function animate() {
 
   mouse.lerp(target, 0.04);
 
+  // ease the black hole toward the cursor; charge strength while held, decay on release
+  bhPos.lerp(bhTarget, 0.12);
+  if (bhHolding) {
+    bhCharge = Math.min(BH_MAX, bhCharge + BH_CHARGE_RATE * dt);
+  } else {
+    bhCharge = Math.max(0.0, bhCharge - BH_DECAY_RATE * dt);
+  }
+  const bhU = blackHolePass.uniforms;
+  bhU.uMouse.value.copy(bhPos);
+  bhU.uStrength.value += (bhCharge - bhU.uStrength.value) * 0.18;
+  bhU.uTime.value = t;
+
   // arm sway — clearly visible weightless drift, opposite swing per side
   for (const a of armNodes) {
     const phase = a.side === 'left' ? 0 : Math.PI; // opposite swing per side
@@ -550,4 +662,5 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
   bloom.setSize(window.innerWidth, window.innerHeight);
+  blackHolePass.uniforms.uAspect.value = window.innerWidth / window.innerHeight;
 });
