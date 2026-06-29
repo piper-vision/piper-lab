@@ -1,0 +1,346 @@
+<title>Cosmos — Particle System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #02000D;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+  }
+  canvas {
+    display: block;
+    width: 100%; height: 100%;
+    cursor: crosshair;
+  }
+  #ui {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #wordmark {
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: rgba(200, 210, 255, 0.2);
+    font-weight: 400;
+  }
+  #hint {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: rgba(150, 160, 220, 0.15);
+  }
+</style>
+
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="wordmark">Cosmos</div>
+  <div id="hint">move · click · drag</div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H, dpr;
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  buildNebulae();
+}
+
+// ─── Color palette ─────────────────────────────────────────────
+const STAR_COLORS = [
+  [238, 242, 255],  // white-blue
+  [200, 215, 255],  // cool blue
+  [255, 203, 107],  // warm giant
+  [91, 164, 255],   // plasma blue
+  [255, 160, 120],  // orange giant
+  [199, 125, 255],  // ionized magenta
+  [255, 255, 255],  // pure white
+];
+
+// ─── Mouse state ───────────────────────────────────────────────
+const mouse = { x: W / 2, y: H / 2, px: W / 2, py: H / 2, down: false, vx: 0, vy: 0 };
+canvas.addEventListener('mousemove', e => {
+  mouse.px = mouse.x; mouse.py = mouse.y;
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  mouse.vx = mouse.x - mouse.px;
+  mouse.vy = mouse.y - mouse.py;
+});
+canvas.addEventListener('mousedown', () => { mouse.down = true; createNova(mouse.x, mouse.y); });
+canvas.addEventListener('mouseup', () => { mouse.down = false; });
+canvas.addEventListener('mouseleave', () => { mouse.down = false; });
+
+// Touch support
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  mouse.px = mouse.x; mouse.py = mouse.y;
+  mouse.x = t.clientX; mouse.y = t.clientY;
+  mouse.vx = mouse.x - mouse.px;
+  mouse.vy = mouse.y - mouse.py;
+}, { passive: false });
+canvas.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  mouse.x = t.clientX; mouse.y = t.clientY;
+  mouse.down = true;
+  createNova(mouse.x, mouse.y);
+});
+canvas.addEventListener('touchend', () => { mouse.down = false; });
+
+// ─── Nebulae ───────────────────────────────────────────────────
+let nebulae = [];
+function buildNebulae() {
+  nebulae = [];
+  const specs = [
+    { xf: 0.15, yf: 0.3,  r: Math.min(W, H) * 0.55, col: [80, 20, 140] },
+    { xf: 0.75, yf: 0.65, r: Math.min(W, H) * 0.50, col: [20, 40, 110] },
+    { xf: 0.5,  yf: 0.5,  r: Math.min(W, H) * 0.65, col: [5,  15,  55] },
+    { xf: 0.85, yf: 0.15, r: Math.min(W, H) * 0.35, col: [100, 30, 60] },
+    { xf: 0.1,  yf: 0.85, r: Math.min(W, H) * 0.3,  col: [20, 60, 120] },
+  ];
+  for (const s of specs) {
+    nebulae.push({ x: W * s.xf, y: H * s.yf, r: s.r, col: s.col });
+  }
+}
+
+// ─── Stars ─────────────────────────────────────────────────────
+const NUM_STARS = 1800;
+let stars = [];
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+function randInt(a, b) { return Math.floor(rand(a, b + 1)); }
+function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+function makeStar(born) {
+  const layer = Math.random(); // 0 = far, 1 = near
+  const col = pick(STAR_COLORS);
+  return {
+    x: rand(0, W),
+    y: rand(0, H),
+    ox: 0, oy: 0,   // offset from gravity
+    vx: 0, vy: 0,   // velocity from gravity
+    layer,
+    baseRadius: layer < 0.6 ? rand(0.3, 1.1) : rand(1.0, 2.4),
+    col,
+    alpha: rand(0.3, 1.0),
+    twinkleSpeed: rand(0.003, 0.012),
+    twinklePhase: rand(0, Math.PI * 2),
+    born: born || 0,
+  };
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < NUM_STARS; i++) stars.push(makeStar());
+}
+
+// ─── Nova bursts (on click) ─────────────────────────────────────
+let novas = [];
+function createNova(x, y) {
+  const count = 60 + Math.floor(Math.random() * 40);
+  const col = pick(STAR_COLORS);
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = rand(1.5, 7);
+    novas.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      decay: rand(0.012, 0.028),
+      r: rand(0.8, 2.5),
+      col,
+    });
+  }
+}
+
+// ─── Shooting stars ────────────────────────────────────────────
+let shooters = [];
+let nextShoot = 2000;
+function maybeShoot(t) {
+  if (t > nextShoot) {
+    nextShoot = t + rand(3000, 9000);
+    const fromRight = Math.random() > 0.5;
+    const sx = fromRight ? rand(W * 0.5, W) : rand(0, W * 0.5);
+    const sy = rand(0, H * 0.6);
+    const angle = fromRight ? rand(0.3, 0.8) : rand(0.3, 0.8);
+    const dir = fromRight ? -1 : 1;
+    const speed = rand(12, 22);
+    shooters.push({
+      x: sx, y: sy,
+      vx: Math.cos(angle) * speed * dir,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      decay: rand(0.018, 0.032),
+      tail: [],
+    });
+  }
+}
+
+// ─── Render ────────────────────────────────────────────────────
+let t = 0;
+
+function draw(timestamp) {
+  t = timestamp;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#02000D';
+  ctx.fillRect(0, 0, W, H);
+
+  // Nebulae
+  for (const n of nebulae) {
+    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+    g.addColorStop(0, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.06)`);
+    g.addColorStop(0.5, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0.025)`);
+    g.addColorStop(1, `rgba(${n.col[0]},${n.col[1]},${n.col[2]},0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Mouse influence radius indicator (subtle)
+  if (!mouse.down) {
+    const rg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
+    rg.addColorStop(0, 'rgba(91,164,255,0.04)');
+    rg.addColorStop(1, 'rgba(91,164,255,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Stars
+  const PULL_R = mouse.down ? 280 : 160;
+  const PULL_STR = mouse.down ? 0.012 : 0.006;
+  const FRICTION = 0.88;
+
+  for (const s of stars) {
+    // Gravity well
+    const sx = s.x + s.ox;
+    const sy = s.y + s.oy;
+    const dx = mouse.x - sx;
+    const dy = mouse.y - sy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const influence = Math.max(0, 1 - dist / PULL_R);
+
+    s.vx += dx * influence * PULL_STR;
+    s.vy += dy * influence * PULL_STR;
+    // Repulsion core — don't stack on cursor
+    if (dist < 30) {
+      s.vx -= dx * 0.05;
+      s.vy -= dy * 0.05;
+    }
+    // Current velocity from mouse drag
+    s.vx += mouse.vx * influence * 0.04 * s.layer;
+    s.vy += mouse.vy * influence * 0.04 * s.layer;
+
+    s.vx *= FRICTION;
+    s.vy *= FRICTION;
+    s.ox += s.vx;
+    s.oy += s.vy;
+
+    // Return home
+    s.ox *= 0.985;
+    s.oy *= 0.985;
+
+    // Twinkle
+    const twinkle = 0.6 + 0.4 * Math.sin(timestamp * s.twinkleSpeed + s.twinklePhase);
+    const alpha = s.alpha * twinkle;
+    const r = s.baseRadius + (mouse.down ? influence * 1.2 : influence * 0.6);
+
+    const px = s.x + s.ox;
+    const py = s.y + s.oy;
+    const [cr, cg, cb] = s.col;
+
+    // Glow for brighter/closer stars
+    if (s.layer > 0.55 && r > 1.4) {
+      const glow = ctx.createRadialGradient(px, py, 0, px, py, r * 5);
+      glow.addColorStop(0, `rgba(${cr},${cg},${cb},${alpha * 0.25})`);
+      glow.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(px, py, r * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Nova particles
+  for (let i = novas.length - 1; i >= 0; i--) {
+    const n = novas[i];
+    n.x += n.vx;
+    n.y += n.vy;
+    n.vx *= 0.96;
+    n.vy *= 0.96;
+    n.life -= n.decay;
+    if (n.life <= 0) { novas.splice(i, 1); continue; }
+    const [cr, cg, cb] = n.col;
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${n.life * 0.9})`;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * n.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Shooting stars
+  maybeShoot(timestamp);
+  for (let i = shooters.length - 1; i >= 0; i--) {
+    const sh = shooters[i];
+    sh.tail.push({ x: sh.x, y: sh.y, life: sh.life });
+    sh.x += sh.vx;
+    sh.y += sh.vy;
+    sh.life -= sh.decay;
+    if (sh.life <= 0) { shooters.splice(i, 1); continue; }
+
+    // Draw tail
+    for (let j = sh.tail.length - 1; j >= 0; j--) {
+      const seg = sh.tail[j];
+      const progress = j / sh.tail.length;
+      const a = progress * sh.life * 0.7;
+      ctx.strokeStyle = `rgba(200,220,255,${a})`;
+      ctx.lineWidth = progress * 2;
+      if (j < sh.tail.length - 1) {
+        ctx.beginPath();
+        ctx.moveTo(sh.tail[j + 1].x, sh.tail[j + 1].y);
+        ctx.lineTo(seg.x, seg.y);
+        ctx.stroke();
+      }
+    }
+    // Keep tail short
+    if (sh.tail.length > 22) sh.tail.shift();
+
+    // Head
+    ctx.fillStyle = `rgba(240,248,255,${sh.life})`;
+    ctx.beginPath();
+    ctx.arc(sh.x, sh.y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// ─── Init ──────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  resize();
+  initStars();
+});
+resize();
+initStars();
+requestAnimationFrame(draw);
+</script>
