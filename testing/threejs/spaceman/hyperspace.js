@@ -1,10 +1,12 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+
+// NOTE: OutputPass may not exist in three@0.168.0 — we guard against it below
 
 // ---------- Scene / Renderer ----------
 const scene = new THREE.Scene();
@@ -27,7 +29,7 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.1, 0.7, 0.25);
 composer.addPass(bloom);
-composer.addPass(new OutputPass());
+if (typeof OutputPass !== 'undefined') composer.addPass(new OutputPass());
 
 // ---------- Lighting ----------
 const ambient = new THREE.AmbientLight(0x33405a, 0.9);
@@ -174,7 +176,11 @@ scene.add(nebula);
 
 // ---------- Astronaut model ----------
 let astronaut = null;
-const modelData = window.UPLOADED_3D_MODELS?.find(m => m.name === 'a-futuristic-spaceman-wearing-a-black-su.glb');
+const MODEL_FILE = 'a-futuristic-spaceman-wearing-a-black-su.glb';
+// In the studio preview the GLB is provided via window.UPLOADED_3D_MODELS.
+// On a real server it won't exist, so fall back to a file sitting next to this script.
+const uploaded = window.UPLOADED_3D_MODELS?.find(m => m.name === MODEL_FILE);
+const modelUrl = uploaded ? uploaded.dataUrl : './' + MODEL_FILE;
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
@@ -208,8 +214,8 @@ function detectSide(node, worldPos) {
   return worldPos.x >= 0 ? 'right' : 'left';
 }
 
-if (modelData) {
-  loader.load(modelData.dataUrl, (gltf) => {
+{
+  loader.load(modelUrl, (gltf) => {
     astronaut = new THREE.Group();
     astronaut.name = 'astronaut';
     const m = gltf.scene;
