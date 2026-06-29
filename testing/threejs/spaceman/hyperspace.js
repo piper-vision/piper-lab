@@ -524,8 +524,10 @@ function animate() {
   }
 
   if (astronaut) {
-    // gentle floating + tumbling drift
-    astronaut.position.y = -0.3 + Math.sin(t * 0.8) * 0.4;
+    // gentle floating + tumbling drift — clamp the downward travel so he stays centered
+    const floatRaw = Math.sin(t * 0.8) * 0.4;
+    const floatY = floatRaw >= 0 ? floatRaw : floatRaw * 0.35; // limit how far he dips below center
+    astronaut.position.y = -0.05 + floatY;
     astronaut.position.x = Math.sin(t * 0.4) * 0.5 + mouse.x * 1.2;
     astronaut.rotation.y = -0.2 + Math.sin(t * 0.5) * 0.25 + mouse.x * 0.3;
     astronaut.rotation.x = 0.15 + Math.PI / 6 + Math.PI / 18 + Math.cos(t * 0.6) * 0.12 - mouse.y * 0.2;
