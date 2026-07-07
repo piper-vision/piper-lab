@@ -16,14 +16,16 @@ export class AdaptiveQuality {
    * @param {() => void} [opts.onRelax]  Called on sustained headroom with
    *   DPR back at maximum — restore non-resolution quality.
    */
-  constructor({ maxDpr = 2, minDpr = 0.75, onChange, onPressure, onRelax }) {
+  constructor({ maxDpr = 2, minDpr = 0.75, startDpr, onChange, onPressure, onRelax }) {
     this.maxDpr = maxDpr;
     this.minDpr = minDpr;
     this.onChange = onChange;
     this.onPressure = onPressure;
     this.onRelax = onRelax;
 
-    this.dpr = maxDpr;
+    // Starting below max lets cautious profiles begin smooth and climb to
+    // whatever this machine can actually afford.
+    this.dpr = Math.min(startDpr ?? maxDpr, maxDpr);
     this._accum = 0;
     this._frames = 0;
     this._calm = 0;     // consecutive fast windows before stepping back up

@@ -168,6 +168,28 @@ export class LightField {
   }
 
   /**
+   * Deterministic estimate of how much bar-light currently sits in the
+   * forward (-Z) hemisphere the camera flies into — measured correlation
+   * with rendered frame brightness is ~0.54, vs. negative for the rear
+   * hemisphere. Drives auto-exposure as a pure function of time: no GPU
+   * readback, no sync stall, and it cannot feed back on itself.
+   */
+  estimateVisibleLight(t) {
+    let sum = 0;
+    for (const { cfg } of this.bars) {
+      // Bar direction on its tilted orbit (pivot: rotX(tilt) ∘ rotY(angle)
+      // applied to the (radius, 0, 0) offset) — forward component only.
+      const angle = cfg.phase + t * cfg.speed;
+      const dz = Math.sin(angle) * Math.cos(cfg.tilt);
+      // Floor keeps side-on bars contributing (shards tilt every which way).
+      const facing = 0.35 + 0.65 * Math.max(0, dz);
+      const luminance = 0.2126 * cfg.color[0] + 0.7152 * cfg.color[1] + 0.0722 * cfg.color[2];
+      sum += cfg.size[0] * cfg.size[1] * luminance * facing;
+    }
+    return sum / 10000; // scaled so typical values sit around ~0.5–2
+  }
+
+  /**
    * Advance bar orbits and (optionally) re-capture the environment.
    * Absolute-time driven so motion is stable regardless of frame rate.
    *

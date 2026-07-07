@@ -50,10 +50,10 @@ export class App {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
     this.rig = new CameraRig(this.camera);
 
-    // Low-power: 256 keeps the per-capture PMREM re-filter cheap enough
-    // that capture frames don't spike above the frame budget (rhythmic
-    // judder); the soft-edged bars barely show the resolution loss.
-    this.lights = new LightField({ resolution: isMobile || lowPower ? 256 : 1024 });
+    // Low-power: 384 balances reflection sharpness against the per-capture
+    // PMREM re-filter cost — 256 read visibly soft, 512 spiked the frame
+    // budget on integrated GPUs (rhythmic judder).
+    this.lights = new LightField({ resolution: isMobile ? 256 : lowPower ? 384 : 1024 });
     this.scene.environment = this.lights.texture;
 
     // Environment re-capture cadence: every Nth frame. Each capture also
@@ -84,7 +84,11 @@ export class App {
       samples: isMobile || lowPower ? 0 : 4, // FXAA still smooths edges
     });
     this.quality = new AdaptiveQuality({
-      maxDpr: Math.min(window.devicePixelRatio || 1, isMobile || lowPower ? 1.5 : 2),
+      // Low-power machines may still climb to native DPR — they just start
+      // moderate and earn it through sustained headroom, instead of being
+      // hard-capped into Retina blur.
+      maxDpr: Math.min(window.devicePixelRatio || 1, 2),
+      startDpr: isMobile || lowPower ? 1.25 : undefined,
       onChange: (dpr) => this.#applyDpr(dpr),
       // DPR exhausted and still slow → capture the env less often.
       onPressure: () => {
@@ -99,19 +103,21 @@ export class App {
     this._lastNow = performance.now();
     this.time = 0;
 
-    // Auto-exposure: sample the rendered frame's mean luminance twice a
-    // second and glide toneMappingExposure toward a target brightness —
-    // dark light-orbit beats lift themselves, hot phases don't blow out.
-    // NOTE: no willReadFrequently — that would make this canvas CPU-backed
-    // and turn the drawImage below into a full GPU→CPU framebuffer
-    // readback (a periodic multi-ms stall on integrated GPUs). Accelerated,
-    // the copy stays on-GPU and only 32×18 pixels ever cross the bus.
+    // Auto-exposure: glide toneMappingExposure toward a goal derived from
+    // the light rig's deterministic brightness estimate — dark light-orbit
+    // beats lift themselves, hot phases don't blow out. Pure math, so no
+    // GPU readback stalls and no feedback loop that could ratchet the
+    // exposure into a whiteout. On desktop the goal is refined by an
+    // occasional screen-luminance read with hard-bounded influence.
+    this._exposureGoal = this.renderer.toneMappingExposure;
+    this._lumaTrim = 1;
+    this._exposeTimer = 0;
     this._exposeCanvas = document.createElement('canvas');
     this._exposeCanvas.width = 32;
     this._exposeCanvas.height = 18;
+    // Deliberately NOT willReadFrequently: keeps the canvas GPU-backed so
+    // drawImage stays on-GPU; only 32×18 pixels ever cross the bus.
     this._exposeCtx = this._exposeCanvas.getContext('2d');
-    this._exposeTimer = 0;
-    this._exposureGoal = this.renderer.toneMappingExposure;
 
     window.addEventListener('resize', () => this.#resize());
     this.#resize();
@@ -157,32 +163,40 @@ export class App {
     this.#autoExpose(dt);
   }
 
-  /**
-   * Must run right after render (same task) — the WebGL back buffer is only
-   * readable before the browser presents it.
-   */
   #autoExpose(dt) {
-    this._exposeTimer += dt;
-    if (this._exposeTimer >= 1.0) {
-      this._exposeTimer = 0;
-      const src = this.renderer.domElement;
-      if (src.width === 0 || src.height === 0) return; // not laid out yet
-      const ctx = this._exposeCtx;
-      ctx.drawImage(src, 0, 0, 32, 18);
-      const d = ctx.getImageData(0, 0, 32, 18).data;
-      let luma = 0;
-      for (let i = 0; i < d.length; i += 4) {
-        luma += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
-      }
-      luma /= d.length / 4;
+    // Deterministic base goal from the light rig — brighter estimate,
+    // lower exposure. Bounded, so a whiteout is impossible by construction.
+    const estimate = this.lights.estimateVisibleLight(this.time);
+    let goal = 1.5 / Math.sqrt(estimate + 0.05);
 
-      // Gentle square-root response, hard bounds so it can never runaway.
-      const TARGET = 115;
-      const ratio = Math.sqrt(TARGET / Math.max(luma, 8));
-      this._exposureGoal = THREE.MathUtils.clamp(
-        this.renderer.toneMappingExposure * ratio, 1.05, 2.9
-      );
+    // Desktop refinement: every 2 s, read the actual frame brightness and
+    // derive a trim factor. The trim is recomputed absolutely each read
+    // (never accumulated) and clamped to ±40%, and black reads — failed
+    // readbacks on some platforms — are ignored, so it can nudge the goal
+    // but never ratchet it. Skipped entirely on low-power devices, where
+    // the readback sync is itself a stutter source.
+    if (!this.lowPower) {
+      this._exposeTimer += dt;
+      if (this._exposeTimer >= 2) {
+        this._exposeTimer = 0;
+        const src = this.renderer.domElement;
+        if (src.width > 0 && src.height > 0) {
+          this._exposeCtx.drawImage(src, 0, 0, 32, 18);
+          const d = this._exposeCtx.getImageData(0, 0, 32, 18).data;
+          let luma = 0;
+          for (let i = 0; i < d.length; i += 4) {
+            luma += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+          }
+          luma /= d.length / 4;
+          if (luma >= 2) {
+            this._lumaTrim = THREE.MathUtils.clamp(Math.sqrt(115 / luma), 0.7, 1.4);
+          }
+        }
+      }
+      goal *= this._lumaTrim;
     }
+
+    this._exposureGoal = THREE.MathUtils.clamp(goal, 1.05, 2.4);
     // Slow cinematic adaptation, frame-rate independent.
     this.renderer.toneMappingExposure +=
       (this._exposureGoal - this.renderer.toneMappingExposure) * (1 - Math.exp(-dt * 0.9));
