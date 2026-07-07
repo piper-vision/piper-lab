@@ -114,6 +114,14 @@ function makeShardGeometry(rng) {
 
 export class ShardField {
   /**
+   * Radius of the spaceman's pressure bubble. Deliberately larger than his
+   * body: contact at body range happens inside the near-camera dissolve
+   * zone (and right before the shard wraps), where a reaction is invisible
+   * — the bubble makes shards part around him mid-screen instead.
+   */
+  static REPEL_RADIUS = 5;
+
+  /**
    * @param {object} opts
    * @param {number} opts.heroCount  Large foreground shards.
    * @param {number} opts.farCount   Instanced background shards.
@@ -162,7 +170,55 @@ export class ShardField {
 
     // Scratch objects reused every frame (no per-frame allocation).
     this._q = new THREE.Quaternion();
+    this._pushQ = new THREE.Quaternion();
+    this._v = new THREE.Vector3();
     this._dummy = new THREE.Object3D();
+  }
+
+  /**
+   * Soft collision against a sphere (the spaceman): a wide cushion zone
+   * eases shards into a gentle outward drift with a slow tumble — they
+   * float away and keep coasting (no spring pulling them back; the state
+   * resets when the shard recycles through the wrap). Damping factors are
+   * precomputed per frame by update().
+   */
+  #applyPush(s, pos, repel, dt) {
+    if (repel) {
+      this._v.copy(pos).add(s.pushOffset).sub(repel);
+      const reach = ShardField.REPEL_RADIUS + s.radius + 3.5; // cushion zone
+      const d = this._v.length();
+      if (d < reach && d > 1e-4) {
+        const pen = (1 - d / reach) ** 2; // quadratic — no jolt at first touch
+        this._v.divideScalar(d);
+        // Bias the shove sideways: on-screen parting reads far better than
+        // depth-axis pushes, which just look like a speed change.
+        this._v.z *= 0.25;
+        this._v.normalize();
+        s.pushVelocity.addScaledVector(this._v, pen * 9 * dt);
+        // Tumble kick, roughly perpendicular to the shove — set once per
+        // contact so an ongoing push doesn't thrash the axis.
+        if (s.pushSpin < 0.01) {
+          s.pushAxis.set(-this._v.y, this._v.x, 0.35).normalize();
+        }
+        s.pushSpin = Math.min(s.pushSpin + pen * 0.35 * dt, 0.3);
+      }
+    }
+    s.pushVelocity.multiplyScalar(this._dragK);
+    s.pushOffset.addScaledVector(s.pushVelocity, dt);
+    s.pushAngle += s.pushSpin * dt;
+    s.pushSpin *= this._spinDecayK;
+    pos.add(s.pushOffset);
+  }
+
+  /** Reset collision drift when a shard recycles to the front of the field. */
+  #resetPushOnWrap(s, wrappedZ) {
+    if (s.prevZ - wrappedZ > WRAP_DEPTH * 0.5) {
+      s.pushOffset.set(0, 0, 0);
+      s.pushVelocity.set(0, 0, 0);
+      s.pushSpin = 0;
+      s.pushAngle = 0;
+    }
+    s.prevZ = wrappedZ;
   }
 
   #buildHeroShards(rng, count, variants, edgeVariants) {
@@ -205,6 +261,15 @@ export class ShardField {
         edgeMaterial,
         basePosition: mesh.position.clone(),
         baseQuaternion: mesh.quaternion.clone(),
+        // Soft-collision state: offset/velocity accumulate when the shard
+        // is shoved (e.g. by the spaceman) and relax back over time.
+        radius: mesh.scale.x * 0.35, // effective radius — plates are thin
+        pushOffset: new THREE.Vector3(),
+        pushVelocity: new THREE.Vector3(),
+        pushAxis: new THREE.Vector3(0, 0, 1),
+        pushAngle: 0,
+        pushSpin: 0,
+        prevZ: 0,
         // Slow independent spin around a random axis.
         spinAxis: new THREE.Vector3(rng() - 0.5, rng() - 0.5, rng() - 0.5).normalize(),
         spinSpeed: range(rng, 0.012, 0.035) * sign(rng),
@@ -233,10 +298,18 @@ export class ShardField {
 
       const items = [];
       for (let i = 0; i < perMesh; i++) {
+        const scale = range(rng, 1.2, 3.2);
         items.push({
           basePosition: new THREE.Vector3(range(rng, -44, 44), range(rng, -26, 26), range(rng, 20 - WRAP_DEPTH, 20)),
           baseRotation: new THREE.Euler(range(rng, -1, 1), range(rng, -1, 1), rng() * Math.PI * 2),
-          scale: range(rng, 1.2, 3.2),
+          scale,
+          radius: scale * 0.35,
+          pushOffset: new THREE.Vector3(),
+          pushVelocity: new THREE.Vector3(),
+          pushAxis: new THREE.Vector3(0, 0, 1),
+          pushAngle: 0,
+          pushSpin: 0,
+          prevZ: 0,
           spinAxis: new THREE.Vector3(rng() - 0.5, rng() - 0.5, rng() - 0.5).normalize(),
           spinSpeed: range(rng, 0.008, 0.03) * sign(rng),
           driftAmplitude: range(rng, 0.1, 0.4),
@@ -252,16 +325,25 @@ export class ShardField {
   }
 
   /**
-   * Advance all shard motion. Absolute-time driven.
+   * Advance all shard motion. Absolute-time driven (except the collision
+   * response, which integrates with dt).
    * @param {number} t        Elapsed time in seconds.
    * @param {number} cameraZ  Camera depth — shards wrap to stay in a
    *                          WRAP_DEPTH-deep window ahead of it.
+   * @param {number} dt       Frame delta, for the push physics.
+   * @param {THREE.Vector3|null} repel World position shards bounce off
+   *                          (the spaceman), or null to disable.
    */
-  update(t, cameraZ = 14) {
+  update(t, cameraZ = 14, dt = 0, repel = null) {
     // Rear edge of the live window: shards with z beyond this (behind the
     // camera) are mapped WRAP_DEPTH forward — an infinite tiled field.
     const rear = cameraZ + WRAP_BEHIND;
     const wrapZ = (z) => rear - ((((rear - z) % WRAP_DEPTH) + WRAP_DEPTH) % WRAP_DEPTH);
+
+    // Per-frame damping factors for the push physics: light drag and slow
+    // spin decay — knocked shards coast for a long while (half-life ~6 s).
+    this._dragK = Math.exp(-dt * 0.12);
+    this._spinDecayK = Math.exp(-dt * 0.12);
 
     // Hero shards: quaternion = base * slow axis spin; position = base + drift.
     for (const s of this.hero) {
@@ -271,6 +353,12 @@ export class ShardField {
         .copy(s.basePosition)
         .addScaledVector(s.driftDirection, Math.sin(t * s.driftFrequency + s.driftPhase) * s.driftAmplitude);
       s.mesh.position.z = wrapZ(s.mesh.position.z);
+      this.#resetPushOnWrap(s, s.mesh.position.z);
+      this.#applyPush(s, s.mesh.position, repel, dt);
+      if (s.pushAngle > 0.0001) {
+        this._pushQ.setFromAxisAngle(s.pushAxis, s.pushAngle);
+        s.mesh.quaternion.multiply(this._pushQ);
+      }
 
       // Edge glint: a slow pulse raised to the 6th power — lines idle dim,
       // and the brief peaks (opacity × HDR color ≈ 2.3) cross the starburst
@@ -289,12 +377,18 @@ export class ShardField {
           .copy(it.basePosition)
           .addScaledVector(it.spinAxis, Math.sin(t * it.driftFrequency + it.driftPhase) * it.driftAmplitude);
         dummy.position.z = wrapZ(dummy.position.z);
+        this.#resetPushOnWrap(it, dummy.position.z);
+        this.#applyPush(it, dummy.position, repel, dt);
         dummy.rotation.copy(it.baseRotation);
         dummy.scale.setScalar(it.scale);
         dummy.updateMatrix();
-        // Apply the slow spin on top of the base rotation.
+        // Apply the slow spin (plus any collision tumble) on top.
         this._q.setFromAxisAngle(it.spinAxis, t * it.spinSpeed);
         dummy.quaternion.multiply(this._q);
+        if (it.pushAngle > 0.0001) {
+          this._pushQ.setFromAxisAngle(it.pushAxis, it.pushAngle);
+          dummy.quaternion.multiply(this._pushQ);
+        }
         dummy.updateMatrix();
         instanced.setMatrixAt(i, dummy.matrix);
       }
