@@ -156,7 +156,8 @@ export class App {
     this.lights.update(t, this.renderer, capture);
     this.rig.update(t, dt);               // camera first — the world wraps around it
     this.spaceman.update(t, this.camera);
-    this.shards.update(t, this.camera.position.z);
+    // Shards softly bounce off the spaceman's position.
+    this.shards.update(t, this.camera.position.z, dt, this.spaceman.group.position);
     this.particles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.sparkles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.post.render(t);
@@ -188,15 +189,20 @@ export class App {
             luma += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
           }
           luma /= d.length / 4;
+          // Asymmetric: the trim may pull brightness DOWN hard (blowout
+          // protection) but only nudge it up — an over-bright flare phase
+          // gets corrected, a dark beat can't launch exposure into the
+          // ceiling right before a flare arrives (perceived "brightness
+          // creep").
           if (luma >= 2) {
-            this._lumaTrim = THREE.MathUtils.clamp(Math.sqrt(115 / luma), 0.7, 1.4);
+            this._lumaTrim = THREE.MathUtils.clamp(Math.sqrt(115 / luma), 0.6, 1.1);
           }
         }
       }
       goal *= this._lumaTrim;
     }
 
-    this._exposureGoal = THREE.MathUtils.clamp(goal, 1.05, 2.4);
+    this._exposureGoal = THREE.MathUtils.clamp(goal, 1.05, 1.8);
     // Slow cinematic adaptation, frame-rate independent.
     this.renderer.toneMappingExposure +=
       (this._exposureGoal - this.renderer.toneMappingExposure) * (1 - Math.exp(-dt * 0.9));

@@ -121,6 +121,9 @@ export class ShardField {
    */
   static REPEL_RADIUS = 5;
 
+  /** Solid body radius — shards can never overlap this (plus their own). */
+  static CORE_RADIUS = 2.3;
+
   /**
    * @param {object} opts
    * @param {number} opts.heroCount  Large foreground shards.
@@ -208,6 +211,26 @@ export class ShardField {
     s.pushAngle += s.pushSpin * dt;
     s.pushSpin *= this._spinDecayK;
     pos.add(s.pushOffset);
+
+    // Hard core: the bubble only accelerates shards, so one aimed straight
+    // at him would still sail through. Firmly (but smoothly) slide anything
+    // inside his body space out sideways — reads as glass skating off an
+    // invisible shell, and guarantees no clipping.
+    if (repel) {
+      const sep = this._v.copy(pos).sub(repel);
+      const dist = sep.length();
+      const minSep = ShardField.CORE_RADIUS + s.radius;
+      if (dist < minSep) {
+        if (dist < 1e-3) sep.set(1, 0, 0);
+        else sep.divideScalar(dist);
+        sep.z *= 0.3; // slide out sideways, not along the flight axis
+        sep.normalize();
+        const need = (minSep - dist) * (1 - Math.exp(-dt * 8));
+        s.pushOffset.addScaledVector(sep, need);
+        pos.addScaledVector(sep, need);
+        s.pushVelocity.addScaledVector(sep, need * 2); // keep it floating on
+      }
+    }
   }
 
   /** Reset collision drift when a shard recycles to the front of the field. */
