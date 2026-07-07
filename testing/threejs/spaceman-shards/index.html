@@ -37,5 +37,36 @@
 <body>
   <canvas id="scene"></canvas>
   <script type="module" src="./src/main.js"></script>
+
+  <audio id="bg-music" src="soundtrack.mp3" loop preload="auto"></audio>
+
+<script>
+  const music = document.getElementById('bg-music');
+  const targetVolume = 1;        // final volume after fade-in (0 to 1)
+  const fadeDuration = 500;     // fade-in time in ms
+  const fadeSteps = 30;          // how many increments
+  const stepTime = fadeDuration / fadeSteps;
+  const volumeIncrement = targetVolume / fadeSteps;
+
+  function startMusic() {
+    music.volume = 0;
+    music.play().then(() => {
+      let currentStep = 0;
+      const fadeIn = setInterval(() => {
+        currentStep++;
+        music.volume = Math.min(targetVolume, volumeIncrement * currentStep);
+        if (currentStep >= fadeSteps) clearInterval(fadeIn);
+      }, stepTime);
+    }).catch(err => {
+      console.log('Playback blocked until user interacts with the page:', err);
+    });
+  }
+
+  // Most browsers block autoplay with sound until the user interacts with the page.
+  // This starts music on the first click/tap/keypress anywhere on the page.
+  document.addEventListener('click', startMusic, { once: true });
+  document.addEventListener('keydown', startMusic, { once: true });
+</script>
+
 </body>
 </html>

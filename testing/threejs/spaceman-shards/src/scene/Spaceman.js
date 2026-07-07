@@ -35,6 +35,11 @@ export class Spaceman {
     this.ahead = ahead;
     this.inner = null; // set once the model arrives
 
+    // Base pose the sway oscillates around — tuned visually so the suit's
+    // front (visor, chest panel) faces the camera, head up, on a slight
+    // falling recline.
+    this.baseRotation = new THREE.Euler(0, -0.9, -1.1);
+
     // Rim lights: tight falloff keeps them personal to the suit; the layer
     // mask keeps them off the shards entirely.
     this.rimWhite = new THREE.PointLight(0xffffff, 40, 10, 2);
@@ -112,9 +117,14 @@ export class Spaceman {
     );
 
     if (this.inner) {
-      // Slow free-fall tumble: three incommensurate angular rates so the
-      // orientation never visibly repeats.
-      this.inner.rotation.set(t * 0.11, t * 0.16, t * 0.07);
+      // Weightless sway around a camera-facing base pose: three
+      // incommensurate oscillations keep him alive and drifting, but the
+      // amplitudes are bounded so his front never turns away from view.
+      this.inner.rotation.set(
+        this.baseRotation.x + Math.sin(t * 0.19) * 0.3,
+        this.baseRotation.y + Math.sin(t * 0.14 + 1.2) * 0.45,
+        this.baseRotation.z + Math.sin(t * 0.11 + 2.4) * 0.25
+      );
     }
 
     // Counter-orbiting rim lights sweep glancing highlights across the

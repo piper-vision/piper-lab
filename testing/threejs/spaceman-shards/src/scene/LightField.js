@@ -21,16 +21,23 @@ const BARS = [
   // Secondary white blade on a counter-rotating, steeper orbit.
   { size: [70, 4],  color: [4.6, 4.7, 4.9],   radius: 30, speed: -0.032, tilt: 1.15, phase: 2.1, roll: -0.04 },
   // Wide neutral wash.
-  { size: [80, 14], color: [3.0, 3.05, 3.1],  radius: 34, speed: 0.021,  tilt: 0.85, phase: 4.2, roll: 0.03 },
+  { size: [80, 14], color: [3.4, 3.45, 3.5],  radius: 34, speed: 0.021,  tilt: 0.85, phase: 4.2, roll: 0.03 },
   // Short intense sliver — sharp glints on bevels.
   { size: [46, 2.5], color: [8.0, 8.0, 8.2],  radius: 22, speed: 0.052,  tilt: 1.5,  phase: 1.2, roll: 0.07 },
   // Third white blade so at least two sweeps are always in view.
   { size: [85, 6],  color: [5.0, 5.1, 5.3],   radius: 28, speed: 0.027,  tilt: 2.3,  phase: 5.6, roll: -0.03 },
-  // Spectral panel: a rainbow-gradient emitter (R→G→B along its length) —
-  // shards that used to catch a cyan accent now catch a prism smear.
-  { size: [44, 24], color: [0.95, 0.95, 0.95], radius: 42, speed: 0.012, tilt: 0.7,  phase: 3.3, roll: 0.0, spectral: true },
-  // Very faint broad fill so unlit faces read as surfaces, not holes.
-  { size: [95, 50], color: [0.1, 0.11, 0.12], radius: 48, speed: 0.008,  tilt: 1.9,  phase: 5.1, roll: 0.0 },
+  // Fourth blade, staggered against the others' dark windows — the bar
+  // orbits are deliberately phased so some bright source always faces the
+  // field and the scene never drops into a fully dark beat.
+  { size: [95, 7],  color: [5.6, 5.7, 5.9],   radius: 29, speed: -0.019, tilt: 2.85, phase: 1.7, roll: 0.04 },
+  // Spectral panels: rainbow-gradient emitters (R→G→B along their length).
+  // Two on opposed orbits so a prism smear is almost always in view.
+  { size: [44, 24], color: [1.35, 1.35, 1.35], radius: 42, speed: 0.012, tilt: 0.7,  phase: 3.3, roll: 0.0, spectral: true },
+  { size: [34, 17], color: [1.1, 1.1, 1.1],    radius: 38, speed: -0.016, tilt: 1.4, phase: 0.6, roll: 0.02, spectral: true },
+  // Two broad fills on opposed orbits — one always faces the field, so
+  // faces read as dark glass at worst, never black holes.
+  { size: [95, 50], color: [0.22, 0.23, 0.25], radius: 48, speed: 0.008, tilt: 1.9,  phase: 5.1, roll: 0.0 },
+  { size: [95, 50], color: [0.2, 0.21, 0.23],  radius: 48, speed: -0.007, tilt: 0.9, phase: 2.2, roll: 0.0 },
 ];
 
 /**

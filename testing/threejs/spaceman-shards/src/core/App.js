@@ -25,7 +25,7 @@ export class App {
       powerPreference: 'high-performance',
     });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
+    this.renderer.toneMappingExposure = 1.32;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x000000);
@@ -67,6 +67,16 @@ export class App {
     this._lastNow = performance.now();
     this.time = 0;
 
+    // Auto-exposure: sample the rendered frame's mean luminance twice a
+    // second and glide toneMappingExposure toward a target brightness —
+    // dark light-orbit beats lift themselves, hot phases don't blow out.
+    this._exposeCanvas = document.createElement('canvas');
+    this._exposeCanvas.width = 32;
+    this._exposeCanvas.height = 18;
+    this._exposeCtx = this._exposeCanvas.getContext('2d', { willReadFrequently: true });
+    this._exposeTimer = 0;
+    this._exposureGoal = this.renderer.toneMappingExposure;
+
     window.addEventListener('resize', () => this.#resize());
     this.#resize();
   }
@@ -76,18 +86,23 @@ export class App {
   }
 
   #tick() {
-    // Hidden tab: rAF is throttled to a few Hz — freeze the simulation so
-    // time doesn't crawl and the DPR governor doesn't misread throttled
-    // frames as GPU load. Resumes seamlessly on return.
-    if (document.visibilityState === 'hidden') {
-      this._lastNow = performance.now();
-      return;
-    }
+    // Hidden tab: rAF is throttled to a few Hz. Freeze simulation time
+    // (dt = 0) so motion doesn't crawl and the DPR governor doesn't misread
+    // throttled frames as GPU load — but still render the static frame, so
+    // the page always has a presented frame. Resumes seamlessly on return.
+    const hidden = document.visibilityState === 'hidden';
 
     // Clamp dt so a background-tab pause doesn't lurch the animation.
     const now = performance.now();
-    const dt = Math.min((now - this._lastNow) / 1000, 0.05);
+    const dt = hidden ? 0 : Math.min((now - this._lastNow) / 1000, 0.05);
     this._lastNow = now;
+
+    this.step(dt);
+    if (!hidden) this.quality.update(dt);
+  }
+
+  /** Advance the simulation by dt and render one frame. */
+  step(dt) {
     this.time += dt;
     const t = this.time;
 
@@ -98,7 +113,38 @@ export class App {
     this.particles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.sparkles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.post.render(t);
-    this.quality.update(dt);
+    this.#autoExpose(dt);
+  }
+
+  /**
+   * Must run right after render (same task) — the WebGL back buffer is only
+   * readable before the browser presents it.
+   */
+  #autoExpose(dt) {
+    this._exposeTimer += dt;
+    if (this._exposeTimer >= 0.5) {
+      this._exposeTimer = 0;
+      const src = this.renderer.domElement;
+      if (src.width === 0 || src.height === 0) return; // not laid out yet
+      const ctx = this._exposeCtx;
+      ctx.drawImage(src, 0, 0, 32, 18);
+      const d = ctx.getImageData(0, 0, 32, 18).data;
+      let luma = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        luma += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      }
+      luma /= d.length / 4;
+
+      // Gentle square-root response, hard bounds so it can never runaway.
+      const TARGET = 115;
+      const ratio = Math.sqrt(TARGET / Math.max(luma, 8));
+      this._exposureGoal = THREE.MathUtils.clamp(
+        this.renderer.toneMappingExposure * ratio, 1.05, 2.9
+      );
+    }
+    // Slow cinematic adaptation, frame-rate independent.
+    this.renderer.toneMappingExposure +=
+      (this._exposureGoal - this.renderer.toneMappingExposure) * (1 - Math.exp(-dt * 0.9));
   }
 
   #applyDpr(dpr) {

@@ -70,12 +70,12 @@ export class PostFX {
 
     // High threshold: only genuinely hot highlights (HDR light reflections,
     // edge glints) bloom — the black field stays pure black.
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.65, 0.55, 0.85);
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.95, 0.65, 0.72);
     this.composer.addPass(this.bloomPass);
 
     // Diffraction starbursts on the hottest highlights only (post-bloom
     // HDR, threshold well above the bloom knee).
-    this.starburstPass = new StarburstPass({ threshold: 1.9, intensity: 1.0, fringe: 2.4 });
+    this.starburstPass = new StarburstPass({ threshold: 1.7, intensity: 1.15, fringe: 2.4 });
     this.composer.addPass(this.starburstPass);
 
     this.finalPass = new ShaderPass(FinalShader);
