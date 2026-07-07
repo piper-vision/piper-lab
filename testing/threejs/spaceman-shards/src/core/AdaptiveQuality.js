@@ -26,7 +26,8 @@ export class AdaptiveQuality {
     this.dpr = maxDpr;
     this._accum = 0;
     this._frames = 0;
-    this._calm = 0; // consecutive fast windows before stepping back up
+    this._calm = 0;     // consecutive fast windows before stepping back up
+    this._calmNeed = 3; // grows every time we shed — stops up/down cycling
 
     onChange(this.dpr);
   }
@@ -42,16 +43,20 @@ export class AdaptiveQuality {
 
     if (avgMs > 20) {
       // Missing 50fps — shed resolution now; if none left, escalate.
+      // Every shed raises the bar for stepping back up: a device that sits
+      // on the threshold would otherwise cycle up/down forever, and each
+      // step reallocates every render target (a visible hitch).
       this._calm = 0;
+      this._calmNeed = Math.min(this._calmNeed + 4, 30);
       if (this.dpr > this.minDpr) {
         this.#set(Math.max(this.minDpr, this.dpr - 0.25));
       } else {
         this.onPressure?.();
       }
-    } else if (avgMs < 14.5) {
-      // Comfortable headroom — step up only after 3 calm windows.
+    } else if (avgMs < 13) {
+      // Comfortable headroom — step up only after sustained calm.
       this._calm++;
-      if (this._calm >= 3) {
+      if (this._calm >= this._calmNeed) {
         this._calm = 0;
         if (this.dpr < this.maxDpr) {
           this.#set(Math.min(this.maxDpr, this.dpr + 0.25));

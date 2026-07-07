@@ -50,7 +50,10 @@ export class App {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
     this.rig = new CameraRig(this.camera);
 
-    this.lights = new LightField({ resolution: isMobile ? 256 : lowPower ? 512 : 1024 });
+    // Low-power: 256 keeps the per-capture PMREM re-filter cheap enough
+    // that capture frames don't spike above the frame budget (rhythmic
+    // judder); the soft-edged bars barely show the resolution loss.
+    this.lights = new LightField({ resolution: isMobile || lowPower ? 256 : 1024 });
     this.scene.environment = this.lights.texture;
 
     // Environment re-capture cadence: every Nth frame. Each capture also
@@ -99,10 +102,14 @@ export class App {
     // Auto-exposure: sample the rendered frame's mean luminance twice a
     // second and glide toneMappingExposure toward a target brightness —
     // dark light-orbit beats lift themselves, hot phases don't blow out.
+    // NOTE: no willReadFrequently — that would make this canvas CPU-backed
+    // and turn the drawImage below into a full GPU→CPU framebuffer
+    // readback (a periodic multi-ms stall on integrated GPUs). Accelerated,
+    // the copy stays on-GPU and only 32×18 pixels ever cross the bus.
     this._exposeCanvas = document.createElement('canvas');
     this._exposeCanvas.width = 32;
     this._exposeCanvas.height = 18;
-    this._exposeCtx = this._exposeCanvas.getContext('2d', { willReadFrequently: true });
+    this._exposeCtx = this._exposeCanvas.getContext('2d');
     this._exposeTimer = 0;
     this._exposureGoal = this.renderer.toneMappingExposure;
 
@@ -156,7 +163,7 @@ export class App {
    */
   #autoExpose(dt) {
     this._exposeTimer += dt;
-    if (this._exposeTimer >= 0.5) {
+    if (this._exposeTimer >= 1.0) {
       this._exposeTimer = 0;
       const src = this.renderer.domElement;
       if (src.width === 0 || src.height === 0) return; // not laid out yet
