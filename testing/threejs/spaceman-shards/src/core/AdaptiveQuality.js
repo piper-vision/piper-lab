@@ -11,11 +11,17 @@ export class AdaptiveQuality {
    * @param {number} opts.maxDpr    Upper bound (device pixel ratio, capped).
    * @param {number} opts.minDpr    Lower bound.
    * @param {(dpr: number) => void} opts.onChange Called when DPR changes.
+   * @param {() => void} [opts.onPressure] Called when frames are still slow
+   *   with DPR already at minimum — shed non-resolution quality next.
+   * @param {() => void} [opts.onRelax]  Called on sustained headroom with
+   *   DPR back at maximum — restore non-resolution quality.
    */
-  constructor({ maxDpr = 2, minDpr = 0.75, onChange }) {
+  constructor({ maxDpr = 2, minDpr = 0.75, onChange, onPressure, onRelax }) {
     this.maxDpr = maxDpr;
     this.minDpr = minDpr;
     this.onChange = onChange;
+    this.onPressure = onPressure;
+    this.onRelax = onRelax;
 
     this.dpr = maxDpr;
     this._accum = 0;
@@ -34,16 +40,24 @@ export class AdaptiveQuality {
     this._accum = 0;
     this._frames = 0;
 
-    if (avgMs > 20 && this.dpr > this.minDpr) {
-      // Missing 50fps — shed resolution now.
+    if (avgMs > 20) {
+      // Missing 50fps — shed resolution now; if none left, escalate.
       this._calm = 0;
-      this.#set(Math.max(this.minDpr, this.dpr - 0.25));
-    } else if (avgMs < 14.5 && this.dpr < this.maxDpr) {
-      // Comfortable headroom — but only step up after 3 calm windows.
+      if (this.dpr > this.minDpr) {
+        this.#set(Math.max(this.minDpr, this.dpr - 0.25));
+      } else {
+        this.onPressure?.();
+      }
+    } else if (avgMs < 14.5) {
+      // Comfortable headroom — step up only after 3 calm windows.
       this._calm++;
       if (this._calm >= 3) {
         this._calm = 0;
-        this.#set(Math.min(this.maxDpr, this.dpr + 0.25));
+        if (this.dpr < this.maxDpr) {
+          this.#set(Math.min(this.maxDpr, this.dpr + 0.25));
+        } else {
+          this.onRelax?.();
+        }
       }
     } else {
       this._calm = 0;

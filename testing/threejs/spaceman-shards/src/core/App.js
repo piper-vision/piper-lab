@@ -27,6 +27,19 @@ export class App {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.32;
 
+    // Quality profile. Integrated GPUs (Apple M-series, Intel/Iris, mobile
+    // parts) can't afford the full env-capture cadence, MSAA, or Retina
+    // DPR — detect them via the renderer string. `?quality=low|high`
+    // overrides for testing.
+    const gl = this.renderer.getContext();
+    const dbgInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    const gpu = dbgInfo ? String(gl.getParameter(dbgInfo.UNMASKED_RENDERER_WEBGL)) : '';
+    const forced = new URLSearchParams(window.location.search).get('quality');
+    const lowPower = forced === 'low' ? true
+      : forced === 'high' ? false
+      : isMobile || /apple|intel|iris|uhd|mali|adreno/i.test(gpu);
+    this.lowPower = lowPower;
+
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x000000);
     // Black fog: distant shards emerge from darkness instead of popping.
@@ -37,13 +50,21 @@ export class App {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
     this.rig = new CameraRig(this.camera);
 
-    this.lights = new LightField({ resolution: isMobile ? 256 : 1024 });
+    this.lights = new LightField({ resolution: isMobile ? 256 : lowPower ? 512 : 1024 });
     this.scene.environment = this.lights.texture;
+
+    // Environment re-capture cadence: every Nth frame. Each capture also
+    // triggers three's PMREM re-filter — the single most expensive step —
+    // so low-power devices start sparser, and the quality governor
+    // escalates/relaxes the interval when DPR alone isn't enough.
+    this._envIntervalBase = lowPower ? 3 : 2;
+    this._envInterval = this._envIntervalBase;
+    this._frameIndex = 0;
 
     // Counts scale with the deeper wrap tile (80 units of populated depth).
     this.shards = new ShardField({
-      heroCount: isMobile ? 44 : 64,
-      farCount: isMobile ? 150 : 300,
+      heroCount: isMobile ? 44 : lowPower ? 52 : 64,
+      farCount: isMobile ? 150 : lowPower ? 220 : 300,
     });
     this.scene.add(this.shards.group);
 
@@ -57,11 +78,19 @@ export class App {
     this.scene.add(this.spaceman.group);
 
     this.post = new PostFX(this.renderer, this.scene, this.camera, {
-      samples: isMobile ? 0 : 4,
+      samples: isMobile || lowPower ? 0 : 4, // FXAA still smooths edges
     });
     this.quality = new AdaptiveQuality({
-      maxDpr: Math.min(window.devicePixelRatio || 1, isMobile ? 1.75 : 2),
+      maxDpr: Math.min(window.devicePixelRatio || 1, isMobile || lowPower ? 1.5 : 2),
       onChange: (dpr) => this.#applyDpr(dpr),
+      // DPR exhausted and still slow → capture the env less often.
+      onPressure: () => {
+        this._envInterval = Math.min(this._envInterval + 1, 6);
+      },
+      // Sustained headroom at full DPR → restore capture rate.
+      onRelax: () => {
+        this._envInterval = Math.max(this._envIntervalBase, this._envInterval - 1);
+      },
     });
 
     this._lastNow = performance.now();
@@ -106,7 +135,12 @@ export class App {
     this.time += dt;
     const t = this.time;
 
-    this.lights.update(t, this.renderer); // move bars + re-capture env cube
+    // Bars are absolute-time driven, so skipped frames lose nothing.
+    // Frame 1 always captures so the scene never renders against an
+    // empty environment.
+    this._frameIndex++;
+    const capture = this._frameIndex === 1 || this._frameIndex % this._envInterval === 0;
+    this.lights.update(t, this.renderer, capture);
     this.rig.update(t, dt);               // camera first — the world wraps around it
     this.spaceman.update(t, this.camera);
     this.shards.update(t, this.camera.position.z);

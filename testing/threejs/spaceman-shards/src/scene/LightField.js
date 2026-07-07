@@ -168,10 +168,16 @@ export class LightField {
   }
 
   /**
-   * Advance bar orbits and re-capture the environment.
+   * Advance bar orbits and (optionally) re-capture the environment.
    * Absolute-time driven so motion is stable regardless of frame rate.
+   *
+   * @param {boolean} capture Re-render the cube map this frame. The capture
+   *   (and the PMREM re-filter three runs on every change) dominates the
+   *   frame budget on integrated GPUs — the bars move slowly, so skipping
+   *   frames is invisible.
    */
-  update(t, renderer) {
+  update(t, renderer, capture = true) {
+    if (!capture) return;
     for (const { pivot, mesh, cfg } of this.bars) {
       pivot.rotation.y = cfg.phase + t * cfg.speed;
       mesh.rotation.z = t * cfg.roll;                      // band angle slowly shears
