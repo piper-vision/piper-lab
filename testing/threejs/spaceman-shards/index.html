@@ -17,6 +17,14 @@
       height: 100%;
     }
   </style>
+  <script>
+    // Relative asset URLs need the directory form of the URL. Some servers
+    // serve this page at ".../spaceman-shards" (no slash) without
+    // redirecting — normalize before anything tries to load.
+    if (!location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+      location.replace(location.pathname + '/' + location.search + location.hash);
+    }
+  </script>
   <script type="importmap">
     {
       "imports": {
