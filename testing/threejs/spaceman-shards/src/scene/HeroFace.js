@@ -115,7 +115,7 @@ export class HeroFace {
     this.group.add(this.rimWhite, this.rimCyan);
 
     const draco = new DRACOLoader();
-    draco.setDecoderPath('vendor/three/examples/jsm/libs/draco/gltf/');
+    draco.setDecoderPath('/node_modules/three/examples/jsm/libs/draco/gltf/');
     const loader = new GLTFLoader();
     loader.setDRACOLoader(draco);
 
