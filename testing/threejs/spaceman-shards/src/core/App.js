@@ -6,7 +6,8 @@ import { ShardField } from '../scene/ShardField.js';
 import { LightField } from '../scene/LightField.js';
 import { Particles } from '../scene/Particles.js';
 import { Sparkles } from '../scene/Sparkles.js';
-import { Spaceman } from '../scene/Spaceman.js';
+import { HeroFace } from '../scene/HeroFace.js';
+import { Wordmark } from '../scene/Wordmark.js';
 
 /**
  * App — owns the renderer and wires the subsystems together:
@@ -77,8 +78,16 @@ export class App {
     this.sparkles = new Sparkles({ count: isMobile ? 40 : 70 });
     this.scene.add(this.sparkles.points);
 
-    this.spaceman = new Spaceman();
-    this.scene.add(this.spaceman.group);
+    this.head = new HeroFace();
+    // Parented to the camera: the head stays pinned to screen center
+    // through all camera drift and parallax.
+    this.scene.add(this.camera);
+    this.camera.add(this.head.group);
+    this._headWorld = new THREE.Vector3();
+
+    // Scrolling logotype, camera-locked a few units behind the head.
+    this.wordmark = new Wordmark();
+    this.camera.add(this.wordmark.mesh);
 
     this.post = new PostFX(this.renderer, this.scene, this.camera, {
       samples: isMobile || lowPower ? 0 : 4, // FXAA still smooths edges
@@ -155,9 +164,12 @@ export class App {
     const capture = this._frameIndex === 1 || this._frameIndex % this._envInterval === 0;
     this.lights.update(t, this.renderer, capture);
     this.rig.update(t, dt);               // camera first — the world wraps around it
-    this.spaceman.update(t, this.camera);
-    // Shards softly bounce off the spaceman's position.
-    this.shards.update(t, this.camera.position.z, dt, this.spaceman.group.position);
+    this.head.update(t, dt, this.rig.smoothed);
+    this.wordmark.update(dt);
+    // Shards softly bounce off the head's position (world space — the head
+    // itself lives in camera space).
+    this.head.group.getWorldPosition(this._headWorld);
+    this.shards.update(t, this.camera.position.z, dt, this._headWorld);
     this.particles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.sparkles.update(t, this.camera.position.z, this.renderer.getPixelRatio());
     this.post.render(t);
@@ -168,7 +180,7 @@ export class App {
     // Deterministic base goal from the light rig — brighter estimate,
     // lower exposure. Bounded, so a whiteout is impossible by construction.
     const estimate = this.lights.estimateVisibleLight(this.time);
-    let goal = 1.5 / Math.sqrt(estimate + 0.05);
+    let goal = 1.6 / Math.sqrt(estimate + 0.05);
 
     // Desktop refinement: every 2 s, read the actual frame brightness and
     // derive a trim factor. The trim is recomputed absolutely each read
@@ -202,7 +214,15 @@ export class App {
       goal *= this._lumaTrim;
     }
 
-    this._exposureGoal = THREE.MathUtils.clamp(goal, 1.05, 1.8);
+    this._exposureGoal = THREE.MathUtils.clamp(goal, 1.05, 2.2);
+
+    // First frame: snap straight to the goal. Starting low and gliding up
+    // reads as "the scene keeps getting brighter" in the opening seconds.
+    if (!this._exposureInit) {
+      this._exposureInit = true;
+      this.renderer.toneMappingExposure = this._exposureGoal;
+      return;
+    }
     // Slow cinematic adaptation, frame-rate independent.
     this.renderer.toneMappingExposure +=
       (this._exposureGoal - this.renderer.toneMappingExposure) * (1 - Math.exp(-dt * 0.9));

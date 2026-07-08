@@ -142,7 +142,7 @@ export class ShardField {
       roughness: 0.06,
       clearcoat: 1.0,
       clearcoatRoughness: 0.04,
-      envMapIntensity: 1.5,
+      envMapIntensity: 1.85,
       transparent: true,
       opacity: 0.92,
       // Push surfaces back a hair in depth so the coincident edge lines
@@ -159,8 +159,8 @@ export class ShardField {
     // Dissolve shards as the camera passes through them (alpha for the
     // transparent hero material, darken-to-black for the opaque far one)
     // and disperse env reflections into spectral fringes at grazing angles.
-    patchShardMaterial(this.material, 'alpha', 0.09);
-    patchShardMaterial(this.farMaterial, 'color', 0.09);
+    patchShardMaterial(this.material, 'alpha', 0.045);
+    patchShardMaterial(this.farMaterial, 'color', 0.045);
 
     // Shared geometry pool + matching edge geometries.
     const variants = Array.from({ length: VARIANT_COUNT }, () => makeShardGeometry(rng));
@@ -231,11 +231,19 @@ export class ShardField {
         s.pushVelocity.addScaledVector(sep, need * 2); // keep it floating on
       }
     }
+
+    // Speed limit: keeps every knock a dreamy float — a dead-center pass
+    // through the core could otherwise fling a shard across the field.
+    if (s.pushVelocity.lengthSq() > 6.25) s.pushVelocity.setLength(2.5);
   }
 
-  /** Reset collision drift when a shard recycles to the front of the field. */
+  /**
+   * Reset collision drift when a shard recycles through the wrap — the
+   * jump is negative in forward flight, positive in reverse, so test the
+   * magnitude.
+   */
   #resetPushOnWrap(s, wrappedZ) {
-    if (s.prevZ - wrappedZ > WRAP_DEPTH * 0.5) {
+    if (Math.abs(s.prevZ - wrappedZ) > WRAP_DEPTH * 0.5) {
       s.pushOffset.set(0, 0, 0);
       s.pushVelocity.set(0, 0, 0);
       s.pushSpin = 0;

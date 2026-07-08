@@ -65,8 +65,9 @@ export class CameraRig {
 
     // Base path: incommensurate sine frequencies so the drift never loops
     // perceptibly. Amplitudes are small — a float, not a flight.
-    // The accumulated flight distance carries the path forward along -Z.
-    const z = 14 - this.distance + Math.sin(t * 0.023) * 1.8;
+    // Reversed travel: the camera retreats along +Z while still facing -Z,
+    // so shards materialize near the viewer and recede into the fog.
+    const z = 14 + this.distance + Math.sin(t * 0.023) * 1.8;
     this.camera.position.set(
       Math.sin(t * 0.05) * 1.6 + this.smoothed.x * 1.5,
       Math.cos(t * 0.041) * 1.1 - this.smoothed.y * 1.0,

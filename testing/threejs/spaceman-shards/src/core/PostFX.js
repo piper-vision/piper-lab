@@ -61,6 +61,9 @@ export class PostFX {
    *   FXAA alone can fix. 0 disables (mobile).
    */
   constructor(renderer, scene, camera, { samples = 4 } = {}) {
+    // NOTE: no stencilBuffer — stencil + MSAA + HalfFloat forced a slow
+    // driver path (~10× frame cost). Layering is done with render order
+    // and a depth clear instead.
     const target = new THREE.WebGLRenderTarget(1, 1, {
       type: THREE.HalfFloatType,
       samples,
@@ -70,12 +73,12 @@ export class PostFX {
 
     // High threshold: only genuinely hot highlights (HDR light reflections,
     // edge glints) bloom — the black field stays pure black.
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.95, 0.65, 0.72);
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.48, 0.65, 0.85);
     this.composer.addPass(this.bloomPass);
 
     // Diffraction starbursts on the hottest highlights only (post-bloom
     // HDR, threshold well above the bloom knee).
-    this.starburstPass = new StarburstPass({ threshold: 1.7, intensity: 1.15, fringe: 2.4 });
+    this.starburstPass = new StarburstPass({ threshold: 1.7, intensity: 0.58, fringe: 1.2 });
     this.composer.addPass(this.starburstPass);
 
     this.finalPass = new ShaderPass(FinalShader);
