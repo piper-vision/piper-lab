@@ -68,7 +68,7 @@ onResize();
 
 const clock = new THREE.Clock();
 let time = 0;
-window.__state = () => ({ repair, target: scrollProgress() });
+window.__state = () => ({ repair, target: scrollProgress(), spin: orb.group.rotation.y });
 
 renderer.setAnimationLoop(() => {
   time += Math.min(clock.getDelta(), 0.05);
@@ -79,6 +79,7 @@ renderer.setAnimationLoop(() => {
   const eased = repair * repair * (3 - 2 * repair);
 
   orb.update(time, eased);
+  orb.group.rotation.y = time * CONFIG.orb.spinSpeed;
   dust.update(time);
 
   // slow drift + pointer parallax

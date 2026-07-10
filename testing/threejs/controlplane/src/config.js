@@ -20,6 +20,7 @@ export const CONFIG = {
 
   orb: {
     seed: 1337,
+    spinSpeed: 0.06,           // continuous slow rotation, radians/sec
     count: 1500,
     countMobile: 750,
     surfaceFraction: 0.68,     // rest are interior points
@@ -55,8 +56,8 @@ export const CONFIG = {
   },
 
   lines: {
-    alphaClean: 0.13,
-    alphaCorrupt: 0.24,
+    alphaClean: 0.24,
+    alphaCorrupt: 0.38,
     pulseAlpha: 0.85,
     pulseRateClean: 0.22,      // how often signals fire when repaired
     pulseRateCorrupt: 0.9,     // ...and while corrupted
