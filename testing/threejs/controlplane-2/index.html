@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>controlplane — clarity from complexity</title>
+  <style>
+    @font-face {
+      font-family: 'NewBlack';
+      src: url('./assets/NewBlackTypeface-Light.ttf') format('truetype');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root { --sans: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #04060c;
+      overscroll-behavior: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar { display: none; }
+    body { height: 520vh; }
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+    #scene canvas { display: block; }
+
+    nav {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 38px;
+      padding: 15px 34px;
+      background: #fff;
+      border-radius: 999px;
+    }
+    nav .mark { display: block; height: 24px; width: auto; }
+    nav a {
+      color: #0a0a0a;
+      text-decoration: none;
+      font-family: var(--sans);
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    nav a:hover { opacity: 0.6; }
+
+    h1 {
+      font-family: 'NewBlack', var(--sans);
+      font-weight: 300;
+      color: #fff;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    #hero {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #hero .anim {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      transform: translateY(-5vh);
+      text-align: center;
+    }
+    #hero .wordmark { display: block; height: 34px; width: auto; }
+    #hero h1 {
+      font-size: clamp(52px, 9vw, 148px);
+      line-height: 0.98;
+      letter-spacing: 0.01em;
+    }
+
+    #reveal {
+      position: fixed;
+      top: 50%;
+      right: 7vw;
+      transform: translateY(-50%);
+      z-index: 5;
+      width: min(40vw, 620px);
+      pointer-events: none;
+      opacity: 0;
+    }
+    #reveal h1 {
+      font-size: clamp(34px, 4.2vw, 78px);
+      line-height: 1.04;
+      text-align: left;
+    }
+    #reveal p {
+      font-family: var(--sans);
+      color: #e2eaf0;
+      font-size: clamp(15px, 1.15vw, 19px);
+      line-height: 1.55;
+      margin: 30px 0 0;
+      max-width: 32em;
+    }
+
+    @media (max-width: 820px) {
+      nav { gap: 18px; padding: 11px 20px; top: 16px; }
+      nav .mark { height: 18px; }
+      nav a { font-size: 12px; }
+      #hero .wordmark { height: 24px; }
+      #reveal {
+        top: auto;
+        bottom: 7vh;
+        left: 7vw;
+        right: 7vw;
+        width: auto;
+        transform: none;
+      }
+    }
+  </style>
+  <script>
+    // Relative asset URLs need the directory form of the URL. The server
+    // serves this page at ".../controlplane" (no slash) without
+    // redirecting — normalize before anything tries to load.
+    if (!location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+      location.replace(location.pathname + '/' + location.search + location.hash);
+    }
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+
+  <nav>
+    <svg class="mark" viewBox="0 0 49 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="controlplane">
+      <path d="M9.95864 28.9421H1.10648C0.709243 28.9421 0.340772 28.7353 0.143812 28.3988C-0.0531486 28.0623 -0.0476161 27.6497 0.159303 27.3185L16.7571 0.526069C16.9563 0.203488 17.3258 -0.0430024 17.7043 0.0062957C18.0916 0.0062957 18.4479 0.201345 18.6492 0.519639L23.3685 8.01831L21.4786 9.13394L17.712 3.14851L3.0617 26.7987H9.95864V28.9421Z" fill="#0a0a0a"/>
+      <path d="M47.8531 35.3333H5.80535C5.40589 35.3333 5.03632 35.1243 4.83935 34.7846C4.6435 34.447 4.65235 34.0323 4.86259 33.7001L25.8865 0.477441C26.287 -0.159147 27.3714 -0.159147 27.7731 0.477441L48.7969 33.7001C49.005 34.0323 49.0138 34.4449 48.8191 34.7846C48.6232 35.1243 48.2536 35.3333 47.8531 35.3333ZM7.78159 33.1899H45.8779L26.8292 3.09024L7.78159 33.1899Z" fill="#0a0a0a"/>
+    </svg>
+    <a href="#">Services</a>
+    <a href="#">Products</a>
+    <a href="#">Courses</a>
+    <a href="#">Resources</a>
+    <a href="#">About</a>
+  </nav>
+
+  <header id="hero">
+    <div class="anim">
+      <img class="wordmark" src="./assets/control-plane-logo.svg" alt="controlplane" />
+      <h1>Clarity from<br />complexity</h1>
+    </div>
+  </header>
+
+  <section id="reveal">
+    <div class="anim">
+      <h1>Clarity from<br />complexity</h1>
+      <p>Security that runs all the way through &mdash; not bolted on at the edge. Built by open source maintainers, trusted by the world's most exposed organisations.</p>
+    </div>
+  </section>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
