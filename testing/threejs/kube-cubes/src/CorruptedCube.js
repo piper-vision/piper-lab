@@ -18,31 +18,42 @@ const VERT = /* glsl */ `
 
   ${GLSL_COMMON}
 
+  // Smooth 3D value noise — the corruption should waver, not shatter.
+  float vnoise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float n000 = hash33(i + vec3(0.0, 0.0, 0.0)).x;
+    float n100 = hash33(i + vec3(1.0, 0.0, 0.0)).x;
+    float n010 = hash33(i + vec3(0.0, 1.0, 0.0)).x;
+    float n110 = hash33(i + vec3(1.0, 1.0, 0.0)).x;
+    float n001 = hash33(i + vec3(0.0, 0.0, 1.0)).x;
+    float n101 = hash33(i + vec3(1.0, 0.0, 1.0)).x;
+    float n011 = hash33(i + vec3(0.0, 1.0, 1.0)).x;
+    float n111 = hash33(i + vec3(1.0, 1.0, 1.0)).x;
+    return mix(
+      mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
+      mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y),
+      f.z
+    );
+  }
+
   void main() {
     vUv = uv;
     vNormalW = mat3(modelMatrix) * normal;
 
-    // Blocky, angular displacement: vertices are grouped into coarse cells
-    // that shift together, and offsets are snapped to steps so the damage
-    // reads as digital corruption rather than melting.
-    vec3 cell = floor((position / uSize + 0.5001) * 3.0) + uSeed * 91.7;
-    vec3 h1 = hash33(cell) - 0.5;
-    vec3 h2 = hash33(cell + floor(uTime * 6.0) * 0.113) - 0.5;
-    vec3 offs = mix(h1, h2, 0.35);
-    offs = floor(offs * 4.0) / 3.0;   // coarse steps keep the damage angular
-    vec3 pos = position + offs * uCorruption * uSize * DISPLACE;
+    // Gentle unstable swell: smooth animated noise pushes the surface in and
+    // out along its normal, with a slower secondary drift. The silhouette
+    // stays crisp and cube-like — damaged, not melted or shattered.
+    float swell = vnoise(position * (1.8 / uSize) + vec3(0.0, uTime * 0.7, 0.0) + uSeed * 7.0);
+    float drift = vnoise(position * (3.4 / uSize) - vec3(uTime * 0.4, 0.0, uTime * 0.3) + uSeed * 13.0);
+    vec3 pos = position
+      + normal * (swell - 0.5) * uSize * DISPLACE * uCorruption
+      + (vec3(drift) - 0.5) * uSize * DISPLACE * 0.45 * uCorruption;
 
-    // A slight time-varying shear keeps faces uneven but planar-ish.
-    pos.x += pos.y * uCorruption * 0.10 * sin(uTime * 1.7 + uSeed * 20.0);
-    pos.z += pos.y * uCorruption * 0.08 * cos(uTime * 1.3 + uSeed * 30.0);
-
-    // Slice glitch: horizontal bands of the cube shear sideways for a beat,
-    // like a datamoshed video frame.
-    float sliceId = floor((position.y / uSize + 0.5) * 7.0);
-    float hs = hash21(vec2(sliceId, floor(uTime * 5.0) + uSeed * 10.0));
-    float sliceOn = step(0.78, hs);
-    pos.x += sliceOn * (fract(hs * 7.0) - 0.5) * uSize * 0.38 * uCorruption;
-    pos.z += sliceOn * (fract(hs * 13.0) - 0.5) * uSize * 0.22 * uCorruption;
+    // A slight time-varying shear keeps the whole body subtly off-true.
+    pos.x += pos.y * uCorruption * 0.05 * sin(uTime * 1.7 + uSeed * 20.0);
+    pos.z += pos.y * uCorruption * 0.04 * cos(uTime * 1.3 + uSeed * 30.0);
 
     vec4 wp = modelMatrix * vec4(pos, 1.0);
     vWorldPos = wp.xyz;
@@ -86,8 +97,8 @@ export class CorruptedCube {
     this.basePos = new THREE.Vector3();
 
     const C = CONFIG;
-    // Extra segments give the vertex displacement something to chew on.
-    const geo = new THREE.BoxGeometry(C.cubeSize, C.cubeSize, C.cubeSize, 4, 4, 4);
+    // Extra segments give the smooth vertex displacement something to chew on.
+    const geo = new THREE.BoxGeometry(C.cubeSize, C.cubeSize, C.cubeSize, 8, 8, 8);
     this.material = new THREE.ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,

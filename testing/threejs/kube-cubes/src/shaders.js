@@ -9,6 +9,11 @@ export const GLSL_COMMON = /* glsl */ `
     p += dot(p, p + 45.32);
     return fract(p.x * p.y);
   }
+  vec2 hash22(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(vec2(p.x * p.y, p.x + p.y));
+  }
   vec3 hash33(vec3 p) {
     p = fract(p * vec3(0.1031, 0.1030, 0.0973));
     p += dot(p, p.yxz + 33.33);
@@ -66,13 +71,37 @@ export const GLSL_SURFACE = /* glsl */ `
     float band = step(0.965, fract(uv.y * 3.0 + time * 2.3 + seed));
     col += vec3(0.9, 0.10, 0.05) * band * corruption * 0.35;
 
-    // Digital static: coarse cells of noise re-rolled several times a second.
-    float staticN = hash21(floor(uv * 40.0) + floor(time * 14.0) * 0.71 + seed * 9.0);
-    col += vec3(1.0, 0.30, 0.16) * step(0.91, staticN) * staticN * corruption * 0.35;
+    // Damage detail is skipped entirely on healthy cubes (corruption == 0).
+    if (corruption > 0.001) {
+      // Glowing energy fractures: voronoi cell borders read as hot cracks
+      // spidering across the faces, each segment flickering independently.
+      vec2 cp = uv * 4.0 + seed * 31.0;
+      vec2 ci = floor(cp);
+      vec2 cf = fract(cp);
+      float f1 = 8.0, f2 = 8.0;
+      vec2 cell1 = vec2(0.0);
+      for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+          vec2 g = vec2(float(x), float(y));
+          vec2 o = hash22(ci + g);
+          vec2 r = g + o - cf;
+          float dd = dot(r, r);
+          if (dd < f1) { f2 = f1; f1 = dd; cell1 = ci + g; }
+          else if (dd < f2) { f2 = dd; }
+        }
+      }
+      float crack = 1.0 - smoothstep(0.0, 0.10, f2 - f1);
+      float segFlicker = 0.55 + 0.45 * hash21(cell1 + floor(time * 6.0));
+      col += vec3(1.0, 0.30, 0.14) * crack * corruption * segFlicker * 1.1;
 
-    // Rare white-hot flashes race across the edges of the damaged cube.
-    float flash = step(0.90, hash21(vec2(floor(time * 11.0), seed * 5.0)));
-    col += vec3(1.0, 0.75, 0.6) * edge * flash * corruption * 1.4;
+      // Sparse digital static, much quieter than the cracks.
+      float staticN = hash21(floor(uv * 40.0) + floor(time * 14.0) * 0.71 + seed * 9.0);
+      col += vec3(1.0, 0.30, 0.16) * step(0.94, staticN) * staticN * corruption * 0.22;
+
+      // Rare white-hot flashes race across the edges of the damaged cube.
+      float flash = step(0.90, hash21(vec2(floor(time * 11.0), seed * 5.0)));
+      col += vec3(1.0, 0.75, 0.6) * edge * flash * corruption * 1.4;
+    }
 
     // Red bleed from the currently corrupted cube onto neighbours,
     // strongest along their edges so it reads as reflected light.

@@ -62,9 +62,9 @@ export const CONFIG = {
   dof: { aperture: 0.0022, maxblur: 0.008, focusLerp: 2.5 },
 
   // --- corruption look ---
-  corruptDisplacement: 0.13,     // vertex displacement as fraction of cube size
-  corruptJitterPos: 0.05,        // whole-mesh positional jitter
-  corruptJitterRot: 0.02,        // whole-mesh rotational jitter (radians)
+  corruptDisplacement: 0.09,     // smooth swell amplitude as fraction of cube size
+  corruptJitterPos: 0.025,       // whole-mesh positional jitter
+  corruptJitterRot: 0.01,        // whole-mesh rotational jitter (radians)
   glowRadiusFalloff: 0.16,       // red light bleed onto neighbours
   glowStrength: 1.0,
 };
