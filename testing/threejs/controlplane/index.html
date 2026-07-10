@@ -22,6 +22,14 @@
     }
     #scene canvas { display: block; }
   </style>
+  <script>
+    // Relative asset URLs need the directory form of the URL. The server
+    // serves this page at ".../controlplane" (no slash) without
+    // redirecting — normalize before anything tries to load.
+    if (!location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+      location.replace(location.pathname + '/' + location.search + location.hash);
+    }
+  </script>
   <script type="importmap">
     {
       "imports": {
