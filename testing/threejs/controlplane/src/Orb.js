@@ -78,14 +78,14 @@ void main() {
   float c = 1.0 - lr;
 
   // flicker: hard random blinks + slow regional pulsing, corrupted only
-  float gate = fract(sin(aRand.x * 812.9898 + floor(uTime * 9.0) * 7.233) * 43758.5453);
-  float blink = step(1.0 - 0.30 * c, gate);
-  float pulse = (0.5 + 0.5 * sin(uTime * 1.4 + aRand.z * 6.2831 + position.x * 1.3)) * c * 0.5;
+  float gate = fract(sin(aRand.x * 812.9898 + floor(uTime * 5.0) * 7.233) * 43758.5453);
+  float blink = step(1.0 - 0.10 * c, gate);
+  float pulse = (0.5 + 0.5 * sin(uTime * 1.4 + aRand.z * 6.2831 + position.x * 1.3)) * c * 0.3;
   vFlicker = blink + pulse;
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   vDepth = -mv.z;
-  gl_PointSize = uSize * aRand.w * (1.0 + vFlicker * 0.45) * (uScale / -mv.z);
+  gl_PointSize = uSize * aRand.w * (1.0 + vFlicker * 0.25) * (uScale / -mv.z);
   gl_Position = projectionMatrix * mv;
 }
 `;
@@ -111,7 +111,7 @@ void main() {
   vec3 col = mix(unstable, uColorCalm, vRepair);
 
   float fog = smoothstep(uFog.y, uFog.x, vDepth);
-  float b = uBrightness * (0.6 + 0.4 * vRepair) + vFlicker * 0.7;
+  float b = uBrightness * (0.6 + 0.4 * vRepair) + vFlicker * 0.4;
   gl_FragColor = vec4(col * b, disc * fog);
 }
 `;
