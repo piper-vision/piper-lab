@@ -56,7 +56,7 @@ export const GLSL_SURFACE = /* glsl */ `
     // Corruption makes the data flicker.
     float flicker = 1.0 + corruption * (hash21(id + floor(time * 9.0)) - 0.5) * 2.2;
     vec3 dotCol = mix(vec3(0.55, 0.58, 0.62), vec3(1.0, 0.22, 0.12), corruption);
-    col += dotCol * dotMask * lit * (0.09 + 0.20 * h) * (0.35 + 0.65 * shade) * flicker;
+    col += dotCol * dotMask * lit * (0.18 + 0.32 * h) * (0.35 + 0.65 * shade) * flicker;
 
     // Thin soft grey edges (distance to face border in UV space).
     vec2 b = min(uv, 1.0 - uv);
@@ -64,6 +64,29 @@ export const GLSL_SURFACE = /* glsl */ `
     float edge = 1.0 - smoothstep(0.006, 0.032, m);
     vec3 edgeCol = mix(vec3(0.42, 0.44, 0.48), vec3(1.0, 0.16, 0.08), corruption);
     col += edgeCol * edge * (0.35 + 0.65 * shade) * (0.75 + hoverGlow * 0.9 + corruption * 1.7);
+
+    // Edge runners: small pulses of light endlessly circulating each face's
+    // border, phase/speed/direction hashed per face so the field twinkles
+    // asynchronously. A slow per-face swell makes faces take turns.
+    float perim;
+    if (b.x < b.y) {
+      perim = (uv.x < 0.5) ? 3.0 + (1.0 - uv.y) : 1.0 + uv.y;
+    } else {
+      perim = (uv.y < 0.5) ? uv.x : 2.0 + (1.0 - uv.x);
+    }
+    perim *= 0.25;
+    float faceId = n.x + 2.0 * n.y + 3.0 * n.z;
+    float ph = hash21(vec2(seed * 37.0, faceId));
+    float sp = 0.05 + 0.09 * hash21(vec2(faceId, seed * 11.0));
+    float dir = hash21(vec2(seed * 53.0, faceId + 9.0)) < 0.5 ? 1.0 : -1.0;
+    float head = fract(time * sp * dir + ph);
+    float runner = exp(-abs(fract(perim - head + 0.5) - 0.5) * 55.0);
+    head = fract(-time * sp * dir * 0.63 + ph * 1.7);
+    runner += 0.6 * exp(-abs(fract(perim - head + 0.5) - 0.5) * 75.0);
+    float duty = 0.3 + 0.7 * (0.5 + 0.5 * sin(time * 0.35 + ph * 6.28318));
+    float edgeMask = 1.0 - smoothstep(0.006, 0.05, m);
+    vec3 runnerCol = mix(vec3(0.62, 0.78, 1.0), vec3(1.0, 0.25, 0.12), corruption);
+    col += runnerCol * runner * edgeMask * duty * 1.6;
 
     // Corrupted body glow + occasional horizontal glitch band.
     float pulse = 0.72 + 0.28 * sin(time * 7.0);
@@ -107,7 +130,7 @@ export const GLSL_SURFACE = /* glsl */ `
     // strongest along their edges so it reads as reflected light.
     float dGlow = distance(worldPos, corruptPos);
     float rg = corruptGlow * exp(-dGlow * FALLOFF);
-    col += vec3(1.0, 0.10, 0.06) * rg * (0.08 + edge * 0.9);
+    col += vec3(1.0, 0.10, 0.06) * rg * (0.14 + edge * 1.1 + dotMask * lit * 0.5);
 
     // Blue light cast by travelling repair signals, brightest on edges and
     // the lit data dots so passing pulses visibly sweep across the field.

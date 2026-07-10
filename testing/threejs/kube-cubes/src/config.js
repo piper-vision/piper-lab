@@ -31,7 +31,7 @@ export const CONFIG = {
   camCenter: [0, -0.5, 0],
   camDistance: 26.5,
   camPitch: 0.65,        // radians above horizon (looking down across the field)
-  camYaw: 0.0,
+  camYaw: 0.6,           // angled view — the grid reads diagonally, not straight-on
   camFov: 60,
   parallaxYaw: 0.05,     // mouse parallax strength
   parallaxPitch: 0.035,
@@ -65,6 +65,6 @@ export const CONFIG = {
   corruptDisplacement: 0.09,     // smooth swell amplitude as fraction of cube size
   corruptJitterPos: 0.025,       // whole-mesh positional jitter
   corruptJitterRot: 0.01,        // whole-mesh rotational jitter (radians)
-  glowRadiusFalloff: 0.16,       // red light bleed onto neighbours
-  glowStrength: 1.0,
+  glowRadiusFalloff: 0.12,       // red light bleed onto neighbours (lower = wider reach)
+  glowStrength: 1.15,
 };
