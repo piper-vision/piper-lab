@@ -4,7 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { CONFIG } from './config.js';
 import { createOrb } from './Orb.js';
-import { createDust } from './Background.js';
+import { createDust, createBackdrop } from './Background.js';
 
 const container = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
@@ -18,6 +18,7 @@ renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
+scene.background = createBackdrop();
 const CAM = CONFIG.camera;
 const camera = new THREE.PerspectiveCamera(CAM.fov, innerWidth / innerHeight, 0.1, 120);
 camera.position.set(0, 0, CAM.distance);
@@ -54,6 +55,47 @@ const smooth01 = (a, b, x) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
+
+// --- noise reveals: crisp text dissolves in through a fractal noise mask.
+// The filter thresholds a static noise field against the mask alpha; we
+// sweep the threshold so the text appears blotch by blotch, undistorted.
+const noiseReveals = [];
+function startNoiseReveal(el, idx, delay, duration) {
+  noiseReveals.push({
+    el,
+    func: document.getElementById(`nrf-${idx}`),
+    filter: `url(#nr-${idx})`,
+    delay, duration,
+    start: null,
+    done: false,
+  });
+}
+function updateNoiseReveals(now) {
+  for (const r of noiseReveals) {
+    if (r.done) continue;
+    if (r.start === null) {
+      r.start = now + r.delay;
+      r.func.setAttribute('intercept', '-9');
+      r.el.style.filter = r.filter;
+      r.el.style.opacity = '1';
+    }
+    const t = (now - r.start) / r.duration;
+    if (t < 0) continue;
+    if (t >= 1) {
+      r.el.style.filter = 'none';
+      r.done = true;
+      continue;
+    }
+    const e = t * t * (3 - 2 * t);
+    // slope 7 mask: intercept -9 hides everything, +0.6 passes everything
+    r.func.setAttribute('intercept', String(-9 + 9.6 * e));
+  }
+}
+let revealBlockShown = false;
+document.fonts.ready.then(() => {
+  startNoiseReveal(document.querySelector('#hero .wordmark'), 0, 150, 1600);
+  startNoiseReveal(document.querySelector('#hero h1'), 1, 450, 2200);
+});
 
 // --- pointer parallax ---
 const pointer = { x: 0, y: 0 };
@@ -109,6 +151,11 @@ renderer.setAnimationLoop(() => {
   const inn = smooth01(P.uiFadeIn[0], P.uiFadeIn[1], eased);
   revealEl.style.opacity = inn;
   revealAnim.style.transform = `translateY(${(1 - inn) * 40}px)`;
+  if (!revealBlockShown && inn > 0.05) {
+    revealBlockShown = true;
+    startNoiseReveal(document.querySelector('#reveal h1'), 2, 0, 1200);
+  }
+  updateNoiseReveals(performance.now());
 
   dust.update(time);
 

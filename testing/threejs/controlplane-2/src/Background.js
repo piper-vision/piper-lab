@@ -2,6 +2,40 @@ import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { mulberry32 } from './rng.js';
 
+// Painted gradient backdrop: near-black with a broad teal glow rising from
+// the bottom (behind the network), a faint cool sheen top-left, and a
+// vignette holding the corners dark.
+export function createBackdrop() {
+  const size = 1024;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+
+  x.fillStyle = '#04070a';
+  x.fillRect(0, 0, size, size);
+
+  let g = x.createRadialGradient(size * 0.5, size * 1.15, size * 0.05, size * 0.5, size * 1.15, size * 0.95);
+  g.addColorStop(0, 'rgba(32,94,99,0.55)');
+  g.addColorStop(0.55, 'rgba(18,54,58,0.28)');
+  g.addColorStop(1, 'rgba(18,54,58,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, size, size);
+
+  g = x.createRadialGradient(size * 0.16, -size * 0.1, size * 0.05, size * 0.16, -size * 0.1, size * 0.8);
+  g.addColorStop(0, 'rgba(26,52,56,0.32)');
+  g.addColorStop(1, 'rgba(26,52,56,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, size, size);
+
+  g = x.createRadialGradient(size * 0.5, size * 0.5, size * 0.35, size * 0.5, size * 0.5, size * 0.78);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.5)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, size, size);
+
+  return new THREE.CanvasTexture(c);
+}
+
 // Faint cyan data particles drifting far behind the orb.
 export function createDust(isMobile) {
   const D = CONFIG.dust;
