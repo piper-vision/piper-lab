@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Repair</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #04060c;
+      overscroll-behavior: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar { display: none; }
+    body { height: 520vh; }
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+    #scene canvas { display: block; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
