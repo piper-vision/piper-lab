@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ControlPlane — Enterprise for OpenBao</title>
+  <style>
+/* ---------------------------------------------------------------------------
+   ControlPlane — Enterprise for OpenBao hero.
+   CSS is inlined so the page renders correctly even when opened as a bare
+   file (no server); keep edits here, style.css is gone.
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("./assets/NeueMontreal-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0b0b0a;
+  --panel: #040404;
+  --line: #262420;
+  --cream: #f2efe5;
+  --body: #cfcbc1;
+  --dim: #78766f;
+  --gutter: clamp(20px, 4vw, 78px);
+  --gap: 18px;
+  --nav-h: 78px;
+  --logos-h: 92px;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: "Neue Montreal", "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV ---------------------------------------------------------------- */
+
+.nav {
+  height: var(--nav-h);
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 var(--gutter);
+  color: var(--cream);
+  text-decoration: none;
+  border-right: 1px solid var(--line);
+}
+
+.brand-logo { height: 25px; width: auto; display: block; }
+
+.nav-links {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4.5vw, 90px);
+  padding: 0 clamp(24px, 3.5vw, 70px);
+}
+
+.nav-links a,
+.nav-contact {
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.92;
+  transition: opacity 0.2s;
+}
+.nav-links a:hover, .nav-contact:hover { opacity: 0.6; }
+
+.nav-contact {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--gutter);
+  border-left: 1px solid var(--line);
+}
+
+/* HERO PANELS -------------------------------------------------------- */
+/* One shared 1px frame + one 1px divider — never two borders side by side. */
+
+.hero {
+  position: relative;
+  height: calc(100vh - var(--nav-h) - var(--logos-h) - 14px);
+  margin: 0 var(--gutter) 14px;
+  display: grid;
+  grid-template-columns: 48fr 52fr;
+  border: 1px solid var(--line);
+  /* The nav's full-width bottom rule IS the top line — no second border. */
+  border-top: none;
+}
+
+.panel {
+  position: relative;
+  background: var(--panel);
+}
+
+.panel-copy { border-right: 1px solid var(--line); }
+
+.panel-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 4vw, 84px);
+}
+
+.panel-copy h1 {
+  /* Neue Montreal Regular — the brand face; no synthetic bolding. */
+  font-size: clamp(44px, 6vw, 112px);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin-bottom: clamp(28px, 4vh, 56px);
+}
+
+.panel-copy .lede {
+  font-size: clamp(17px, 1.35vw, 24px);
+  line-height: 1.45;
+  color: var(--cream);
+  margin-bottom: clamp(20px, 3vh, 36px);
+  max-width: 46ch;
+}
+
+.panel-copy .body {
+  font-size: clamp(15px, 1.2vw, 21px);
+  line-height: 1.55;
+  color: var(--body);
+  max-width: 46ch;
+}
+
+/* Halftone dot field along the bottom of the copy panel. */
+.copy-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.panel-scene { overflow: hidden; }
+
+#scene { position: absolute; inset: 0; }
+#scene canvas { display: block; width: 100%; height: 100%; }
+
+/* Blueprint corner markers ------------------------------------------- */
+
+.marker {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #34322c;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+}
+/* Markers sit on the hero frame itself: the divider is at 48% width. */
+.marker-gap-top    { left: 48%; top: 0; }
+.marker-gap-bottom { left: 48%; top: 100%; }
+.marker-left  { left: 0; top: 100%; }
+.marker-right { left: 100%; top: 100%; }
+
+/* LOGO STRIP ---------------------------------------------------------- */
+
+.logos {
+  height: var(--logos-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--gutter);
+  gap: 24px;
+}
+
+.logo-item {
+  color: var(--dim);
+  opacity: 0.75;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.logo-stack {
+  font-size: 11px;
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.logo-script {
+  font-family: "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive;
+  font-style: italic;
+  font-size: 21px;
+}
+
+.logo-bold { font-weight: 700; letter-spacing: 0.01em; }
+
+/* RESPONSIVE ----------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  html, body { overflow: auto; }
+  .nav-links { display: none; }
+  .hero {
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(70vh, 1fr);
+  }
+  .panel-copy { padding: 40px 26px; border-right: none; border-bottom: 1px solid var(--line); }
+  .marker { display: none; }
+  .logos { flex-wrap: wrap; height: auto; padding: 20px var(--gutter); row-gap: 10px; }
+}
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#" aria-label="ControlPlane">
+      <svg class="brand-logo" width="167" height="27" viewBox="0 0 167 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M18.0392 0.369864C18.3193 -0.123288 19.0198 -0.123288 19.2999 0.369864L33.7937 25.8901C34.0738 26.3833 33.7235 27 33.1634 27H4.17573C3.61563 26.9999 3.26535 26.3832 3.54541 25.8901L5.54113 22.3768H22.7847C23.3449 22.3768 23.6951 21.7601 23.415 21.2669L14.7928 6.08458L18.0392 0.369864ZM11.1264 1.84881C11.4065 1.35593 12.1069 1.35602 12.3871 1.84881L14.7928 6.08458L5.54113 22.3768H0.728825C0.168807 22.3767 -0.181499 21.76 0.0985017 21.2669L11.1264 1.84881Z" fill="#F5F1EB"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M48.9638 12.8321C48.245 12.047 47.3133 11.6544 46.1686 11.6544C45.3035 11.6544 44.6013 11.9472 44.0623 12.5327C43.5232 13.1182 43.2537 13.8767 43.2537 14.8082C43.2537 15.7663 43.5232 16.5381 44.0623 17.1236C44.6013 17.7091 45.3035 18.0019 46.1686 18.0019C47.4464 18.0019 48.4048 17.5827 49.0437 16.7444L50.6609 18.0817C50.1817 18.7737 49.5495 19.306 48.7641 19.6785C47.9788 20.0511 47.0671 20.2374 46.0289 20.2374C44.9773 20.2374 44.0423 20.0112 43.2237 19.5588C42.4051 19.1063 41.7696 18.4709 41.317 17.6526C40.8644 16.8342 40.6382 15.8927 40.6382 14.8282C40.6382 13.7503 40.8678 12.7988 41.327 11.9738C41.7862 11.1488 42.4251 10.51 43.2437 10.0576C44.0623 9.60517 45.004 9.37895 46.0688 9.37895C47.0405 9.37895 47.9089 9.54861 48.6743 9.88794C49.4396 10.2273 50.0619 10.7096 50.5411 11.3351L48.9638 12.8321ZM57.549 9.37895C58.6537 9.37895 59.6287 9.60517 60.4739 10.0576C61.3191 10.51 61.978 11.1454 62.4505 11.9638C62.923 12.7822 63.1593 13.7237 63.1593 14.7882C63.1593 15.8661 62.923 16.8175 62.4505 17.6426C61.978 18.4676 61.3191 19.1063 60.4739 19.5588C59.6287 20.0112 58.6537 20.2374 57.549 20.2374C56.4309 20.2374 55.4459 20.0112 54.5941 19.5588C53.7422 19.1063 53.08 18.4676 52.6075 17.6426C52.135 16.8175 51.8987 15.8661 51.8987 14.7882C51.8987 13.7237 52.135 12.7822 52.6075 11.9638C53.08 11.1454 53.7422 10.51 54.5941 10.0576C55.4459 9.60517 56.4309 9.37895 57.549 9.37895ZM57.549 11.5946C56.6439 11.5946 55.9118 11.894 55.3528 12.4928C54.7937 13.0916 54.5142 13.8701 54.5142 14.8282C54.5142 15.7863 54.7937 16.5647 55.3528 17.1635C55.9118 17.7623 56.6439 18.0618 57.549 18.0618C58.4275 18.0618 59.1462 17.7623 59.7053 17.1635C60.2643 16.5647 60.5438 15.7863 60.5438 14.8282C60.5438 13.8701 60.2643 13.0916 59.7053 12.4928C59.1462 11.894 58.4275 11.5946 57.549 11.5946ZM71.8443 9.35899C73.0688 9.35899 74.0339 9.72825 74.7393 10.4668C75.4448 11.2053 75.7975 12.2067 75.7975 13.4708V20.1376H73.182V14.2293C73.182 13.4841 72.969 12.8953 72.5431 12.4628C72.1172 12.0304 71.5382 11.8141 70.8061 11.8141C69.9409 11.8274 69.2588 12.1202 68.7596 12.6924C68.2605 13.2646 68.0109 13.9965 68.0109 14.888V20.1376H65.4154V9.45879H68.0109V11.4548C68.743 10.0842 70.0208 9.3856 71.8443 9.35899ZM84.9616 19.4789C84.1098 19.9979 83.218 20.2574 82.2863 20.2574C81.3679 20.2574 80.6158 19.9879 80.0302 19.449C79.4445 18.9101 79.1517 18.115 79.1517 17.0637V11.7942H77.6543L77.6343 9.89792H79.1517V6.96373H81.7272V9.89792H84.782V11.7942H81.7272V16.6046C81.7272 17.097 81.8204 17.4463 82.0068 17.6526C82.1931 17.8588 82.4726 17.9619 82.8453 17.9619C83.2446 17.9619 83.7504 17.8156 84.3627 17.5228L84.9616 19.4789ZM89.5936 11.5147C89.953 10.8228 90.4422 10.2938 91.0611 9.92786C91.6801 9.56192 92.4021 9.3723 93.2274 9.35899V11.874C92.1226 11.8075 91.2408 12.0636 90.5819 12.6425C89.9231 13.2213 89.5936 14.0031 89.5936 14.9878V20.1376H86.9981V9.45879H89.5936V11.5147ZM99.7162 9.37895C100.821 9.37895 101.796 9.60517 102.641 10.0576C103.486 10.51 104.145 11.1454 104.618 11.9638C105.09 12.7822 105.326 13.7237 105.326 14.7882C105.326 15.8661 105.09 16.8175 104.618 17.6426C104.145 18.4676 103.486 19.1063 102.641 19.5588C101.796 20.0112 100.821 20.2374 99.7162 20.2374C98.5981 20.2374 97.6131 20.0112 96.7613 19.5588C95.9094 19.1063 95.2472 18.4676 94.7747 17.6426C94.3022 16.8175 94.0659 15.8661 94.0659 14.7882C94.0659 13.7237 94.3022 12.7822 94.7747 11.9638C95.2472 11.1454 95.9094 10.51 96.7613 10.0576C97.6131 9.60517 98.5981 9.37895 99.7162 9.37895ZM99.7162 11.5946C98.8111 11.5946 98.079 11.894 97.52 12.4928C96.9609 13.0916 96.6814 13.8701 96.6814 14.8282C96.6814 15.7863 96.9609 16.5647 97.52 17.1635C98.079 17.7623 98.8111 18.0618 99.7162 18.0618C100.595 18.0618 101.313 17.7623 101.872 17.1635C102.431 16.5647 102.711 15.7863 102.711 14.8282C102.711 13.8701 102.431 13.0916 101.872 12.4928C101.313 11.894 100.595 11.5946 99.7162 11.5946ZM107.682 5.32697H110.278V20.1376H107.682V5.32697ZM119.682 9.51867C120.667 9.51867 121.545 9.74489 122.317 10.1973C123.089 10.6498 123.688 11.2818 124.114 12.0936C124.54 12.9053 124.753 13.8368 124.753 14.888C124.753 15.926 124.543 16.8475 124.124 17.6526C123.705 18.4576 123.112 19.0831 122.347 19.5288C121.582 19.9746 120.707 20.1975 119.722 20.1975C118.83 20.1975 118.045 20.0112 117.366 19.6386C116.687 19.266 116.154 18.7338 115.768 18.0418V24.01H113.912V9.57855H115.768V11.6744C116.154 10.9824 116.684 10.4502 117.356 10.0776C118.028 9.70497 118.803 9.51867 119.682 9.51867ZM119.322 18.5807C120.001 18.5807 120.61 18.421 121.149 18.1017C121.688 17.7823 122.107 17.3365 122.407 16.7643C122.706 16.1921 122.856 15.5467 122.856 14.8282C122.856 14.1229 122.703 13.4842 122.397 12.912C122.091 12.3397 121.672 11.894 121.139 11.5746C120.607 11.2552 120.001 11.0955 119.322 11.0955C118.643 11.0955 118.035 11.2552 117.495 11.5746C116.956 11.894 116.534 12.3397 116.228 12.912C115.922 13.4842 115.768 14.1229 115.768 14.8282C115.768 15.56 115.922 16.2088 116.228 16.7743C116.534 17.3398 116.956 17.7823 117.495 18.1017C118.035 18.421 118.643 18.5807 119.322 18.5807ZM127.448 5.32697H129.305V20.1376H127.448V5.32697ZM139.488 20.1376V18.6606C138.702 19.6985 137.471 20.2175 135.794 20.2175C135.062 20.2175 134.42 20.0778 133.867 19.7983C133.315 19.5189 132.889 19.133 132.589 18.6406C132.29 18.1482 132.14 17.596 132.14 16.9839C132.14 16.0391 132.49 15.2906 133.188 14.7383C133.887 14.1861 134.862 13.9033 136.113 13.89H139.468V13.391C139.468 12.6458 139.238 12.0703 138.779 11.6644C138.319 11.2586 137.651 11.0556 136.772 11.0556C135.707 11.0556 134.623 11.4349 133.518 12.1934L132.739 10.9159C133.498 10.4235 134.2 10.0676 134.846 9.84802C135.491 9.62845 136.26 9.51867 137.152 9.51867C138.469 9.51867 139.487 9.84136 140.206 10.4868C140.925 11.1321 141.291 12.0337 141.304 13.1914L141.324 20.1376H139.488ZM136.173 18.6805C137.038 18.6805 137.774 18.4709 138.379 18.0518C138.985 17.6326 139.348 17.077 139.468 16.3851V15.3272H136.373C135.534 15.3272 134.912 15.4536 134.506 15.7064C134.1 15.9593 133.897 16.3585 133.897 16.904C133.897 17.4496 134.103 17.8821 134.516 18.2015C134.929 18.5208 135.481 18.6805 136.173 18.6805ZM150.508 9.51867C151.746 9.51867 152.718 9.88128 153.423 10.6065C154.129 11.3317 154.482 12.3331 154.482 13.6106V20.1376H152.625V14.1096C152.625 13.218 152.375 12.5227 151.876 12.0237C151.377 11.5247 150.688 11.2752 149.81 11.2752C148.865 11.2885 148.096 11.5912 147.504 12.1834C146.911 12.7756 146.575 13.544 146.495 14.4888V20.1376H144.639V9.57855H146.495V11.8141C147.201 10.3104 148.539 9.54529 150.508 9.51867ZM162.029 9.51867C163.666 9.51867 164.904 10.001 165.742 10.9658C166.581 11.9306 167 13.2712 167 14.9878C167 15.254 166.993 15.4536 166.98 15.5867H158.634C158.781 16.5315 159.177 17.2833 159.822 17.8422C160.468 18.4011 161.263 18.6805 162.208 18.6805C162.834 18.6805 163.416 18.5674 163.955 18.3412C164.494 18.115 164.964 17.7956 165.363 17.3831L166.381 18.441C165.862 18.9999 165.236 19.4324 164.504 19.7384C163.772 20.0445 162.96 20.1975 162.069 20.1975C161.03 20.1975 160.109 19.9746 159.303 19.5288C158.498 19.0831 157.872 18.4543 157.427 17.6426C156.981 16.8309 156.758 15.906 156.758 14.8681C156.758 13.8301 156.981 12.9086 157.427 12.1036C157.872 11.2985 158.495 10.6664 159.293 10.2073C160.092 9.74821 161.004 9.51867 162.029 9.51867ZM165.323 14.1495C165.27 13.1914 164.95 12.4362 164.365 11.884C163.779 11.3317 163.007 11.0556 162.049 11.0556C161.117 11.0556 160.342 11.3351 159.723 11.894C159.104 12.4529 158.734 13.2047 158.614 14.1495H165.323Z" fill="#F5F1EB"/>
+      </svg>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#">Services</a>
+      <a href="#">Products</a>
+      <a href="#">Courses</a>
+      <a href="#">Resources</a>
+      <a href="#">About</a>
+    </nav>
+    <a class="nav-contact" href="#">Contact Us</a>
+  </header>
+
+  <main class="hero">
+    <section class="panel panel-copy">
+      <h1>Enterprise<br />for&nbsp;OpenBao</h1>
+      <p class="lede">The open source Vault alternative, backed by its #1&nbsp;contributor</p>
+      <p class="body">
+        Our core team created Vault at HashiCorp, operationalised it at
+        GitLab, and have deployed it at the biggest tier 1 banks in the
+        world.
+      </p>
+      <img class="copy-dots" src="./assets/dots.svg" alt="" aria-hidden="true" />
+    </section>
+
+    <section class="panel panel-scene">
+      <div id="scene"></div>
+    </section>
+
+    <span class="marker marker-gap-top" aria-hidden="true"></span>
+    <span class="marker marker-gap-bottom" aria-hidden="true"></span>
+    <span class="marker marker-left" aria-hidden="true"></span>
+    <span class="marker marker-right" aria-hidden="true"></span>
+  </main>
+
+  <footer class="logos" aria-label="Trusted by">
+    <span class="logo-item logo-stack">The Linux<br />Foundation</span>
+    <span class="logo-item logo-script">News UK</span>
+    <span class="logo-item logo-bold">Domino&rsquo;s</span>
+    <span class="logo-item">&#x25A7; Protocol Labs</span>
+    <span class="logo-item logo-script">News UK</span>
+    <span class="logo-item logo-stack">UK Research<br />and Innovation</span>
+  </footer>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
