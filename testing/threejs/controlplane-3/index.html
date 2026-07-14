@@ -4,6 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ControlPlane — Enterprise for OpenBao</title>
+  <script>
+    // If served at a directory URL without the trailing slash (e.g.
+    // /controlplane-3), relative asset paths would resolve against the
+    // PARENT directory and 404. Normalise before anything else loads.
+    (function () {
+      var p = location.pathname;
+      if (!p.endsWith('/') && p.split('/').pop().indexOf('.') === -1) {
+        history.replaceState(null, '', p + '/' + location.search + location.hash);
+      }
+    })();
+  </script>
   <style>
 /* ---------------------------------------------------------------------------
    ControlPlane — Enterprise for OpenBao hero.
