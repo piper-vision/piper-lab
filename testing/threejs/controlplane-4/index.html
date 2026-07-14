@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ThreeJS extruded triangle with lighting</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+    html { background: #E7D8CE; }
+    body { background: #E7D8CE; }
+    /* Tall scroll track drives the triangle descent; canvas stays pinned. */
+    #scroll { height: 400vh; width: 100%; }
+    /* Pin the canvas behind the page and let wheel events pass through to the
+       document so scrolling drives the triangle. touch-action:none on the canvas
+       keeps drag-to-rotate working without hijacking page scroll. */
+    #root { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+    #scroll { position: relative; z-index: 1; pointer-events: none; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="scroll"></div>
+<script type="module" src="scene.js"></script>
+</body>
+</html>
