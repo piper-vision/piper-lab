@@ -9,12 +9,25 @@
     #scene { position: fixed; inset: 0; }
     canvas { display: block; }
   </style>
+  <script>
+    // lab.piper.vision serves this page at an extensionless URL with no
+    // trailing slash, which makes ./src and ./vendor resolve one level up.
+    // Injecting <base> pins relative URLs (incl. the import map) to this page.
+    (function () {
+      var p = location.pathname;
+      if (!/\.[a-z0-9]+$/i.test(p) && p.charAt(p.length - 1) !== '/') {
+        document.write('<base href="' + p + '/">');
+      }
+    })();
+  </script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.js" } }
   </script>
 </head>
 <body>
   <div id="scene"></div>
-  <script type="module" src="./src/main.js"></script>
+  <!-- inline import (not a static src) so the preload scanner can't fetch it
+       before the <base> fix above takes effect -->
+  <script type="module">import './src/main.js';</script>
 </body>
 </html>
