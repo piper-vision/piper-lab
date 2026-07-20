@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order from Complexity</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow-x: hidden; }
+  body.scrollable { height: 400vh; }          /* scroll runway when useScrollTrigger = true */
+  #scene { position: fixed; inset: 0; }
+  #scene canvas { display: block; }
+  #hint {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    color: #888; font: 11px/1 monospace; letter-spacing: 0.3em;
+    text-transform: uppercase; pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="hint">scroll</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+// --- dev preview only: uncomment to orbit/frame the composition -------------
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// If true: scroll position drives chaos -> order (scrubbing, reversible).
+// If false: page stays 100vh and the resolve plays once after a timed delay.
+const useScrollTrigger = true;
+
+// ---------------------------------------------------------------------------
+// CONFIG — all art-direction knobs live here
+// ---------------------------------------------------------------------------
+const CONFIG = {
+  seed: 7,                                  // change for a different chaos scatter
+  colors: {
+    background: 0x000000,
+    fill:       0x050505,                   // flat near-black faces
+    line:       0xffffff,                   // wireframe edges
+  },
+  triangle: {
+    side: 3.6,                              // tessellation cell size (world units)
+    thickness: 0.34,                        // extrusion depth of each slab
+    gap: 0.045,                             // fraction of side left as seam between tiles
+  },
+  order: {
+    rows: 5,                                // big triangle = rows^2 small triangles (5 -> 25)
+    y: 0,                                   // assembly plane height
+  },
+  chaos: {
+    spread: { x: 13, y: 5, z: 7 },          // scatter volume half-extents
+    minScale: 0.7,                          // scale variety in chaos (order is uniform 1.0)
+    maxScale: 1.45,
+    driftAmp: 0.45,                         // idle positional wander
+    driftSpeed: 0.45,
+    rotSpeed: 0.35,                         // idle tumble rate (rad/s, max)
+    gentleReturn: 0.45,                     // 0 = full chaos on scroll-back, 1 = stays ordered
+  },
+  transition: {
+    duration: 2.0,                          // seconds per shape
+    staggerMs: 75,                          // per-shape cascade offset
+    timedDelayMs: 2500,                     // wait before resolving (timed mode only)
+    damp: 6,                                // temporal smoothing rate
+  },
+  camera: {
+    fov: 38,
+    position: [0, 12, 26],                  // slight downward angle
+    lookAt: [0, -1.2, 0],
+  },
+  fog: { enabled: true, near: 28, far: 58 },// subtle depth fade against black
+  pulses: {                                 // light lines along the seams, once assembled
+    enabled: true,
+    interval: 0.7,                          // seconds between spawns
+    speed: 5.5,                             // units/sec along the path (slow-medium)
+    steps: [10, 16],                        // path length in lattice edges [min, max]
+    trail: 22,                              // glowing tail length (world units)
+    intensity: 2.4,                         // HDR brightness (drives bloom)
+    maxConcurrent: 10,
+  },
+  bloom: { strength: 0.65, radius: 0.08, threshold: 1.0 }, // >1 = only HDR pulses bloom
+};
+
+// ---------------------------------------------------------------------------
+// Seeded RNG so the chaos scatter is stable and art-directable
+// ---------------------------------------------------------------------------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(CONFIG.seed);
+const randRange = (min, max) => min + rand() * (max - min);
+
+// ---------------------------------------------------------------------------
+// Renderer / scene / camera
+// ---------------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(CONFIG.colors.background, 1);
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+if (CONFIG.fog.enabled) {
+  scene.fog = new THREE.Fog(CONFIG.colors.background, CONFIG.fog.near, CONFIG.fog.far);
+}
+
+const camera = new THREE.PerspectiveCamera(
+  CONFIG.camera.fov, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(...CONFIG.camera.position);
+camera.lookAt(...CONFIG.camera.lookAt);
+
+// --- dev preview only ---
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.target.set(...CONFIG.camera.lookAt);
+// controls.update();
+
+// post-processing: bloom makes the HDR pulse lines glow (and gives the plain
+// white edges a faint halo, matching the reference)
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+composer.setSize(window.innerWidth, window.innerHeight);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  CONFIG.bloom.strength, CONFIG.bloom.radius, CONFIG.bloom.threshold));
+composer.addPass(new OutputPass());
+
+// ---------------------------------------------------------------------------
+// The one geometry: a thin extruded equilateral triangle, lying flat
+// (apex pointing -z, thickness along y, centered on its centroid)
+// ---------------------------------------------------------------------------
+const fillMaterial = new THREE.MeshBasicMaterial({
+  color: CONFIG.colors.fill,
+  polygonOffset: true,        // push faces back so edge lines never z-fight
+  polygonOffsetFactor: 1,
+  polygonOffsetUnits: 1,
+});
+
+const geoSide = CONFIG.triangle.side * (1 - CONFIG.triangle.gap); // seam between tiles
+const circumR = geoSide / Math.sqrt(3);
+const triShape = new THREE.Shape();
+for (let i = 0; i < 3; i++) {
+  const a = Math.PI / 2 + (i / 3) * Math.PI * 2;   // apex at 2D +y
+  const x = Math.cos(a) * circumR, y = Math.sin(a) * circumR;
+  i === 0 ? triShape.moveTo(x, y) : triShape.lineTo(x, y);
+}
+triShape.closePath();
+
+const triGeometry = new THREE.ExtrudeGeometry(triShape, {
+  depth: CONFIG.triangle.thickness, bevelEnabled: false,
+});
+triGeometry.rotateX(-Math.PI / 2);                        // lie flat: 2D +y -> world -z
+triGeometry.translate(0, -CONFIG.triangle.thickness / 2, 0);
+const triEdges = new THREE.EdgesGeometry(triGeometry, 12);
+
+function makeShape(lineOpacity) {
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(triGeometry, fillMaterial));
+  group.add(new THREE.LineSegments(
+    triEdges,
+    new THREE.LineBasicMaterial({
+      color: CONFIG.colors.line, transparent: true, opacity: lineOpacity,
+    })
+  ));
+  return group;
+}
+
+// ---------------------------------------------------------------------------
+// Order state: tessellate one large triangle out of rows^2 small ones.
+// Row r (from the apex) holds r+1 upward tiles and r downward (180°) tiles.
+// ---------------------------------------------------------------------------
+const K = CONFIG.order.rows;
+const N = K * K;
+const s = CONFIG.triangle.side;
+const h = s * Math.sqrt(3) / 2;             // small-triangle row height
+const bigH = K * h;
+const apexZ = -(2 / 3) * bigH;              // centroid of the BIG triangle at origin
+
+const flipQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+const orderSlots = [];                       // { pos, quat } per tile
+for (let r = 0; r < K; r++) {
+  for (let j = 0; j <= r; j++) {             // upward-pointing tiles
+    orderSlots.push({
+      pos: new THREE.Vector3((j - r / 2) * s, CONFIG.order.y, apexZ + (r + 2 / 3) * h),
+      quat: new THREE.Quaternion(),
+    });
+  }
+  for (let j = 0; j < r; j++) {              // downward-pointing tiles between them
+    orderSlots.push({
+      pos: new THREE.Vector3((j - r / 2 + 0.5) * s, CONFIG.order.y, apexZ + (r + 1 / 3) * h),
+      quat: flipQuat.clone(),
+    });
+  }
+}
+
+// stagger order is shuffled so the cascade reads organically, not row-by-row
+const staggerRank = [...Array(N).keys()];
+for (let i = N - 1; i > 0; i--) {
+  const j = Math.floor(rand() * (i + 1));
+  [staggerRank[i], staggerRank[j]] = [staggerRank[j], staggerRank[i]];
+}
+
+// ---------------------------------------------------------------------------
+// Build the field: precomputed chaos + order poses per tile
+// ---------------------------------------------------------------------------
+const shapes = [];
+for (let i = 0; i < N; i++) {
+  const sp = CONFIG.chaos.spread;
+  const chaosPos = new THREE.Vector3(
+    randRange(-sp.x, sp.x), randRange(-sp.y, sp.y), randRange(-sp.z, sp.z));
+
+  const shape = {
+    group: makeShape(randRange(0.55, 0.9)),
+    chaosPos,                                            // original scatter slot
+    chaosPosGentle: chaosPos.clone().lerp(               // softer slot after first resolve
+      orderSlots[i].pos, CONFIG.chaos.gentleReturn),
+    orderPos: orderSlots[i].pos,
+    orderQuat: orderSlots[i].quat,                       // upright or 180° (downward tile)
+    chaosScale: randRange(CONFIG.chaos.minScale, CONFIG.chaos.maxScale),
+    chaosEuler: new THREE.Euler(
+      rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2),
+    rotVel: new THREE.Vector3(
+      randRange(-1, 1), randRange(-1, 1), randRange(-1, 1))
+      .multiplyScalar(CONFIG.chaos.rotSpeed),
+    driftPhase: new THREE.Vector3(
+      rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2),
+    driftFreq: new THREE.Vector3(
+      randRange(0.5, 1), randRange(0.5, 1), randRange(0.5, 1))
+      .multiplyScalar(CONFIG.chaos.driftSpeed),
+    stagger: staggerRank[i] / Math.max(1, N - 1),        // 0..1 cascade position
+    progress: 0,                                         // smoothed chaos->order value
+  };
+  shape.group.scale.setScalar(shape.chaosScale);
+  shape.group.position.copy(chaosPos);
+  scene.add(shape.group);
+  shapes.push(shape);
+}
+
+// ---------------------------------------------------------------------------
+// Light pulses: random walks along the seam graph of the tessellation.
+// Lattice vertex (r, j): r = 0..K rows from the apex, j = 0..r across.
+// ---------------------------------------------------------------------------
+const pulseY = CONFIG.order.y + CONFIG.triangle.thickness / 2 + 0.03;
+const vertexPos = (r, j) =>
+  new THREE.Vector3((j - r / 2) * s, pulseY, apexZ + r * h);
+
+function neighbors(r, j) {
+  const out = [];
+  if (j > 0) out.push([r, j - 1]);
+  if (j < r) out.push([r, j + 1]);
+  if (r > 0 && j > 0) out.push([r - 1, j - 1]);
+  if (r > 0 && j < r) out.push([r - 1, j]);
+  if (r < K) out.push([r + 1, j], [r + 1, j + 1]);
+  return out;
+}
+const edgeKey = (a, b) => {
+  const ka = a[0] * 100 + a[1], kb = b[0] * 100 + b[1];
+  return ka < kb ? ka + ':' + kb : kb + ':' + ka;
+};
+
+function buildPulsePath() {
+  const [minSteps, maxSteps] = CONFIG.pulses.steps;
+  const steps = minSteps + Math.floor(Math.random() * (maxSteps - minSteps + 1));
+  let r = Math.floor(Math.random() * (K + 1));
+  let cur = [r, Math.floor(Math.random() * (r + 1))];
+  let prev = null;
+  const used = new Set();
+  const pts = [vertexPos(...cur)];
+  for (let i = 0; i < steps; i++) {
+    let pool = neighbors(...cur).filter(n => !(prev && n[0] === prev[0] && n[1] === prev[1]));
+    const fresh = pool.filter(n => !used.has(edgeKey(cur, n)));
+    if (fresh.length) pool = fresh;
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    used.add(edgeKey(cur, next));
+    pts.push(vertexPos(...next));
+    prev = cur; cur = next;
+  }
+  return pts;
+}
+
+const SAMPLE_STEP = 0.15;   // resolution of the vertex-color gradient
+const pulses = [];
+
+function spawnPulse() {
+  const pts = buildPulsePath();
+  // resample the polyline at fixed spacing so colors fade smoothly along it
+  const positions = [], arc = [];
+  let total = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const segLen = a.distanceTo(b);
+    const n = Math.max(2, Math.ceil(segLen / SAMPLE_STEP));
+    for (let k = (i === 0 ? 0 : 1); k <= n; k++) {
+      const p = a.clone().lerp(b, k / n);
+      positions.push(p.x, p.y, p.z);
+      arc.push(total + segLen * (k / n));
+    }
+    total += segLen;
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color',
+    new THREE.Float32BufferAttribute(new Float32Array(positions.length), 3));
+  const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,   // black vertices = invisible
+    transparent: true,
+    depthWrite: false,
+  }));
+  scene.add(line);
+  pulses.push({ line, arc, total, head: 0, fade: 0 });
+}
+
+function updatePulses(dt, assembled) {
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i];
+    p.head += CONFIG.pulses.speed * dt;
+    p.fade += ((assembled ? 1 : 0) - p.fade) * Math.min(1, 4 * dt);
+    const colors = p.line.geometry.attributes.color;
+    for (let v = 0; v < p.arc.length; v++) {
+      const u = p.head - p.arc[v];   // distance behind the moving head
+      let c = 0;
+      if (u >= 0 && u <= CONFIG.pulses.trail) {
+        const falloff = 1 - u / CONFIG.pulses.trail;      // tail fades out
+        c = falloff * CONFIG.pulses.intensity * p.fade;
+      }
+      colors.setXYZ(v, c, c, c);
+    }
+    colors.needsUpdate = true;
+    if (p.head > p.total + CONFIG.pulses.trail || (!assembled && p.fade < 0.01)) {
+      scene.remove(p.line);
+      p.line.geometry.dispose();
+      p.line.material.dispose();
+      pulses.splice(i, 1);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Chaos -> order driver: T in [0,1], from scroll or from a timed delay
+// ---------------------------------------------------------------------------
+const hint = document.getElementById('hint');
+let T = 0;
+let everResolved = 0;   // eases toward 1 once fully ordered; enables gentle return
+
+if (useScrollTrigger) {
+  document.body.classList.add('scrollable');
+} else {
+  hint.style.display = 'none';
+}
+
+// stagger window as a fraction of one shape's duration — T sweeps 0..1 across
+// ALL windows, so each shape resolves over `duration` seconds within it
+const staggerSpan =
+  (CONFIG.transition.staggerMs * (N - 1)) / 1000 / CONFIG.transition.duration;
+
+function updateT(elapsed) {
+  if (useScrollTrigger) {
+    const runway = document.body.scrollHeight - window.innerHeight;
+    T = runway > 0 ? THREE.MathUtils.clamp(window.scrollY / runway, 0, 1) : 1;
+  } else {
+    const t0 = CONFIG.transition.timedDelayMs / 1000;
+    const total = CONFIG.transition.duration * (1 + staggerSpan);
+    T = THREE.MathUtils.clamp((elapsed - t0) / total, 0, 1);
+  }
+  hint.style.opacity = T > 0.05 ? 0 : 1;
+}
+
+const easeInOutCubic = x =>
+  x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+// ---------------------------------------------------------------------------
+// Render loop — everything lerps between the two precomputed pose arrays
+// ---------------------------------------------------------------------------
+const clock = new THREE.Clock();
+const _qChaos = new THREE.Quaternion();
+const _pos = new THREE.Vector3();
+let spawnTimer = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  updateT(t);
+  if (T >= 0.995) everResolved = Math.min(1, everResolved + dt);
+
+  const damp = 1 - Math.exp(-CONFIG.transition.damp * dt);
+
+  for (const sh of shapes) {
+    // per-shape staggered window inside the global sweep, then eased + smoothed
+    const local = THREE.MathUtils.clamp(
+      T * (1 + staggerSpan) - sh.stagger * staggerSpan, 0, 1);
+    sh.progress += (easeInOutCubic(local) - sh.progress) * damp;
+    const p = sh.progress;
+
+    // position: chaos slot (gentler after first resolve) -> tessellation slot + idle drift
+    _pos.lerpVectors(sh.chaosPos, sh.chaosPosGentle, everResolved).lerp(sh.orderPos, p);
+    const amp = CONFIG.chaos.driftAmp * (1 - p);
+    _pos.x += Math.sin(t * sh.driftFreq.x + sh.driftPhase.x) * amp;
+    _pos.y += Math.sin(t * sh.driftFreq.y + sh.driftPhase.y) * amp;
+    _pos.z += Math.sin(t * sh.driftFreq.z + sh.driftPhase.z) * amp;
+    sh.group.position.copy(_pos);
+
+    // rotation: tumbling chaos euler -> tile orientation (upright / flipped)
+    const tumble = dt * (1 - p);
+    sh.chaosEuler.x += sh.rotVel.x * tumble;
+    sh.chaosEuler.y += sh.rotVel.y * tumble;
+    sh.chaosEuler.z += sh.rotVel.z * tumble;
+    _qChaos.setFromEuler(sh.chaosEuler);
+    sh.group.quaternion.slerpQuaternions(_qChaos, sh.orderQuat, p);
+
+    // scale: chaotic variety -> uniform 1.0 so the tiles tessellate exactly
+    sh.group.scale.setScalar(THREE.MathUtils.lerp(sh.chaosScale, 1, p));
+  }
+
+  // light lines run only while the big triangle is assembled
+  const assembled = T >= 0.98 && everResolved > 0.3;
+  if (CONFIG.pulses.enabled) {
+    spawnTimer += dt;
+    if (assembled && spawnTimer >= CONFIG.pulses.interval
+        && pulses.length < CONFIG.pulses.maxConcurrent) {
+      spawnTimer = 0;
+      spawnPulse();
+    }
+    if (!assembled) spawnTimer = CONFIG.pulses.interval; // fire promptly on re-assembly
+    updatePulses(dt, assembled);
+  }
+
+  // controls?.update();
+  composer.render();
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
