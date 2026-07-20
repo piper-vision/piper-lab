@@ -5,21 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Order from Complexity</title>
 <style>
-  html, body { margin: 0; padding: 0; background: #000; overflow-x: hidden; }
-  body.scrollable { height: 400vh; }          /* scroll runway when useScrollTrigger = true */
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
   #scene { position: fixed; inset: 0; }
   #scene canvas { display: block; }
-  #hint {
-    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-    color: #888; font: 11px/1 monospace; letter-spacing: 0.3em;
-    text-transform: uppercase; pointer-events: none;
-    transition: opacity 0.6s ease;
-  }
 </style>
 </head>
 <body>
 <div id="scene"></div>
-<div id="hint">scroll</div>
 
 <script type="importmap">
 {
@@ -38,10 +30,6 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 // --- dev preview only: uncomment to orbit/frame the composition -------------
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-// If true: scroll position drives chaos -> order (scrubbing, reversible).
-// If false: page stays 100vh and the resolve plays once after a timed delay.
-const useScrollTrigger = true;
 
 // ---------------------------------------------------------------------------
 // CONFIG — all art-direction knobs live here
@@ -69,12 +57,16 @@ const CONFIG = {
     driftAmp: 0.45,                         // idle positional wander
     driftSpeed: 0.45,
     rotSpeed: 0.35,                         // idle tumble rate (rad/s, max)
-    gentleReturn: 0.45,                     // 0 = full chaos on scroll-back, 1 = stays ordered
+    gentleReturn: 0,                        // 0 = reverse returns exactly to the start scatter
+  },
+  cycle: {                                  // automated loop — no user interaction
+    chaosHold: 2,                           // seconds at the scattered start
+    formDuration: 3,                        // seconds to assemble the big triangle
+    orderHold: 10,                          // seconds assembled (light lines run)
+    reverseDuration: 3,                     // seconds back to the start scatter
   },
   transition: {
-    duration: 2.0,                          // seconds per shape
-    staggerMs: 75,                          // per-shape cascade offset
-    timedDelayMs: 2500,                     // wait before resolving (timed mode only)
+    staggerMs: 75,                          // per-shape cascade offset within the sweep
     damp: 6,                                // temporal smoothing rate
   },
   camera: {
@@ -135,7 +127,11 @@ camera.lookAt(...CONFIG.camera.lookAt);
 
 // post-processing: bloom makes the HDR pulse lines glow (and gives the plain
 // white edges a faint halo, matching the reference)
-const composer = new EffectComposer(renderer);
+// MSAA target: the composer's offscreen buffer gets no antialiasing from the
+// renderer, so without samples the 1px lines go jagged/beaded on diagonals
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(
+  window.innerWidth, window.innerHeight,
+  { type: THREE.HalfFloatType, samples: 8 }));
 composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 composer.setSize(window.innerWidth, window.innerHeight);
 composer.addPass(new RenderPass(scene, camera));
@@ -334,7 +330,8 @@ function updatePulses(dt, assembled) {
   for (let i = pulses.length - 1; i >= 0; i--) {
     const p = pulses[i];
     p.head += CONFIG.pulses.speed * dt;
-    p.fade += ((assembled ? 1 : 0) - p.fade) * Math.min(1, 4 * dt);
+    // fade in gently during the hold, but vanish fast when the tiles break apart
+    p.fade += ((assembled ? 1 : 0) - p.fade) * Math.min(1, (assembled ? 4 : 12) * dt);
     const colors = p.line.geometry.attributes.color;
     for (let v = 0; v < p.arc.length; v++) {
       const u = p.head - p.arc[v];   // distance behind the moving head
@@ -358,31 +355,26 @@ function updatePulses(dt, assembled) {
 // ---------------------------------------------------------------------------
 // Chaos -> order driver: T in [0,1], from scroll or from a timed delay
 // ---------------------------------------------------------------------------
-const hint = document.getElementById('hint');
 let T = 0;
-let everResolved = 0;   // eases toward 1 once fully ordered; enables gentle return
+let everResolved = 0;   // eases toward 1 once fully ordered; drives gentleReturn blend
 
-if (useScrollTrigger) {
-  document.body.classList.add('scrollable');
-} else {
-  hint.style.display = 'none';
-}
-
-// stagger window as a fraction of one shape's duration — T sweeps 0..1 across
-// ALL windows, so each shape resolves over `duration` seconds within it
+// stagger window as a fraction of the formation sweep — T sweeps 0..1 across
+// ALL windows, so each shape resolves within its slice of formDuration
 const staggerSpan =
-  (CONFIG.transition.staggerMs * (N - 1)) / 1000 / CONFIG.transition.duration;
+  (CONFIG.transition.staggerMs * (N - 1)) / 1000 / CONFIG.cycle.formDuration;
+
+const cycleTotal = CONFIG.cycle.chaosHold + CONFIG.cycle.formDuration
+  + CONFIG.cycle.orderHold + CONFIG.cycle.reverseDuration;
 
 function updateT(elapsed) {
-  if (useScrollTrigger) {
-    const runway = document.body.scrollHeight - window.innerHeight;
-    T = runway > 0 ? THREE.MathUtils.clamp(window.scrollY / runway, 0, 1) : 1;
-  } else {
-    const t0 = CONFIG.transition.timedDelayMs / 1000;
-    const total = CONFIG.transition.duration * (1 + staggerSpan);
-    T = THREE.MathUtils.clamp((elapsed - t0) / total, 0, 1);
-  }
-  hint.style.opacity = T > 0.05 ? 0 : 1;
+  const c = CONFIG.cycle;
+  let t = elapsed % cycleTotal;
+  if (t < c.chaosHold)    { T = 0; return; }
+  t -= c.chaosHold;
+  if (t < c.formDuration) { T = t / c.formDuration; return; }
+  t -= c.formDuration;
+  if (t < c.orderHold)    { T = 1; return; }
+  T = 1 - (t - c.orderHold) / c.reverseDuration;
 }
 
 const easeInOutCubic = x =>
@@ -434,7 +426,7 @@ function animate() {
   }
 
   // light lines run only while the big triangle is assembled
-  const assembled = T >= 0.98 && everResolved > 0.3;
+  const assembled = T >= 0.999 && everResolved > 0.3;
   if (CONFIG.pulses.enabled) {
     spawnTimer += dt;
     if (assembled && spawnTimer >= CONFIG.pulses.interval
