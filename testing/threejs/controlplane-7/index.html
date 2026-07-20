@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Particle Stream</title>
+  <!-- inline favicon: no /favicon.ico request, so no 404 on the server -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cg%20fill='%235fe9e4'%3E%3Ccircle%20cx='16'%20cy='4'%20r='2.4'/%3E%3Ccircle%20cx='13'%20cy='11'%20r='2'/%3E%3Ccircle%20cx='18'%20cy='17'%20r='2.4'/%3E%3Ccircle%20cx='14'%20cy='24'%20r='2'/%3E%3Ccircle%20cx='17'%20cy='29'%20r='2.4'/%3E%3C/g%3E%3C/svg%3E" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    #scene { position: fixed; inset: 0; }
+    canvas { display: block; }
+  </style>
+  <script>
+    // lab.piper.vision serves this page at an extensionless URL with no
+    // trailing slash, which makes ./src and ./vendor resolve one level up.
+    // Injecting <base> pins relative URLs (incl. the import map) to this page.
+    (function () {
+      var p = location.pathname;
+      if (!/\.[a-z0-9]+$/i.test(p) && p.charAt(p.length - 1) !== '/') {
+        document.write('<base href="' + p + '/">');
+      }
+    })();
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+  <!-- inline import (not a static src) so the preload scanner can't fetch it
+       before the <base> fix above takes effect -->
+  <script type="module">import './src/main.js';</script>
+</body>
+</html>
