@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/fonts.css">
+  <style>
+    body{margin:0;background:#ececed}
+    a{color:#333;text-decoration:none}
+    a:hover{text-decoration:none}
+  </style>
+</helmet>
+<div style="background:#ececed;font-family:'Neue Montreal',sans-serif;color:#333;width:100%;min-height:100vh;box-sizing:border-box">
+  <div style="position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;gap:14px;background:#191919;padding:9px 16px;flex-wrap:wrap">
+    <span style="font:700 12px/1 'Neue Montreal';letter-spacing:.06em;color:#fff;text-transform:uppercase">Audiomovers · Wireframes</span>
+    <div style="display:flex;gap:5px">
+      <sc-for list="{{ pageTabs }}" as="tab" hint-placeholder-count="2">
+        <button onClick="{{ tab.onClick }}" style="{{ tab.style }}">{{ tab.label }}</button>
+      </sc-for>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:5px;align-items:center">
+      <span style="font:500 11px/1 'Neue Montreal';color:#7e7e7e;letter-spacing:.08em">VIEW</span>
+      <button onClick="{{ setDesktop }}" style="{{ vpDesktopStyle }}">Desktop</button>
+      <button onClick="{{ setMobile }}" style="{{ vpMobileStyle }}">Mobile</button>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;box-sizing:border-box;padding:60px 0 16px">
+    <iframe src="{{ previewSrc }}" style="width:{{ pvW }};max-width:96vw;height:{{ pvH }};border:1px solid #d0d0d0;background:#fff;display:block;box-shadow:0 10px 34px rgba(0,0,0,.10)" title="Interactive prototype"></iframe>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1512,&quot;height&quot;:950},&quot;previewMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;},&quot;showMobile&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;}}">
+class Component extends DCLogic {
+  state = { page: 'home', vp: 'desktop' };
+  componentDidUpdate(prevProps) {
+    if (prevProps && prevProps.previewMode !== this.props.previewMode && this.props.previewMode === false) {
+      window.location.href = encodeURIComponent('AM Wireframe V1.dc.html');
+    }
+  }
+  renderVals() {
+    const tabBase = 'font:500 12px "Neue Montreal",sans-serif;padding:6px 14px;border-radius:5px;cursor:pointer;display:inline-block;';
+    const tabOn = tabBase + 'background:#fff;color:#141414;border:1px solid #fff;';
+    const tabOff = tabBase + 'background:transparent;color:#dedede;border:1px solid #555;';
+    const q = '?annot=0&tags=0';
+    return {
+      pageTabs: [
+        { label: 'Home', onClick: () => this.setState({ page: 'home' }), style: this.state.page === 'home' ? tabOn : tabOff },
+        { label: 'LISTENTO', onClick: () => this.setState({ page: 'listento' }), style: this.state.page === 'listento' ? tabOn : tabOff },
+        { label: 'LISTENTO Pricing', onClick: () => this.setState({ page: 'pricing' }), style: this.state.page === 'pricing' ? tabOn : tabOff },
+        { label: 'OMNIBUS 3', onClick: () => this.setState({ page: 'omnibus' }), style: this.state.page === 'omnibus' ? tabOn : tabOff },
+        { label: 'Downloads', onClick: () => this.setState({ page: 'downloads' }), style: this.state.page === 'downloads' ? tabOn : tabOff },
+        { label: 'DL: OMNIBUS', onClick: () => this.setState({ page: 'dlomnibus' }), style: this.state.page === 'dlomnibus' ? tabOn : tabOff },
+        { label: 'DL: LISTENTO', onClick: () => this.setState({ page: 'dllistento' }), style: this.state.page === 'dllistento' ? tabOn : tabOff },
+        { label: 'S: Business', onClick: () => this.setState({ page: 'business' }), style: this.state.page === 'business' ? tabOn : tabOff },
+        { label: 'S: Education', onClick: () => this.setState({ page: 'education' }), style: this.state.page === 'education' ? tabOn : tabOff },
+        { label: 'S: Students', onClick: () => this.setState({ page: 'students' }), style: this.state.page === 'students' ? tabOn : tabOff },
+        { label: 'I: Music', onClick: () => this.setState({ page: 'music' }), style: this.state.page === 'music' ? tabOn : tabOff },
+        { label: 'News', onClick: () => this.setState({ page: 'news' }), style: this.state.page === 'news' ? tabOn : tabOff },
+        { label: 'Article', onClick: () => this.setState({ page: 'article' }), style: this.state.page === 'article' ? tabOn : tabOff },
+        { label: 'Podcast', onClick: () => this.setState({ page: 'podcast' }), style: this.state.page === 'podcast' ? tabOn : tabOff },
+        { label: 'Press', onClick: () => this.setState({ page: 'press' }), style: this.state.page === 'press' ? tabOn : tabOff },
+        { label: 'Press release', onClick: () => this.setState({ page: 'pressarticle' }), style: this.state.page === 'pressarticle' ? tabOn : tabOff },
+        { label: 'Search', onClick: () => this.setState({ page: 'search' }), style: this.state.page === 'search' ? tabOn : tabOff },
+        { label: 'About', onClick: () => this.setState({ page: 'about' }), style: this.state.page === 'about' ? tabOn : tabOff },
+        { label: 'Legal', onClick: () => this.setState({ page: 'legal' }), style: this.state.page === 'legal' ? tabOn : tabOff },
+        { label: 'Support', onClick: () => this.setState({ page: 'support' }), style: this.state.page === 'support' ? tabOn : tabOff },
+        { label: 'Checkout', onClick: () => this.setState({ page: 'checkout' }), style: this.state.page === 'checkout' ? tabOn : tabOff },
+        { label: 'Order complete', onClick: () => this.setState({ page: 'complete' }), style: this.state.page === 'complete' ? tabOn : tabOff },
+      ],
+      canvasBtnStyle: tabOff,
+      protoBtnStyle: tabOn,
+      setDesktop: () => this.setState({ vp: 'desktop' }),
+      setMobile: () => this.setState({ vp: 'mobile' }),
+      vpDesktopStyle: this.state.vp === 'desktop' ? tabOn : tabOff,
+      vpMobileStyle: this.state.vp === 'mobile' ? tabOn : tabOff,
+      previewSrc: (this.state.page === 'listento' ? 'relume-listento.html' : this.state.page === 'pricing' ? 'relume-pricing-listento.html' : this.state.page === 'omnibus' ? 'relume-omnibus.html' : this.state.page === 'downloads' ? 'relume-downloads.html' : this.state.page === 'dlomnibus' ? 'relume-download-omnibus.html' : this.state.page === 'dllistento' ? 'relume-download-listento.html' : this.state.page === 'business' ? 'relume-sectors-business.html' : this.state.page === 'education' ? 'relume-sectors-education.html' : this.state.page === 'students' ? 'relume-sectors-students.html' : this.state.page === 'music' ? 'relume-industry-music.html' : this.state.page === 'news' ? 'relume-news.html' : this.state.page === 'article' ? 'relume-article.html' : this.state.page === 'podcast' ? 'relume-podcast.html' : this.state.page === 'press' ? 'relume-press.html' : this.state.page === 'pressarticle' ? 'relume-press-article.html' : this.state.page === 'search' ? 'relume-search.html' : this.state.page === 'about' ? 'relume-about.html' : this.state.page === 'legal' ? 'relume-legal.html' : this.state.page === 'support' ? 'relume-support.html' : this.state.page === 'checkout' ? 'relume-checkout-listento.html' : this.state.page === 'complete' ? 'relume-order-complete.html' : 'relume-home.html') + q,
+      pvW: this.state.vp === 'desktop' ? '1440px' : '390px',
+      pvH: this.state.vp === 'desktop' ? '810px' : '844px',
+    };
+  }
+}
+</script>
+</body>
+</html>

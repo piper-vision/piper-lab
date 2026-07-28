@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audiomovers — Legal (Terms) — Relume wireframe</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss-cdn@3.4.10/tailwindcss.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    container: { center: true },
+    extend: {
+      colors: {
+        'scheme-border': '#dcdcdc', 'scheme-text': '#141414', 'scheme-background': '#fff', 'scheme-foreground': '#fff',
+        'neutral-darkest': '#141414', neutral: { DEFAULT: '#5f5f5f', lightest: '#efefef' },
+      },
+      borderRadius: { button: '0', card: '0', badge: '0', image: '0' },
+      fontSize: {
+        h1: ['56px', { lineHeight: '1.06', fontWeight: '700', letterSpacing: '-0.02em' }], h2: ['44px', { lineHeight: '1.1', letterSpacing: '-0.01em' }],
+        h3: ['40px', { lineHeight: '1.1', letterSpacing: '-0.01em' }], h4: ['30px', { lineHeight: '1.2' }],
+        h5: ['24px', { lineHeight: '1.3' }], h6: ['19px', { lineHeight: '1.4' }],
+        medium: ['17px', { lineHeight: '1.55' }], small: ['13px', { lineHeight: '1.5' }],
+      },
+      spacing: { 18: '4.5rem' }, maxWidth: { xxs: '16rem' }, minHeight: { 18: '4.5rem' },
+    },
+  },
+};
+</script>
+<style>
+body{margin:0;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#5f5f5f;background:#fff;font-size:15px;line-height:1.55}
+h1,h2,h3,h4,h5,h6{color:#141414}
+@media (max-width:767px){
+  .text-h1{font-size:35px!important}
+  .text-h2{font-size:27px!important}
+  .text-h3{font-size:25px!important}
+  .text-h4{font-size:22px!important}
+  .text-h5{font-size:19px!important}
+}
+#root > div > section{border-bottom:1px solid #ededed}
+[data-slot=card] p{color:#5f5f5f}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/plain" id="jsx-src">
+/* Vendored Relume v3.7 sections (navbar2, header1, layout303, cta7, logo2, blog39, blog60, footer14).
+   Adaptations for no-build environment: cn() replaces clsx/tailwind-merge; variant maps replace cva;
+   inline SVGs replace relume-icons; CSS transitions replace motion/react in Navbar2. Class strings unchanged. */
+const { useState, useEffect } = React;
+const cn = (...a) => a.filter(Boolean).join(" ");
+
+// components/ui/button.tsx — variant/size class strings verbatim from Relume kit
+const buttonBase = "inline-flex items-center justify-center gap-3 rounded-button whitespace-nowrap text-[14px] font-semibold transition-all duration-200 ease-in-out focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 lg:text-[16px]";
+const buttonVariantCls = {
+  default: "bg-neutral-darkest text-white hover:bg-[#3c3c3c]",
+  // secondary matches primary hover: same grey fill, text flips white
+  alternate: "border border-white bg-white text-neutral-darkest hover:border-[#3c3c3c] hover:bg-[#3c3c3c] hover:text-white",
+  secondary: "border border-scheme-border bg-white text-scheme-text hover:border-[#3c3c3c] hover:bg-[#3c3c3c] hover:text-white",
+  link: "gap-2 text-scheme-text hover:underline hover:underline-offset-4", ghost: "hover:bg-neutral-darkest hover:text-white", none: "",
+};
+const buttonSizeCls = { default: "px-6 py-3", sm: "px-5 py-2", link: "p-0", icon: "size-10", none: "" };
+const Button = ({ className, variant = "default", size = "default", iconLeft, iconRight, children, ...props }) => (
+  <button data-slot="button" className={cn(buttonBase, buttonVariantCls[variant], buttonSizeCls[size], className)} {...props}>
+    {iconLeft}{children}{iconRight}
+  </button>
+);
+// components/ui/card.tsx
+const Card = ({ className, ...props }) => (
+  <div data-slot="card" className={cn("overflow-hidden rounded-card border border-scheme-border bg-scheme-foreground text-scheme-text transition-colors duration-200 hover:border-[#8a8a8a]", className)} {...props} />
+);
+// components/ui/badge.tsx
+const Badge = ({ className, ...props }) => (
+  <span data-slot="badge" className={cn("inline-flex items-center rounded-badge px-2 py-[0.175rem] text-sm leading-[1.5] font-semibold border border-neutral-lightest bg-neutral-lightest text-neutral-darkest", className)} {...props} />
+);
+// relume-icons substitutes
+const ChevronRight = ({ className }) => (<svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 6 6 6-6 6"/></svg>);
+const KeyboardArrowDown = ({ className }) => (<svg className={cn("size-5", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>);
+const RelumeIcon = ({ className }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18"/><path d="m3 9 6-6m3 18L21 12"/></svg>);
+const SearchIcon = ({ className }) => (<svg className={cn("size-5", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>);
+const socialGlyphs = {
+  facebook: <path d="M13.5 21v-7h2.3l.4-3h-2.7V9.1c0-.9.3-1.5 1.5-1.5h1.3V4.9c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9V11H8v3h2.2v7h3.3z" fill="currentColor" stroke="none" />,
+  instagram: <g><rect x="4.5" y="4.5" width="15" height="15" rx="4" /><circle cx="12" cy="12" r="3.4" /><circle cx="16.6" cy="7.4" r="0.6" fill="currentColor" stroke="none" /></g>,
+  x: <path d="M5 5l6 7.6L5.3 19h2.2l4.5-5.1L16 19h3.2l-6.3-8L18.6 5h-2.2l-4.1 4.7L8.2 5H5z" fill="currentColor" stroke="none" />,
+  linkedin: <g><rect x="5" y="10" width="3" height="9" fill="currentColor" stroke="none" /><circle cx="6.5" cy="6.5" r="1.6" fill="currentColor" stroke="none" /><path d="M11 19v-9h3v1.4c.5-.9 1.5-1.6 3-1.6 2.3 0 3.5 1.5 3.5 4.1V19h-3v-4.6c0-1.3-.5-2.1-1.6-2.1-1.2 0-1.9.9-1.9 2.1V19h-3z" fill="currentColor" stroke="none" /></g>,
+  youtube: <g><rect x="3.5" y="6.5" width="17" height="11" rx="3" /><path d="M10.5 9.8v4.4l4-2.2-4-2.2z" fill="currentColor" stroke="none" /></g>,
+};
+const SocialIcon = ({ kind, className }) => (
+  <span className={cn("flex size-9 items-center justify-center rounded-full border border-scheme-border transition-colors hover:bg-neutral-darkest hover:text-white", className)}>
+    <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{socialGlyphs[kind]}</svg>
+  </span>
+);
+const stripeSvg = (w, h, label) => {
+  const text = (label || "Image").toUpperCase().replace(/&/g, "&amp;");
+  const fs = 10;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='${w}' height='${h}' fill='#f4f4f4'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-size='${fs}' letter-spacing='1.5' fill='#9a9a9a'>${text}</text></svg>`);
+};
+const ph = (label, w = 800, h = 450) => stripeSvg(w, h, label);
+const PLACEHOLDER = stripeSvg(800, 800);
+const PLACEHOLDER_L = stripeSvg(800, 450);
+
+// ---- Promo banner — slim announcement bar above the nav (CMS-swappable) ----
+const PromoBanner = ({ text, cta }) => (
+  <div className="flex items-center justify-center gap-3 bg-neutral-darkest px-[5%] py-2.5 text-center">
+    <p className="text-small text-white">{text}</p>
+    <a href="#" data-route={cta["data-route"]} className="whitespace-nowrap text-small font-semibold text-white underline underline-offset-2 hover:opacity-70">{cta.title}</a>
+  </div>
+);
+
+// ---- Navbar2 (Relume) — motion animations replaced with CSS ----
+const Navbar2 = ({ logo, navLinks, buttons }) => {
+  const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 991px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 991px)");
+    const h = () => setIsMobile(mq.matches);
+    mq.addEventListener ? mq.addEventListener("change", h) : mq.addListener(h);
+    return () => (mq.removeEventListener ? mq.removeEventListener("change", h) : mq.removeListener(h));
+  }, []);
+  return (
+    <section className="sticky top-0 z-[999] flex w-full items-center border-b border-scheme-border bg-scheme-background lg:min-h-18 lg:px-[5%]">
+      <div className="mx-auto size-full lg:grid lg:grid-cols-[0.375fr_1fr_0.375fr] lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex min-h-16 items-center justify-between px-[5%] md:min-h-18 lg:min-h-full lg:px-0">
+          <a href={logo.url} className="flex items-center"><img src="uploads/audiomovers-logo.svg" alt="Audiomovers" style={{ height: 21, width: "auto" }} /></a>
+          <div className="flex items-center gap-2 lg:hidden">
+            <a href="#" data-route="/search" aria-label="Search" className="flex size-10 items-center justify-center text-black"><SearchIcon /></a>
+            <div className="flex items-center gap-2">{buttons.filter(b => b.variant !== "link").map((b, i) => (<Button key={i} className="px-3 py-1" size="sm" {...b}>{b.title}</Button>))}</div>
+            <button className="-mr-2 flex size-12 flex-col items-center justify-center" onClick={() => setOpen(p => !p)} data-route="[toggle mobile nav]">
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "transform .2s", transform: open ? "translateY(8px) rotate(-45deg)" : "none" }} />
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "width .2s", width: open ? 0 : "1.5rem" }} />
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "transform .2s", transform: open ? "translateY(-8px) rotate(45deg)" : "none" }} />
+            </button>
+          </div>
+        </div>
+        <div className="overflow-hidden px-[5%] text-center lg:flex lg:items-center lg:justify-center lg:overflow-visible lg:px-0"
+          style={isMobile ? { height: open ? "auto" : 0, transition: "height .4s" } : {}}>
+          {isMobile && <a href="#" data-route="my.audiomovers.com — login" className="block py-3 text-base font-semibold">Log in</a>}
+          {navLinks.map((nl, i) => nl.mega
+            ? <MegaMenu key={i} navLink={nl} isMobile={isMobile} />
+            : nl.subMenuLinks && nl.subMenuLinks.length > 0
+            ? <SubMenu key={i} navLink={nl} isMobile={isMobile} />
+            : <a key={i} href={nl.url} className="block py-3 text-base text-black hover:underline hover:underline-offset-4 first:pt-7 lg:px-4 lg:py-2 first:lg:pt-2">{nl.title}</a>)}
+        </div>
+        <div className="hidden items-center gap-2 justify-self-end lg:flex">
+          <a href="#" data-route="/search" aria-label="Search" className="flex size-10 items-center justify-center text-black transition-colors hover:bg-neutral-lightest"><SearchIcon /></a>
+          {buttons.map((b, i) => (<Button key={i} className="whitespace-nowrap px-4 py-2" size="sm" {...b}>{b.title}</Button>))}
+        </div>
+      </div>
+    </section>
+  );
+};
+const MegaMenu = ({ navLink, isMobile }) => {
+  const [dd, setDd] = useState(false);
+  const m = navLink.mega;
+  return (
+    <section className="lg:relative" onMouseEnter={() => !isMobile && setDd(true)} onMouseLeave={() => !isMobile && setDd(false)}>
+      <p role="button" className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-center text-base text-black lg:w-auto lg:flex-none lg:justify-start lg:px-4 lg:py-2" onClick={() => setDd(p => !p)}>
+        <span>{navLink.title}</span>
+        <span style={{ transition: "transform .3s", transform: dd ? "rotate(180deg)" : "none" }}><KeyboardArrowDown className="text-scheme-text" /></span>
+      </p>
+      {dd && (
+        <div className="bg-scheme-background lg:absolute lg:left-1/2 lg:top-full lg:z-50 lg:w-max lg:-translate-x-1/2 lg:border lg:border-[#d8d8d8] lg:bg-white lg:p-8" style={{ boxShadow: "0 10px 28px rgba(0,0,0,.14)" }}>
+          <div className="grid grid-cols-1 gap-6 text-left lg:grid-cols-[minmax(230px,max-content)_minmax(230px,max-content)_230px]">
+            {m.columns.map((col, i) => (
+              <div key={i} className="flex flex-col lg:border-r lg:border-[#ededed] lg:pr-10">
+                <p className="mb-2 text-small text-neutral">{col.heading}</p>
+                {col.links.map((s, j) => (
+                  <a key={j} href={s.url} data-route={s["data-route"]} className="-mx-3 block whitespace-nowrap px-3 py-2.5 text-left text-black transition-colors hover:bg-neutral-lightest">
+                    <span>{s.title}</span>
+                  </a>
+                ))}
+                {col.cta && <a href="#" data-route={col.cta["data-route"]} className="mt-1 py-2.5 text-base font-semibold text-black hover:underline hover:underline-offset-4">{col.cta.title} →</a>}
+              </div>
+            ))}
+            <div className="flex flex-col">
+              <img src={m.promo.image} alt={m.promo.heading} className="mb-3 aspect-video w-full object-cover" />
+              <p className="mb-2 text-small font-semibold text-black">{m.promo.heading}</p>
+              <a href="#" data-route={m.promo.cta["data-route"]} className="text-small font-semibold text-black hover:underline hover:underline-offset-4">{m.promo.cta.title} →</a>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
+const SubMenu = ({ navLink, isMobile }) => {
+  const [dd, setDd] = useState(false);
+  return (
+    <section className="relative" onMouseEnter={() => !isMobile && setDd(true)} onMouseLeave={() => !isMobile && setDd(false)}>
+      <p role="button" className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-center text-base text-black lg:w-auto lg:flex-none lg:justify-start lg:px-4 lg:py-2" onClick={() => setDd(p => !p)}>
+        <span>{navLink.title}</span>
+        <span style={{ transition: "transform .3s", transform: dd ? "rotate(180deg)" : "none" }}><KeyboardArrowDown className="text-scheme-text" /></span>
+      </p>
+      {dd && (
+        <div className="bg-scheme-background lg:absolute lg:top-full lg:z-50 lg:left-1/2 lg:min-w-[290px] lg:-translate-x-1/2 lg:border lg:border-[#d8d8d8] lg:bg-white lg:p-2" style={{ boxShadow: "0 10px 28px rgba(0,0,0,.14)" }}>
+          {navLink.subMenuLinks.map((s, i) => s.divider
+            ? <div key={i} className="mx-3 my-2 h-px bg-[#ededed] lg:mx-0" />
+            : (
+              <a key={i} href={s.url} data-route={s["data-route"]} className={"block px-4 py-2.5 text-center text-black transition-colors hover:bg-neutral-lightest lg:px-3 lg:text-left " + (s.bold ? "font-semibold" : "")}>
+                <span className="flex items-center justify-between gap-3 whitespace-nowrap"><span>{s.title}</span>{s.tag && <span className="text-[11px] font-semibold text-[#2f6fd0]">{s.tag}</span>}</span>
+                {s.desc && <span className="mt-0.5 block max-w-[300px] text-[12px] leading-snug text-neutral">{s.desc}</span>}
+              </a>
+            ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+// ---- Header1 (Relume, verbatim structure) ----
+const Header1 = ({ heading, description, buttons, image, annotationChip, subBold, subGrey, trustLine }) => (
+  <section className="flex items-center px-[5%] py-12 md:py-14 lg:py-16" style={{ minHeight: "calc(min(100vh, 810px) - 111.5px)" }}>
+    <div className="container">
+      <div className="grid grid-cols-1 gap-x-20 gap-y-12 md:gap-y-16 lg:grid-cols-2 lg:items-center">
+        <div>
+          {annotationChip && <div className="mb-4"><Badge>{annotationChip}</Badge></div>}
+          <h1 className="mb-5 text-h1 font-bold md:mb-6">{heading}</h1>
+          <p className="text-medium">{description}</p>
+          <div className="mt-6 flex flex-wrap gap-4 md:mt-8">
+            {buttons.map((b, i) => {
+              const { note, title, ...rest } = b;
+              return (
+                <Button key={i} {...rest} className="px-6 py-2.5">
+                  <span className="flex flex-col items-start">
+                    <span>{title}</span>
+                    {note && <span className="text-[12px] font-normal opacity-60">{note}</span>}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+          {(subBold || subGrey) && <div className="mt-5">
+            {subBold && <p className="text-small font-bold text-black">{subBold}</p>}
+            {subGrey && <p className="text-small text-neutral">{subGrey}</p>}
+          </div>}
+          {trustLine && <div className="mt-5 inline-flex items-center gap-2 border border-scheme-border bg-white px-3 py-2 text-small text-black"><span className="size-2 rounded-full bg-black"></span>{trustLine}</div>}
+        </div>
+        <div><img src={image.src} className="w-full rounded-image object-cover" style={{ maxHeight: "calc(min(100vh, 810px) - 240px)" }} alt={image.alt} /></div>
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout303 (Relume, verbatim structure) ----
+const Layout303 = ({ heading, sections }) => (
+  <section className="bg-white px-[5%] py-12 md:py-16">
+    <div className="container">
+      <div className="mb-8 max-w-3xl md:mb-10"><h2 className="text-h3 font-bold">{heading}</h2></div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 md:gap-y-16 lg:grid-cols-4">
+        {sections.map((s, i) => (
+          <div key={i}>
+            <div className="mb-5 md:mb-6"><div className="size-12 border border-scheme-border bg-neutral-lightest"></div></div>
+            <h3 className="mb-3 text-h5 font-bold md:mb-4">{s.heading}</h3>
+            <p>{s.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout1 (Relume, verbatim structure) — flippable image side via `flip` (adaptation) ----
+const Layout1 = ({ tagline, heading, description, buttons, image, flip }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:items-center md:gap-x-12 lg:gap-x-20">
+        <div className={flip ? "md:order-2" : ""}>
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h1 className="mb-5 text-h2 font-bold md:mb-6">{heading}</h1>
+          <p className="text-medium">{description}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-8">
+            {buttons.map((b, i) => (<Button key={i} {...b}>{b.title}</Button>))}
+          </div>
+        </div>
+        <div className={flip ? "md:order-1" : ""}><img src={image.src} className="w-full rounded-image object-cover" alt={image.alt} /></div>
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout307 (Relume, verbatim structure) ----
+const Layout307 = ({ heading, sections }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 max-w-lg md:mb-18 lg:mb-20"><h2 className="text-h3 font-bold">{heading}</h2></div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 md:gap-y-16 lg:grid-cols-4 lg:gap-y-16">
+        {sections.map((s, i) => (
+          <div key={i}>
+            <div className="mb-5 md:mb-6"><img src={s.image.src} alt={s.image.alt} className="rounded-image" /></div>
+            <h3 className="mb-3 text-h5 font-bold md:mb-4">{s.heading}</h3>
+            <p>{s.description}</p>
+            <div className="mt-6 flex gap-4 md:mt-8"><Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} {...s.button}>{s.button.title}</Button></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Product routing grid — custom composition on Card/Badge/Button primitives (no clean Relume match — flag custom) ----
+const RoutingGrid = ({ heading, description, cards, alsoLabel, chips }) => (
+  <section className="px-[5%] py-10 md:py-14 lg:py-16">
+    <div className="container">
+      <div className="mx-auto mb-10 max-w-lg text-center md:mb-12">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium">{description}</p>
+      </div>
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {cards.map((c, i) => (
+          <Card key={i} className="p-6">
+            <img src={c.image.src} alt={c.image.alt} className="mb-5 aspect-video w-full object-cover" />
+            <div className="mb-3 flex flex-wrap gap-2">{c.tags.map((t, j) => (<Badge key={j}>{t}</Badge>))}</div>
+            <h3 className="mb-2 text-h5 font-bold">{c.name}</h3>
+            <p className="mb-5">{c.desc}</p>
+            <div className="flex flex-wrap gap-3">
+              <Button {...c.cta}>{c.cta.title}</Button>
+              <Button variant="secondary" {...c.learn}>Learn more</Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <span className="col-span-2 text-small font-semibold text-neutral md:col-span-5">{alsoLabel}</span>
+        {chips.map((t, i) => (
+          <Card key={i} className="flex flex-col p-4">
+            <img src={t.image.src} alt={t.title} className="mb-3 aspect-video w-full object-cover" />
+            <h4 className="mb-3 text-h6 font-bold">{t.title}</h4>
+            <div className="mt-auto"><Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} data-route={t["data-route"]}>Learn more</Button></div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Discipline router — custom composition on Card primitive ----
+const Disciplines = ({ heading, description, cards }) => (
+  <section className="bg-white px-[5%] py-16 md:py-24">
+    <div className="container">
+      <div className="mx-auto mb-12 max-w-lg text-center">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium">{description}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map((d, i) => (
+          <Card key={i} className="cursor-pointer p-6" data-route={d.route} role="link">
+            <img src={d.image.src} alt={d.title} className="mb-4 aspect-video w-full object-cover" />
+            <Badge className="mb-3">{d.tag}</Badge>
+            <h3 className="mb-2 text-h5 font-bold">{d.title}</h3>
+            <p className="mb-4">{d.body}</p>
+            <span className="text-small font-semibold">Explore →</span>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Stats — structure per Relume stat sections ----
+const Stats = ({ stats }) => (
+  <section className="bg-[#fafafa] px-[5%] py-12 md:py-16">
+    <div className="container grid grid-cols-1 gap-8 text-center md:grid-cols-3">
+      {stats.map((s, i) => (
+        <div key={i}>
+          <div className="text-h2 font-bold text-black">{s.num}</div>
+          <div className="mt-1 text-medium text-neutral">{s.label}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+// ---- Testimonial — carousel banner with full-bleed image background (custom — flag) ----
+const Testimonial = ({ slides }) => {
+  const [i, setI] = useState(0);
+  const s = slides[i];
+  return (
+    <section id="testimonials" className="relative px-[5%] py-20 md:py-28" style={{ background: "#f4f4f4" }}>
+      <span className="pointer-events-none absolute top-1/2 hidden -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-mono text-[10px] tracking-[1.5px] text-[#9a9a9a] lg:block" style={{ left: "25%" }}>BACKGROUND — ARTIST / STUDIO PHOTOGRAPHY</span>
+      <div className="container flex justify-end">
+        <div className="w-full max-w-xl text-left">
+          <div className="grid">
+            {slides.map((sl, d) => (<p key={d} className="text-h4 font-bold text-black" style={{ gridArea: "1 / 1", visibility: d === i ? "visible" : "hidden" }}>“{sl.quote}”</p>))}
+          </div>
+          <div className="mb-8 mt-6 flex items-center gap-3">
+            <div className="size-11 rounded-full border border-scheme-border bg-white"></div>
+            <div className="text-left">
+              <div className="text-small font-bold text-black">{s.name}</div>
+              <div className="text-small text-neutral">{s.role}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+          <button aria-label="Previous" onClick={(e) => { e.stopPropagation(); setI((i - 1 + slides.length) % slides.length); }} className="flex size-10 items-center justify-center border border-scheme-border bg-white"><ChevronRight className="rotate-180" /></button>
+          <div className="flex gap-2">
+            {slides.map((_, d) => (<button key={d} aria-label={"Slide " + (d + 1)} onClick={(e) => { e.stopPropagation(); setI(d); }} className="size-2.5 rounded-full" style={{ background: d === i ? "#141414" : "#bdbdbd" }}></button>))}
+          </div>
+          <button aria-label="Next" onClick={(e) => { e.stopPropagation(); setI((i + 1) % slides.length); }} className="flex size-10 items-center justify-center border border-scheme-border bg-white"><ChevronRight /></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ---- Final CTA — custom dark two-path section (flag custom) ----
+const FinalCta = ({ heading, description, paths }) => (
+  <section className="bg-neutral-lightest px-[5%] py-16 md:py-24">
+    <div className="container">
+      <div className="mx-auto mb-10 max-w-lg text-center">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium text-neutral">{description}</p>
+      </div>
+      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+        {paths.map((p, i) => (
+          <Card key={i} className="p-6">
+            <p className="mb-2 text-small font-semibold text-neutral">{p.tag}</p>
+            <div className="mb-4 text-h6 font-bold">{p.title}</div>
+            <Button variant={i === 0 ? "primary" : "secondary"} className="w-full" {...p.button}>{p.button.title}</Button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Cta7 (Relume, verbatim structure) ----
+const Cta7 = ({ heading, description, buttons }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28 bg-neutral-lightest">
+    <div className="container grid w-full grid-cols-1 items-start justify-between gap-6 md:grid-cols-[1fr_max-content] md:gap-x-12 md:gap-y-8 lg:gap-x-20">
+      <div className="md:mr-12 lg:mr-0">
+        <div className="w-full max-w-lg">
+          <h2 className="mb-3 text-h3 font-bold md:mb-4">{heading}</h2>
+          <p className="text-medium">{description}</p>
+        </div>
+      </div>
+      <div className="flex items-start justify-end gap-4 md:justify-start">
+        {buttons.map((b, i) => (<Button key={i} {...b}>{b.title}</Button>))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Logo2 (Relume) — logo img slots as grey boxes + artists line (per reference) ----
+const Logo2 = ({ heading, logos, artistsLine }) => (
+  <section className="px-[5%] py-6 md:py-8 lg:py-10">
+    <div className="container text-center">
+      <h1 className="mb-5 text-small font-semibold text-neutral">{heading}</h1>
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        {logos.map((name, i) => (<span key={i} className="whitespace-nowrap font-bold text-[#8a8a8a]" style={{ fontSize: 22, letterSpacing: "0.02em" }}>{name}</span>))}
+      </div>
+      <p className="mx-auto max-w-2xl text-small text-neutral">{artistsLine}</p>
+    </div>
+  </section>
+);
+
+// ---- Blog39 (Relume, verbatim structure) ----
+const Blog39 = ({ tagline, heading, description, button, blogPosts }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 flex flex-wrap items-end justify-between gap-4 md:mb-18 lg:mb-20">
+        <div className="w-full max-w-2xl">
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h2 className="text-h2 font-bold">{heading}</h2>
+          {description && <p className="mt-5 text-medium">{description}</p>}
+        </div>
+        <Button {...button}>{button.title}</Button>
+      </div>
+      <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 md:gap-y-16 lg:grid-cols-3">
+        {blogPosts.map((post, i) => (
+          <Card key={i}>
+            <a href={post.url} className="w-full max-w-full"><div className="w-full overflow-hidden"><img src={post.image.src} alt={post.image.alt} className="aspect-video size-full object-cover" /></div></a>
+            <div className="px-5 py-6 md:p-6">
+              <div className="mb-2"><Badge>{post.category}</Badge></div>
+              <a href={post.url} className="mb-2 block max-w-full"><h5 className="text-h5 font-bold hover:underline hover:underline-offset-4">{post.title}</h5></a>
+              <p>{post.description}</p>
+              <div className="mt-5 flex items-center md:mt-6">
+                <div className="mr-4 size-12 min-h-12 min-w-12 shrink-0 overflow-hidden rounded-full"><img src={post.avatar.src} alt={post.avatar.alt} className="size-full object-cover" /></div>
+                <div>
+                  <h6 className="text-small font-semibold">{post.fullName}</h6>
+                  <div className="flex items-center"><p className="text-small">{post.date}</p><span className="mx-2">•</span><p className="text-small">{post.readTime}</p></div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Blog60 (Relume, verbatim structure) — used for the podcast teaser ----
+const Blog60 = ({ tagline, heading, description, button, blogPosts }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 grid grid-cols-1 items-start justify-start gap-y-8 md:mb-18 md:grid-cols-[1fr_max-content] md:items-end md:justify-between md:gap-x-12 md:gap-y-4 lg:mb-20 lg:gap-x-20">
+        <div className="w-full max-w-lg">
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h1 className="mb-3 text-h2 font-bold md:mb-4">{heading}</h1>
+          <p className="text-medium">{description}</p>
+        </div>
+        <div className="hidden flex-wrap items-center justify-end md:block"><Button {...button}>{button.title}</Button></div>
+      </div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
+        {blogPosts.map((post, i) => (
+          <Card key={i} className="flex size-full flex-col items-center justify-start">
+            <a href={post.url} className="w-full"><img src={post.image.src} alt={post.image.alt} className="aspect-video size-full object-cover" /></a>
+            <div className="w-full px-5 py-6 md:p-6">
+              <div className="mb-3 flex w-full items-center justify-start md:mb-4">
+                <Badge className="mr-4">{post.category}</Badge>
+                <p className="inline text-small font-semibold">{post.readTime}</p>
+              </div>
+              <div className="flex w-full flex-col items-start justify-start">
+                <a className="mb-2 block" href={post.url}><h2 className="text-h5 font-bold">{post.title}</h2></a>
+                <p>{post.description}</p>
+                <Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} className="mt-5 flex items-center justify-center gap-x-2 md:mt-6" {...post.button}>{post.button.title}</Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <div className="mt-12 flex flex-wrap justify-end md:hidden"><Button {...button}>{button.title}</Button></div>
+    </div>
+  </section>
+);
+
+// ---- Footer14 (Relume) — brand block + link columns, legals in bottom bar ----
+const Footer14 = ({ logoText, description, columnLinks, legalLinks, footerText }) => (
+  <footer className="bg-neutral-lightest px-[5%] py-10 md:py-14">
+    <div className="container">
+      <div className="mb-10 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr]">
+        <div className="pr-8">
+          <div className="mb-4 flex items-center gap-3"><img src="uploads/audiomovers-logo.svg" alt="Audiomovers" style={{ height: 18, width: "auto" }} /></div>
+          <p className="max-w-[220px] text-small text-neutral">{description}</p>
+        </div>
+        {columnLinks.map((col, i) => (
+          <div key={i} className="flex flex-col items-start justify-start">
+            <h2 className="mb-2 font-semibold">{col.title}</h2>
+            <ul>{col.links.map((l, j) => (<li key={j} className="py-1 text-small"><a href={l.url} className="flex items-center gap-3 text-neutral hover:underline hover:underline-offset-4">{l.title}</a></li>))}</ul>
+          </div>
+        ))}
+      </div>
+      <div className="h-px w-full bg-scheme-border" />
+      <div className="flex flex-col-reverse items-start gap-4 pt-5 text-small text-neutral sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <p>{footerText}</p>
+          {legalLinks.map((l, j) => (<a key={j} href={l.url} className="hover:underline hover:underline-offset-4">{l.title}</a>))}
+        </div>
+        <div className="flex items-center justify-center gap-3">{["facebook","instagram","x","linkedin","youtube"].map(k => (<a key={k} href="#social" data-route={k + ".com/audiomovers"} aria-label={k}><SocialIcon kind={k} className="text-scheme-text" /></a>))}</div>
+      </div>
+    </div>
+  </footer>
+);
+
+// ---- Annotation strip (wireframe metadata, toggleable via ?annot=0) ----
+const showAnnot = new URLSearchParams(location.search).get("annot") !== "0";
+const showTags = new URLSearchParams(location.search).get("tags") === "1";
+const Annot = ({ children, noTag }) => {
+  const first = React.Children.toArray(children)[0];
+  const tag = String((first && first.props && first.props.children) || "").split("—")[0].trim();
+  return (
+    <React.Fragment>
+      {showAnnot && <div className="flex flex-wrap justify-between gap-2 border-y border-dashed border-neutral bg-neutral-lightest px-4 py-1 font-mono text-[10px] text-neutral">{children}</div>}
+      {showTags && !showAnnot && !noTag && <div style={{ position: "relative", zIndex: 20 }}><span style={{ position: "absolute", top: 6, left: 6 }} className="border border-scheme-border bg-white px-2 py-1 font-mono text-[10px] text-neutral">{tag}</span></div>}
+    </React.Fragment>
+  );
+};
+
+// ---- Press — /press (reskin of live press page: coverage list with year filter, story + press kit, awards) ----
+const nav = {
+  logo: { url: "relume-home", text: "AUDIOMOVERS" },
+  navLinks: [
+    { title: "Products", url: "#", subMenuLinks: [
+      { title: "LISTENTO", url: "/products/listento", tag: "Most popular", desc: "Real-time lossless audio from your DAW." }, { title: "GLIMPSE", url: "/products/glimpse", tag: "New", desc: "Real-time audio-to-picture collaboration." },
+      { divider: true },
+      { title: "OMNIBUS 3", url: "/products/omnibus", tag: "40% off" }, { title: "MINIBUS", url: "/products/minibus" },
+      { title: "Binaural Renderer", url: "/products/binaural-renderer-for-apple-music" }, { title: "INJECT", url: "/products/inject" }, { title: "AirCaster", url: "/products/aircaster" },
+    ]},
+    { title: "Solutions", url: "#", mega: {
+      columns: [
+        { heading: "Organisations", links: [
+          { title: "Businesses and Studios", url: "/sectors/business", "data-route": "/sectors/business" },
+          { title: "Education", url: "/sectors/education", "data-route": "/sectors/education" },
+          { title: "Students", url: "/sectors/students", "data-route": "/sectors/students" },
+        ]},
+        { heading: "Industry", links: [
+          { title: "Music production & mixing", url: "/industry/music", "data-route": "/industry/music" },
+          { title: "Film & TV post-production", url: "/products/glimpse", "data-route": "/products/glimpse" },
+          { title: "Games & broadcast", url: "/products/glimpse", "data-route": "/products/glimpse" },
+        ]},
+      ],
+      promo: {
+        image: ph("PROMO IMAGE", 200, 113),
+        heading: "Black Friday: 40% off OMNIBUS",
+        cta: { title: "Shop the sale", "data-route": "/products/omnibus" },
+      },
+    }},
+    { title: "Downloads", url: "/downloads" }, { title: "News", url: "/news" }, { title: "Support", url: "/support/get-help" },
+  ],
+  buttons: [{ title: "Log in", variant: "link", size: "link", className: "px-2", "data-route": "my.audiomovers.com — login" }, { title: "Try LISTENTO free", "data-route": "/pricing/listento" }],
+};
+// Legal — /terms (one template for all legal docs: Terms / Privacy / CCPA · sections 5–6 transcribed from live /terms, rest = CMS)
+const PRE = [
+  "This licence agreement (“Licence”) is a legal agreement between you (“you”) and Virgin Records Limited, trading as Audiomovers of 4 Pancras Square, London, N1C 4AG, United Kingdom (“us” or “we”)) for the LISTENTO, OMNIBUS, or INJECT computer software and the associated audio streaming and routing capabilities to be accessed through a desktop or mobile application that can be downloaded through the following link: Downloads – Audiomovers, and/or other software products or applications we make available subject to these terms from time to time (the “Software”).",
+  "Please read these terms carefully before you start to use the Software. By using the Software, you confirm that you accept these terms and that you agree to comply with them. If you do not agree to these terms, you must not use the Software.",
+  "You may use the Software either:",
+];
+const PRE_BULLETS = [
+  "in a personal capacity for your own private non-commercial use (a “Consumer User”); or",
+  "in a business capacity, where you intend to use the Software commercially or otherwise acting in the course of your business, trade or profession or where you are a business or corporate entity or are otherwise purchasing on behalf of a business or corporate entity (a “Business User”).",
+];
+const PRE2 = [
+  "Different terms of this Licence will apply depending on whether you are a Consumer User or a Business User – the applicable terms will be highlighted where relevant.",
+  "We license use of the Software to you on the basis of this Licence. We do not sell the Software to you and we remain the owners of the Software at all times.",
+];
+const SECTIONS = [
+  { n: 1, title: "Supply and Download of Software", items: [
+    "1.1 We shall make the Software available for download, in object code form, in electronic format only via our website and/or relevant third party app stores.",
+    "1.2. If you wish to use the Software you will be required to create a user account and purchase a Subscription (details of the available options are set out below) to access the functionality of the Software and the associated audio streaming capability.",
+    "1.3. Installation of the Software shall be your responsibility. To use the Software, your device must meet certain system requirements. These will be updated from time to time and can be found on the Audiomovers website.",
+    "1.4. If you download the Software onto any device not owned by you, you must have the owner's permission to do so. You will be responsible for complying with this Licence, whether or not you own the device.",
+  ]},
+  { n: 2, title: "Subscriptions and Licence Fees", items: [
+    "2.1. We offer a number of subscription packages which provide access to the Software including monthly, annual and multi-user subscriptions (each a “Subscription”), which may include one-off purchases of a perpetual licence for certain Software products. Full details of our currently available Subscription models, fees and duration which will be shown on our website or in the sign-up process accessed via the Software at the time you request a Subscription.",
+    { t: "2.2. At the time you sign-up for a Subscription you will be shown:", sub: [
+      { t: "2.2.1. the duration of the Subscription you have selected (the “Subscription Term”), which:", sub: [
+        "for time limited subscriptions (such as monthly or annual subscriptions) will be automatically extended for successive periods of the same length unless you cancel your Subscription (see conditions 2.4 and 12 for further details); and",
+        "for perpetual licences, will be perpetual.",
+      ]},
+      "2.2.2. the fees payable for the Subscription you have selected (the “Licence Fees”);",
+      "2.2.3. the type or tier of Subscription; and",
+      "2.2.4. if applicable, the number of users who you will be able to permit to access the Software under your Subscription by issuing an access pass to such users (an “Access Pass”). You may add additional Access Passes from time to time subject to payment of additional Licence Fees.",
+    ]},
+    "2.3. You may cancel your Subscription at any time, further details are provided in condition 12.",
+    "2.4. If we have not received your request to cancel your Subscription prior to forty eight (48) hours before the expiry of your Subscription Term, your Subscription will automatically renew for successive terms equal in length to the original Subscription Term and you will be charged additional Licence Fees for such periods until you decide to cancel your Subscription in accordance with condition 12 or we otherwise decide to terminate this Licence. Subject to any statutory right to cancel that you may have, we cannot provide refunds for any Subscription that has automatically renewed and that you have not cancelled in accordance with this condition.",
+    { t: "2.5. In respect of each Access Pass:", sub: [
+      "2.5.1. you may assign each Access Pass to a single third party user (each an “Authorised User”), for example an artist you are collaborating with;",
+      "2.5.2. an Access Pass shall permit an Authorised User access to the Software for a defined Subscription Term as set out at the time you purchase such Access Pass. Following the end of such Subscription Term, the Access Pass and the Authorised User's access to the Software shall terminate;",
+      "2.5.3. each Access Pass shall be for a single user and may not be transferred or reassigned and in no event should account or log-in details be shared between users;",
+      "2.5.4. you shall be responsible for payment of all Licence Fees in respect of each Access Pass you purchase;",
+      "2.5.5. each Authorised User will be required to create an account with us and agree to the terms of this Licence in order to use an Access Pass;",
+      "2.5.6. you shall be responsible for the acts and omissions of all of your Authorised Users; and",
+      "2.5.7. if your Subscription is suspended or terminated in accordance with the terms hereof, we reserve the right to suspend or terminate all Access Passes you have purchased.",
+    ]},
+    "2.6. From time to time we may offer additional premium plug-ins, features or functionality to the Software, access to which may be subject to additional Licence Fees (“Additional Features”). If you select to receive such Additional Features, the Licence Fees for your Subscription will be amended accordingly and you shall make payment for such amounts. If any additional or different terms apply to such Additional Features, we will provide details of such terms at the time you sign up for them.",
+    "2.7. From time to time, we may amend the Licence Fees applicable to any Subscriptions. We will notify you not less than seven days before any change to Licence Fees taking effect and any increase in the applicable Licence Fees will not apply before the end of your current Subscription Term. Accordingly, you will always have the opportunity to cancel your Subscription in accordance with condition 12 below prior to any increase taking effect.",
+  ]},
+  { n: 3, title: "Payment of Licence Fees", items: [
+    "3.1. We use a third party payment service provider, currently Paddle.com (“Paddle”), for collection of Licence Fees and administration of the billing process.",
+    "3.2. When you purchase a Subscription, Paddle will be the seller of record and you will be entering into a separate legal agreement with Paddle, subject to Paddle's terms and conditions available at https://paddle.com/legal-buyers/ which you are required to agree to in addition to the terms of this Licence.",
+    "3.3. Notwithstanding that the payment transaction is entered into with Paddle, your use of the Software remains subject to the terms of this Licence with us. This Licence is the “Supplier Agreement” referred to in Paddle's terms and conditions and by purchasing the Subscription you agree to the terms of this Licence.",
+    "3.4. Licence Fees shall be payable in full in advance of the start of the Subscription Term to which they relate.",
+    "3.5. If you fail to pay any Licence Fees by the due date for payment, your access to the Software will be withdrawn until payment of any outstanding Licences Fees is made.",
+    "3.6. Licence Fees shall be payable in the currency specified during the sign-up process for your Subscription. You may be charged additional fees if you pay using a payment card or method using a different currency.",
+    "3.7 Our payments provider processes all subscription payments between 00:00 and 04:00 UTC.",
+  ]},
+  { n: 4, title: "Free Trials", items: [
+    "4.1. From time to time we may offer trial subscriptions for which no payment will be due for an introductory period (a “Trial Subscription”). Trial Subscriptions shall be subject to the terms of this Licence unless otherwise stated in separate terms provided at the time you enter into a Trial Subscription.",
+    "4.2. At any time you may choose not to convert or continue to a paid Subscription by cancelling your Trial Subscription prior to the expiration of the trial period. You can cancel your Trial Subscription via the My Account section of the Software.",
+    "4.3. Unless you notify us that you want to cancel your Trial Subscription prior to the end date, your Trial Subscription will automatically convert into a paid Subscription of the type selected during sign up and subject to the applicable Licence Fees for that Subscription.",
+    "4.4. Trials Subscriptions are limited to one per household.",
+    "4.5. We reserve the right to restrict or remove any Trial Subscription at any time, including if we have reasonable grounds to believe that you or someone in your household has previously signed up for a Trial Subscription.",
+  ]},
+  { n: 5, title: "Your Account and Password", items: [
+    "5.1. You must be 18 years or older to be eligible to register with us, and to use the Software. By using the Software, you represent and warrant that you are 18 years or older.",
+    "5.2. If you register with us, you must provide true and accurate information about yourself. Should the registration information provided prove false or misleading, we may suspend or terminate your account.",
+    "5.3. If you are registering on behalf of a business, organisation or other legal entity, you represent and warrant that you have the authority to legally bind that entity to the terns if this Licence.",
+    "5.4. You are responsible for maintaining the confidentiality of your account details, including any user identification codes, passwords or any other piece of information that forms part of our security procedures, and you must not disclose these to any third party.",
+    "5.5. You are responsible for all activity under your account even if someone else uses your account. You authorise us to act on instructions received under your account and we will not be liable for any loss that you might suffer through following such instructions whether by you or another person.",
+    "5.6. We reserve the right to suspend and/or disable your account and access to the Software if you fail to comply with these Terms, or if we have reasonable grounds to believe such a failure has occurred. Except in the event of an emergency, we will provide you with reasonable advance notice of any such intended suspension, including the reasons for such suspension.",
+  ]},
+  { n: 6, title: "Grant of Licence", items: [
+    "6.1. Subject to you purchasing a Subscription in accordance with condition 2 and agreeing to abide by the terms of this Licence, we hereby grant to you a non-exclusive, non-transferable, non-sublicensable (save as expressly set out herein) limited licence to use the Software on the terms of this Licence solely during your Subscription Term.",
+    { t: "6.2. You may:", sub: [
+      { t: "6.2.1. install and use the Software for your personal purposes only (or for your internal business purposes where you are a Business User):", sub: [
+        "(a. if the Licence is used pursuant to a single-user Subscription, on one central processing unit (CPU); or",
+        "(b. if you purchase Access Passes, on one CPU for you and on one CPU for a single Authorised User for each Access Pass you purchase.",
+      ]},
+    ]},
+    "6.3. The Software incorporates elements of third party and open source software which are subject to additional terms and conditions and legal notices, details of which are set out in Schedule 2 and from part of this Licence.",
+    "6.4. From time to time we may automatically update the Software to improve performance, enhance functionality, reflect changes to the operating system or address security issues. Alternatively, we may require you to update the Software for these reasons.",
+    "6.5. If you choose not to install such updates or if you opt out of automatic updates you may not be able to continue using some or all of the features of the Software and we will not liable for any loss or damage caused by failure to update.",
+    "6.6. We may also suspend, withdraw, discontinue or change all or any part of the Software, or any features of it for business or operational reasons. We will try to give you reasonable notice of any suspension or withdrawal.",
+  ]},
+  { n: 7, title: "Restrictions", items: [
+    { t: "7.1. Except as expressly set out in this Licence or as permitted by any local law, you undertake:", sub: [
+      "7.1.1. not to copy the Software, except where such copying is incidental to normal use of the Software or where it is necessary for the purpose of back-up or operational security;",
+      "7.1.2. not to rent, lease, sub-license (save as expressly permitted by the terms of Access Passes), loan, translate, merge, adapt, vary, alter or modify, the whole or any part of the Software nor permit the Software or any part of it to be combined with, or become incorporated in, any other programs;",
+      { t: "7.1.3. not to disassemble, de-compile, reverse engineer or create derivative works based on the whole or any part of the Software nor attempt to do any such things, except to the extent that such actions cannot be prohibited under applicable law because they are necessary to decompile the Software to obtain the information necessary to create an independent program that can be operated with the Software or with another program (“Permitted Objective”), and provided that the information obtained by you during such activities:", sub: [
+        "(a. is used only for the Permitted Objective;",
+        "(b. is not disclosed or communicated without our prior written consent to any third party to whom it is not necessary to disclose or communicate it in order to achieve the Permitted Objective; and",
+        "(c. is not used to create any software that is substantially similar in its expression or purpose to the Software, including building a product or service which competes with the Software; and",
+      ]},
+      "7.1.4. not to provide, or otherwise make available, the Software in any form, in whole or in part (including, but not limited to, program listings, object and source program listings, object code and source code) to any person without prior written consent from us.",
+    ]},
+    { t: "7.2. In relation to the Authorised Users, you undertake that:", sub: [
+      "7.2.1. the maximum number of Authorised Users that it authorises to access and use the Software shall not exceed the number of Access Passes you have purchased from time to time. You acknowledge that we may charge additional Licence Fees for any breach of this condition;",
+      "7.2.2. you will not allow or suffer any Access Passes to be used by more than one individual Authorised User. You acknowledge that we may charge additional Licence Fees for any breach of this condition; and",
+      "7.2.3 each Authorised User shall keep a secure password for their use of the Software, that such password shall be changed periodically and each Authorised User shall keep their password confidential.",
+    ]},
+    { t: "7.3. You shall not create, stream, access, store, distribute or transmit any viruses, or any material during the course of your use of the Software that:", sub: [
+      "7.3.1. infringes the intellectual property rights of any third party;",
+      "7.3.2. is unlawful, harmful, threatening, defamatory, obscene, infringing, harassing or racially or ethnically offensive;",
+      "7.3.3. facilitates illegal activity;",
+      "7.3.4. depicts sexually explicit images;",
+      "7.3.5. promotes unlawful violence;",
+      "7.3.6. is discriminatory based on race, gender, colour, religious belief, sexual orientation, disability; or",
+      "7.3.7. is otherwise illegal or causes damage or injury to any person or property;",
+      "and we reserve the right, without liability or prejudice to our other rights, to disable your access to the Software if you breach this provision this condition.",
+    ]},
+    "7.4. You agree not to take any action which imposes an unreasonable or disproportionately large load on the Software's infrastructure. In addition and without prejudice to the foregoing, you agree to comply with any acceptable use policy published by us from time to time.",
+  ]},
+  { n: 8, title: "Third Party Plug-ins and Services", items: [
+    "8.1. Where the Software allows for integration with third party plug-ins, apps or services or contains links to third party websites (collectively “Third Party Services”), we have no control over the contents or performance of those Third Party Services and your use of purchase of the same is solely at your own risk.",
+    "8.2. Any contract entered into and any transaction completed by or for any Third Party Services is between you and the relevant third party, and not us. We recommend that you refer to the Third Party Services' terms and conditions and privacy policy prior to using the relevant Third Party Services.",
+    "8.3. We do not endorse or approve any Third Party Services made available via, or used in conjunction with, the Software. We are not responsible for any damage caused to your device or any disruption caused to your use of the Software by using any Third Party Services, nor do we guarantee that such Third Party Services will function with the Software.",
+    "8.4 In respect of the Software we make available as the “Audiomovers Binaural Renderer for Apple Music”, this Software is solely our product and not created or endorsed by Apple Inc.",
+  ]},
+  { n: 9, title: "Intellectual Property Rights", items: [
+    { t: "9.1. You acknowledge that:", sub: [
+      "9.1.1. all intellectual property rights in the Software throughout the world, as between you and us, belong to us,",
+      "9.1.2. rights in the Software are licensed (not sold) to you,",
+      "9.1.3. you have no intellectual property rights in, or to, the Software other than the right to use the Software in accordance with the terms of this Licence,",
+      "9.1.4. the Software is subject to the additional terms and conditions and legal notices set out in Schedule 2, and",
+      "9.1.5. you have no right to have access to the Software in source code form.",
+    ]},
+    "9.2. You acknowledge that we are the sole and exclusive owners of any and all anonymised data relating to your use of the Software (for example activity records, availability monitoring, system performance data and analytics based on user segments) and that such anonymised data can be used by us for commercial, development and research purposes, including in supporting, developing, testing, and improving the Software.",
+  ]},
+  { n: 10, title: "Availability and Disclaimer", items: [
+    { t: "10.1. While we will use commercially reasonable endeavours to make the Software perform materially in accordance with any descriptions we provide regarding functionality, available 24 hours a day, seven days a week and to correct any errors in the Software, we do not warrant that:", sub: [
+      "10.1.1. the operation or use of the Software will be error-free or uninterrupted or free from bugs or viruses or that any defect will be corrected; or",
+      "10.2.1. you will be able to achieve any results or particular outcome from use of the Software.",
+    ]},
+    "10.2. The Software is hosted by a third party cloud service provider and your use relies upon internet and telecommunications infrastructure and we do not have responsibility or liability in respect of such services, their performance or for any defect in or unavailability of such services.",
+    "10.3. You agree that your use of the Software is at your own risk. We will not be liable to you if for any reason the Software is unavailable at any time or for any period.",
+    "10.4. To the maximum extent permitted by law, we disclaim any and all implied conditions and warranties that the Software and the information and services available through it are of satisfactory quality, accurate or fit for a particular purpose.",
+    "10.5 In respect of Software sold subject to a perpetual licence, we make no guarantee that the Software will continue to be maintained and/or supported.",
+  ]},
+  { n: 11, title: "Our Responsibility for Loss or Damage Suffered by You", items: [
+    "11.1. We do not exclude or limit in any way our liability to you where it would be unlawful to do so. This includes liability for death or personal injury caused by our negligence or the negligence of our employees, agents or subcontractors or for fraud or fraudulent misrepresentation.",
+    "11.2. We are not responsible for ensuring the Software meets your individual requirements. You acknowledge that the Software has not been developed to meet your individual requirements (including, if you are a Business User, any particular cybersecurity requirements you might be subject to under law or otherwise) and that it is therefore your responsibility to ensure that the facilities and functions of the Software meet your requirements.",
+    { t: "11.3. If you are a Consumer User:", sub: [
+      "11.3.1. We are responsible to you for foreseeable loss and damage caused by us. If we fail to comply with these terms, we are responsible for loss or damage you suffer that is a foreseeable result of our breaking this Licence or our failing to use reasonable care and skill, but we are not responsible for any loss or damage that is not foreseeable. Loss or damage is foreseeable if either it is obvious that it will happen or if, at the time this Licence was made, both we and you knew it might happen.",
+      "11.3.2. When we are liable for damage to your property. If defective digital content that we have supplied damages a device or digital content belonging to you, we will either repair the damage or pay you compensation. However, we will not be liable for damage that you could have avoided by following our advice to apply an update offered to you free of charge or for damage that was caused by you failing to correctly follow installation instructions or to have in place the minimum system requirements advised by us.",
+      "11.3.3. We are not liable for business losses. If you are a Consumer User, the Software is made available for your own private non-commercial use. We will have no liability to you for any loss of profit, loss of business, business interruption, or loss of business opportunity.",
+    ]},
+    { t: "11.4. If you are a Business User:", sub: [
+      "11.4.1. We only supply the Software for internal use by your business, and you agree not to use the Software for any re-sale purposes",
+      { t: "11.4.2. We shall not in any circumstances whatever be liable to you, whether in contract, tort (including negligence), breach of statutory duty, or otherwise, arising under or in connection with the Licence for:", sub: [
+        "(a. loss of profits, sales, business, or revenue;",
+        "(b. business interruption;",
+        "(c. loss of anticipated savings;",
+        "(d. loss or corruption of data or information;",
+        "(e. loss of business opportunity, goodwill or reputation; or",
+        "(f. any special, indirect or consequential loss, damage, charges or expenses (including without limitation loss or damage of the types set out in condition 11.4.2(a) to condition 11.4.2e).",
+      ]},
+      "11.4.3. Subject to condition 11.1, our maximum aggregate liability under or in connection with this Licence whether in contract, tort (including negligence) or otherwise, shall in all circumstances be limited to a sum equal to 100% of the then applicable Licence Fees for your Subscription.",
+      "11.4.4. This Licence sets out the full extent of our obligations and liabilities in respect of the supply of the Software. Except as expressly stated in this Licence, there are no conditions, warranties, representations or other terms, express or implied, that are binding on us. Any condition, warranty, representation or other term concerning the supply of the Software which might otherwise be implied into, or incorporated in, this Licence whether by statute, common law or otherwise, is excluded to the fullest extent permitted by law.",
+    ]},
+  ]},
+  { n: 12, title: "Termination", items: [
+    "12.1. We may terminate this Licence at any time for convenience by providing you with 30 days' notice. If we terminate the Licence under this condition 12.1, we will provide you with a pro-rata refund of any Licence Fees paid in respect of the unused portion of the Subscription Term.",
+    "12.2. We may terminate this Licence immediately by written notice to you if you commit a material or persistent breach of this Licence which you fail to remedy (if remediable) within 14 days after the service of written notice requiring you to do so. No refund will be due if we terminate in accordance with this condition 12.2.",
+    { t: "12.3. Upon termination for any reason:", sub: [
+      "12.3.1. all rights granted to you under this Licence shall cease;",
+      "12.3.2. you must cease all activities authorised by this Licence; and",
+      "12.3.3. you must immediately delete or remove the Software from all computer equipment in your possession.",
+    ]},
+    { t: "12.4. If you are a Consumer User:", sub: [
+      { t: "12.4.1. you have a legal right to change your mind within 14 days of first signing up for your Subscription (including any Trial Subscription) (“cooling-off period”). You can cancel your Subscription by:", sub: [
+        "(a. accessing the My Account section of the Software and following the cancellation instructions set out; or",
+        "(b. completing the Model Cancellation Form set out in Schedule 1 and returning it to us.",
+      ]},
+      "12.4.2. If neither you nor any Authorised User has used the Software prior to you notifying us of cancellation within the cooling-off period, we will refund the Licence Fees in full.",
+      "12.4.3. If you or any Authorised User start using the Software during the cooling-off period (including by activating any Subscription), the cooling-off period will end, you will lose your right of cancellation and will not be refunded the Licence Fees in respect of that Subscription Term, save that in respect of Trial Subscriptions, if you use the Software during the cooling-off period you will still be able to cancel up until the Trail Subscription end date.",
+      "12.4.4. Following the cooling-off period, you may cancel your Subscription at any time and, provided we receive your request to cancel prior to forty eight (48) hours before the expiry of your current Subscription Term, such cancellation shall take effect at the end of your then applicable Subscription Term.",
+      "12.4.5. If you have purchased an annual Subscription and cancel part-way through the Subscription Term, you will continue to have access to the Software until the end of the then current Subscription Term when your access will cease. No refund will be made in respect of the then current Subscription Term,",
+      "12.4.6. For the avoidance of doubt, no refunds shall be made in respect of Subscriptions cancelled part-way through the Subscription Term or in respect of Subscriptions which you have automatically renewed and you have not cancelled in accordance with this condition 12.",
+    ]},
+  ]},
+  { n: 13, title: "Communications Between Us", items: [
+    "13.1. If you wish to contact us in writing, or if any condition in this Licence requires you to give us notice in writing, you can send this to us by email to Audiomovers at info@audiomovers.com. We will confirm receipt of this by contacting you in writing at the email address or postal address you provided to us in your order.",
+    "13.2. If we have to contact you or give you notice in writing, we will do so by emailing the email address you provided in registering your account.",
+  ]},
+  { n: 14, title: "Events Outside Our Control", items: [
+    "14.1. An “Event Outside Our Control” means any act or event beyond our reasonable control, including without limitation failure of public or private telecommunications networks.",
+    "14.1 We will not be liable or responsible for any failure to perform, or delay in performance of, any of our obligations under this Licence that is caused by an Event Outside Our Control.",
+    { t: "14.2. If an Event Outside Our Control takes place that affects the performance of our obligations under this Licence:", sub: [
+      "14.2.1 our obligations under this Licence will be suspended and the time for performance of our obligations will be extended for the duration of the Event Outside Our Control; and",
+      "14.2.2. we will use our reasonable endeavours to find a solution by which our obligations under this Licence may be performed despite the Event Outside Our Control.",
+    ]},
+  ]},
+  { n: 15, title: "How We May Use Your Personal Information", items: [
+    "15.1. Under data protection legislation, we are required to provide you with certain information about who we are, how we process your personal data and for what purposes and your rights in relation to your personal data and how to exercise them. This information is provided in our privacy policy available at https://www.umusic.co.uk/privacy.html and it is important that you read that information.",
+    "15.2. As stated in condition 3, we use a third party payment service provider who will also process your personal data for administration of billing and collection of the Licence Fees. Such processing shall be subject to the terms of their separate privacy policy available via their website.",
+  ]},
+  { n: 16, title: "Other Important Terms", items: [
+    "16.1. We may transfer our rights and obligations under these terms to another organisation. We will always tell you in writing if this happens and we will ensure that the transfer will not affect your rights under the contract.",
+    "16.2. You may only transfer your rights or your obligations under this Licence to another person if we agree in writing (provided that this will not prevent you providing Access Passes to Authorised Users in accordance with these conditions).",
+    "16.3. This contract is between you and us. This Licence does not give rise to any rights to any third party to enforce any term of this Licence.",
+    "16.4. Each of the conditions of these terms operates separately. If any court or relevant authority decides that any of them are unlawful, the remaining conditions will remain in full force and effect.",
+    "16.5. If we do not insist immediately that you do anything you are required to do under these terms, or if we delay in taking steps against you in respect of your breaking this contract, that will not mean that you do not have to do those things and it will not prevent us taking steps against you at a later date.",
+    "16.7 This Licence constitutes the entire agreement between us relating to the Software. Where we agree separate terms in writing, such terms will only override the terms of this Licence where such terms are expressly stated as overriding the terms of this Licence and are signed by an authorised representative of Virgin Records Limited.",
+  ]},
+  { n: 17, title: "Governing Law and Jurisdiction", items: [
+    "17.1. This Licence is governed by English law",
+    { t: "17.2. If you are a Consumer User:", sub: [
+      "17.2.1. if mandatory statutory consumer protection regulations in your country of residence contain provisions that apply by application of applicable law, such provisions shall apply irrespective of the choice of English law. As a consumer, you may bring any judicial proceedings relating to this Licence before the competent court of your place of residence or the competent court of our place of business in England. If we wish to enforce any of its rights against you as a consumer, we may do so only in the courts of the jurisdiction in which you are a resident.",
+      "17.2.2. if you reside in the EU, the European Commission provides for an online dispute resolution platform, which you can access here: https://ec.europa.eu/consumers/odr. We will not charge you for making a complaint and if you are not satisfied with the outcome you can still bring legal proceedings.",
+      "17.2.3. If you are a Business User, you agree to submit to the exclusive jurisdiction of the English courts.",
+    ]},
+  ]},
+];
+const SCHEDULE1 = {
+  title: "Model Cancellation Form – for Consumer Users only",
+  intro: "(Complete and return this form only if you wish to withdraw from the Licence)",
+  lines: [
+    "To: Virgin Records Limited, trading as Audiomovers of 4 Pancras Square, London, N1C 4AG, United Kingdom, or info@audiomovers.com",
+    "I/We [*] hereby give notice that I/We [*] cancel my/our [*] contract for the supply of the following service [*],",
+    "Ordered on [*],",
+    "Name of consumer(s),",
+    "Address of consumer(s),",
+    "Signature of consumer(s) (only if this form is notified on paper),",
+    "Date",
+    "[*] Delete as appropriate",
+  ],
+};
+const SCHEDULE2 = [
+  { h: "Boost Software Licence – Version 1.0 – August 17th, 2003", ps: ["Permission is hereby granted, free of charge, to any person or organization obtaining a copy of the software and accompanying documentation covered by this licence (the “Software”) to use, reproduce, display, distribute, execute, and transmit the Software, and to prepare derivative works of the Software, and to permit third-parties to whom the Software is furnished to do so, all subject to the following: The copyright notices in the Software and this entire statement, including the above licence grant, this restriction and the following disclaimer, must be included in all copies of the Software, in whole or in part, and all derivative works of the Software, unless such copies or derivative works are solely in the form of machine-executable object code generated by a source language processor. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."] },
+  { h: "Curl – COPYRIGHT AND PERMISSION NOTICE", ps: ["Copyright (c) 1996 – 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.", "Permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.", "All rights reserved. Permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.", "Except as contained in this notice, the name of a copyright holder shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization of the copyright holder."] },
+  { h: "JSON – Copyright (c) 2002 JSON.org", ps: ["Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicence, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:", "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. The Software shall be used for Good, not Evil.", "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.", "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."] },
+  { h: "FastCGI (Open Market, Inc)", ps: ["This FastCGI application library source and object code (the “Software”) and its documentation (the “Documentation”) are copyrighted by Open Market, Inc (“Open Market”). The following terms apply to all files associated with the Software and Documentation unless explicitly disclaimed in individual files.", "Open Market permits you to use, copy, modify, distribute, and licence this Software and the Documentation for any purpose, provided that existing copyright notices are retained in all copies and that this notice is included verbatim in any distributions. No written agreement, licence, or royalty fee is required for any of the authorized uses. Modifications to this Software and Documentation may be copyrighted by their authors and need not follow the licensing terms described here. If modifications to this Software and Documentation have new licensing terms, the new terms must be clearly indicated on the first page of each file where they apply.", "OPEN MARKET MAKES NO EXPRESS OR IMPLIED WARRANTY WITH RESPECT TO THE SOFTWARE OR THE DOCUMENTATION, INCLUDING WITHOUT LIMITATION ANY WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL OPEN MARKET BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY DAMAGES ARISING FROM OR RELATING TO THIS SOFTWARE OR THE DOCUMENTATION, INCLUDING, WITHOUT LIMITATION, ANY INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES OR SIMILAR DAMAGES, INCLUDING LOST PROFITS OR LOST DATA, EVEN IF OPEN MARKET HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE SOFTWARE AND DOCUMENTATION ARE PROVIDED “AS IS”. OPEN MARKET HAS NO LIABILITY IN CONTRACT, TORT, NEGLIGENCE OR OTHERWISE ARISING OUT OF THIS SOFTWARE OR THE DOCUMENTATION.", "THE SOFTWARE AND DOCUMENTATION ARE PROVIDED “AS IS”."] },
+  { h: "WebSocket++ — Main Library", ps: ["Copyright (c) 2014, Peter Thorson. All rights reserved.", "Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:", "* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.", "* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.", "* Neither the name of the WebSocket++ Project nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.", "THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PETER THORSON BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."] },
+  { h: "Base 64 Library (base64/base64.hpp)", ps: ["base64.hpp is a repackaging of the base64.cpp and base64.h files into a single header suitable for use as a header only library. This conversion was done by Peter Thorson (webmaster@zaphoyd.com) in 2012. All modifications to the code are redistributed under the same licence as the original, which is listed below.", "base64.cpp and base64.h — Copyright (C) 2004-2008 René Nyffenegger", "This source code is provided 'as-is', without any express or implied warranty. In no event will the author be held liable for any damages arising from the use of this software. Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions: The origin of this source code must not be misrepresented; you must not claim that you wrote the original source code. If you use this source code in a product, an acknowledgment in the product documentation would be appreciated but is not required.", "Altered source versions must be plainly marked as such, and must not be misrepresented as being the original source code.", "This notice may not be removed or altered from any source distribution.", "René Nyffenegger rene.nyffenegger@adp-gmbh.ch"] },
+  { h: "SHA1 Library (sha1/sha1.hpp)", ps: ["sha1.hpp is a repackaging of the sha1.cpp and sha1.h files from the shallsha1 library (http://code.google.com/p/smallsha1/) into a single header suitable for use as a header only library. This conversion was done by Peter Thorson (webmaster@zaphoyd.com) in 2013. All modifications to the code are redistributed under the same licence as the original, which is listed below.", "Copyright (c) 2011, Micael Hildenborg All rights reserved.", "Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:", "* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.", "* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.", "* Neither the name of Micael Hildenborg nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.", "THIS SOFTWARE IS PROVIDED BY Micael Hildenborg ”AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Micael Hildenborg BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."] },
+  { h: "MD5 Library (common/md5.hpp)", ps: ["md5.hpp is a reformulation of the md5.h and md5.c code from http://www.opensource.apple.com/source/cups/cups-59/cups/md5.c to allow it to function as a component of a header only library. This conversion was done by Peter Thorson (webmaster@zaphoyd.com) in 2012 for the WebSocket++ project. The changes are released under the same licence as the original (listed below) Copyright (C) 1999, 2002 Aladdin Enterprises. All rights reserved. This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software. Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:", "The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.", "Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.", "This notice may not be removed or altered from any source distribution.", "Peter Deutsch ghost@aladdin.com"] },
+  { h: "UTF8 Validation logic (utf8_validation.hpp)", ps: ["utf8_validation.hpp is adapted from code originally written by Bjoern Hoehrmann. See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.", "The original licence: Copyright (c) 2008-2009 Bjoern Hoehrmann", "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicence, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:", "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.", "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."] },
+  { h: "Audiomovers Binaural Renderer for Apple Music", ps: ["Audiomovers Binaural Renderer for Apple Music is solely a product of Audiomovers, and not created or endorsed by Apple Inc.", "Apple, Apple Music, the Apple logo, Apple TV, iPad, iPhone, iPod touch, iTunes, Apple AirPods (3rd generation), AirPods Pro or AirPods Max and Mac are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Copyright © 2023 Apple Inc. All rights reserved.", "Dolby and the double-D symbol are registered trademarks of Dolby Laboratories Licensing Corporation. All other trademarks remain the property of their respective owners. © 2023 Dolby Laboratories, Inc. All rights reserved."] },
+  { h: "Audiomovers OMNIBUS 3.0", ps: ["Audiomovers OMNIBUS 3.0 utilises Apple's Audio Video Bridging technology. Audiomovers has not implemented the standard itself, only what Apple provides through its developer services. Audiomovers OMNIBUS 3.0 is solely a product of Audiomovers, and is not created or endorsed by Apple Inc."] },
+  { h: "NDI® Software Development Kit (SDK) License Agreement licensed by Vizrt NDI AB (“NDI”)", ps: ["You shall: (i) not modify the entire NDI® Software Development Kit (“SDK”) or any part thereof, (ii) not reverse engineer, disassemble or recompile the SDK or any part thereof, or any protocols used in the SDK, or attempt to do so; and (iii) comply fully with all relevant export laws and regulations of the United States to assure that the Software or any part thereof is not exported, directly or indirectly, in violation of United States law.", "THE SDK IS PROVIDED TO YOU ON AN “AS IS” BASIS AND “WITH ALL FAULTS”, WITHOUT ANY TECHNICAL SUPPORT OR WARRANTY OF ANY KIND FROM NDI. YOU ASSUME ALL RISKS THAT THE SDK IS SUITABLE OR ACCURATE FOR YOUR NEEDS AND YOUR USE OF THE SDK IS AT YOUR OWN DISCRETION AND RISK. NDI AND ITS LICENSORS DISCLAIM ALL EXPRESS AND IMPLIED WARRANTIES FOR THE SDK INCLUDING, WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. ALSO, THERE IS NO WARRANTY OF NON-INFRINGEMENT, TITLE OR QUIET ENJOYMENT. SOME STATES DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THE ABOVE EXCLUSION MAY NOT APPLY TO YOU. YOU MAY ALSO HAVE OTHER LEGAL RIGHTS THAT VARY FROM STATE TO STATE.", "NEITHER NDI NOR ITS SUPPLIERS OR LICENSORS SHALL BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES OR LOSS (INCLUDING DAMAGES FOR LOSS OF BUSINESS, LOSS OF PROFITS, OR THE LIKE), ARISING OUT OF THIS LICENSE WHETHER BASED ON BREACH OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, PRODUCT LIABILITY OR OTHERWISE, EVEN IF NDI OR ITS REPRESENTATIVES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.", "Nothing herein is intended to convey to you any patent, trademark, copyright, trade secret or other intellectual property owned by NDI or its licensors in the SDK or in any NDI software, hardware, products, trade names, or trademarks. NDI and its suppliers or licensors shall retain all right, title, and interest to the foregoing intellectual property and to the SDK. All rights pertaining to the SDK not expressly granted herein are reserved by NDI."] },
+];
+const TOC = SECTIONS.map((sec) => ({ id: "sec-" + sec.n, label: sec.n + ". " + sec.title }))
+  .concat([{ id: "schedule-1", label: "Schedule 1 — Model Cancellation Form" }, { id: "schedule-2", label: "Schedule 2 — Third party & open source notices" }]);
+
+const LegalHeader = () => (
+  <section className="px-[5%] pb-4 pt-10 md:pt-14" style={{ borderBottom: "none" }}>
+    <div className="container">
+      <h1 className="mb-2 text-h2 font-bold">Audiomovers Terms &amp; Conditions</h1>
+      <p className="text-small text-neutral">v1.06 | Last updated 17th June 2024 · Audiomovers is part of Abbey Road Studios, the trading name of Virgin Records Ltd. Registered in England no. 01070953.</p>
+    </div>
+  </section>
+);
+
+const ClauseList = ({ items, depth }) => (
+  <ul className={"mb-2 pl-5 " + (depth === 0 ? "list-disc" : depth === 1 ? "list-[circle] pl-6" : "list-[square] pl-6")}>
+    {items.map((it, i) => typeof it === "string"
+      ? (<li key={i} className="mb-4 text-medium">{it}</li>)
+      : (<li key={i} className="mb-4 text-medium">{it.t}<div className="mt-4"><ClauseList items={it.sub} depth={depth + 1} /></div></li>))}
+  </ul>
+);
+
+const LegalBody = () => (
+  <section className="px-[5%] py-10 md:py-14" style={{ borderBottom: "none" }}>
+    <div className="container">
+      <div className="grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[300px_1fr]">
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <p className="mb-3 text-small font-semibold uppercase tracking-[1px] text-neutral">On this page</p>
+          <nav className="flex flex-col">
+            {TOC.map((t, i) => (
+              <a key={i} href={"#" + t.id} data-route={"#" + t.id} className="border-l-2 border-[#ededed] py-1.5 pl-4 text-small text-black hover:border-neutral-darkest hover:font-semibold">{t.label}</a>
+            ))}
+          </nav>
+        </aside>
+        <div className="max-w-[760px]">
+          {PRE.map((p, i) => (<p key={i} className="mb-5 text-medium">{p}</p>))}
+          <ul className="mb-5 list-disc pl-5">{PRE_BULLETS.map((p, i) => (<li key={i} className="mb-3 text-medium">{p}</li>))}</ul>
+          {PRE2.map((p, i) => (<p key={i} className="mb-5 text-medium">{p}</p>))}
+          {SECTIONS.map((sec) => (
+            <div key={sec.n}>
+              <h2 id={"sec-" + sec.n} className="mb-4 mt-10 text-h5 font-bold">{sec.n}. {sec.title}</h2>
+              <ClauseList items={sec.items} depth={0} />
+            </div>
+          ))}
+          <h2 id="schedule-1" className="mb-4 mt-10 text-h5 font-bold">{SCHEDULE1.title}</h2>
+          <p className="mb-5 text-medium italic">{SCHEDULE1.intro}</p>
+          {SCHEDULE1.lines.map((p, i) => (<p key={i} className="mb-3 text-medium">{p}</p>))}
+          <h2 id="schedule-2" className="mb-4 mt-10 text-h5 font-bold">Schedule 2 — Third Party and Open Source Software: Legal Notices</h2>
+          {SCHEDULE2.map((sch, i) => (
+            <div key={i} className="mb-8">
+              <h3 className="mb-3 text-h6 font-bold">{sch.h}</h3>
+              {sch.ps.map((p, j) => (<p key={j} className="mb-3 text-small">{p}</p>))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const LegalContact = () => (
+  <section className="bg-neutral-lightest px-[5%] py-12 md:py-16">
+    <div className="container grid grid-cols-1 items-center gap-6 md:grid-cols-[1fr_max-content] md:gap-x-12">
+      <div className="max-w-lg">
+        <h2 className="mb-2 text-h4 font-bold">Questions about these terms?</h2>
+        <p className="text-medium text-neutral">Our support team can help with licensing, subscriptions and account questions.</p>
+      </div>
+      <Button variant="secondary" data-route="/support/contact-us">Contact us</Button>
+    </div>
+  </section>
+);
+
+const App = () => {
+  const [route, setRoute] = useState(null);
+  const onClickCapture = (e) => {
+    const t = e.target.closest("a, button[data-slot=button], [role=link]");
+    if (!t) return;
+    const dest = t.dataset.route || t.getAttribute("href");
+    if (!dest || dest === "#") return;
+    e.preventDefault();
+    if (dest === "relume-home" || dest === "/") { window.location.href = "relume-home.html" + window.location.search; return; }
+    if (dest.indexOf("#") === 0) { const el = document.getElementById(dest.slice(1)); if (el) { const y = el.getBoundingClientRect().top + window.scrollY - 130; window.scrollTo({ top: y, behavior: "smooth" }); } return; }
+    if (dest.indexOf("/legal — switch doc") === 0) return;
+    if (dest.indexOf("/terms") === 0 || dest.indexOf("/privacy") === 0 || dest.indexOf("/ccpa") === 0) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (dest.indexOf("/about") === 0) { window.location.href = "relume-about.html" + window.location.search; return; }
+    if (dest.indexOf("/search") === 0) { window.location.href = "relume-search.html" + window.location.search; return; }
+    if (dest.indexOf("/press/[release]") === 0) { window.location.href = "relume-press-article.html" + window.location.search; return; }
+    if (dest.indexOf("/press") === 0) { window.location.href = "relume-press.html" + window.location.search; return; }
+    if (dest.indexOf("/news/[article]") === 0) { window.location.href = "relume-article.html" + window.location.search; return; }
+    if (dest.indexOf("/news") === 0) { window.location.href = "relume-news.html" + window.location.search; return; }
+    if (dest.indexOf("/industry/music") === 0) { window.location.href = "relume-industry-music.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/education") === 0) { window.location.href = "relume-sectors-education.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/students") === 0) { window.location.href = "relume-sectors-students.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/business") === 0) { window.location.href = "relume-sectors-business.html" + window.location.search; return; }
+    if (dest.indexOf("/downloads") === 0) { window.location.href = "relume-downloads.html" + window.location.search; return; }
+    if (dest.indexOf("/products/listento") === 0) { window.location.href = "relume-listento.html" + window.location.search; return; }
+    if (dest.indexOf("/products/omnibus") === 0) { window.location.href = "relume-omnibus.html" + window.location.search; return; }
+    if (dest.indexOf("/pricing/listento") === 0) { window.location.href = "relume-pricing-listento.html" + window.location.search; return; }
+    if (dest.indexOf("/podcast") === 0) { window.location.href = "relume-podcast.html" + window.location.search; return; }
+    if (dest.indexOf("/support/get-help") === 0) { window.location.href = "relume-support.html" + window.location.search; return; }
+    setRoute(dest);
+  };
+  return (
+    <div onClickCapture={onClickCapture}>
+      <Annot><span>00 · PROMO BANNER — shared sitewide</span><span>CMS campaign slot</span></Annot>
+      <PromoBanner text="Black Friday: 40% off OMNIBUS until Dec 1" cta={{ title: "Shop the sale", "data-route": "/products/omnibus" }} />
+      <Annot><span>01 · NAVBAR — navbar2 (shared)</span><span>CTA = Try LISTENTO free (site default)</span></Annot>
+      <Navbar2 {...nav} />
+      <Annot><span>02 · LEGAL HEADER — title · version + last-updated + company registration line · same template serves Privacy & CCPA</span><span></span></Annot>
+      <LegalHeader />
+      <Annot><span>03 · LEGAL BODY — sticky in-page contents nav + prose column · full T&Cs verbatim from client-provided copy: sections 1–17, Model Cancellation Form, Schedule 2 open-source notices</span><span>nested clause formatting preserved</span></Annot>
+      <LegalBody />
+      <Annot><span>04 · CONTACT — support exit for licensing questions</span><span>live page dead-ends</span></Annot>
+      <LegalContact />
+      <Annot><span>05 · FOOTER — footer14 (shared)</span><span></span></Annot>
+      <Footer14
+        logoText="AUDIOMOVERS"
+        description="Remote audio collaboration, powered by Abbey Road."
+        columnLinks={[
+          { title: "Products", links: [{ title: "LISTENTO", url: "/products/listento" }, { title: "GLIMPSE", url: "/products/glimpse" }, { title: "OMNIBUS 3", url: "/products/omnibus" }, { title: "MINIBUS", url: "/products/minibus" }, { title: "Binaural Renderer", url: "/products/binaural-renderer-for-apple-music" }, { title: "INJECT", url: "/products/inject" }, { title: "AirCaster", url: "/products/aircaster" }] },
+          { title: "Sectors", links: [{ title: "Business", url: "/sectors/business" }, { title: "Education", url: "/sectors/education" }, { title: "Students", url: "/sectors/students" }] },
+          { title: "Pricing", links: [{ title: "LISTENTO", url: "/pricing/listento" }, { title: "GLIMPSE", url: "/pricing/glimpse" }] },
+          { title: "Company", links: [{ title: "About Us", url: "/about" }, { title: "Press", url: "/press" }, { title: "Support", url: "/support/get-help" }, { title: "Contact", url: "/support/contact-us" }] },
+          { title: "Explore", links: [{ title: "Downloads", url: "/downloads" }, { title: "News", url: "/news" }, { title: "Podcast", url: "/podcast" }] },
+        ]}
+        legalLinks={[{ title: "Terms", url: "/terms" }, { title: "Privacy Policy", url: "/privacy" }, { title: "CCPA Policy", url: "/ccpa" }, { title: "Abbey Road Studios ↗", url: "https://www.abbeyroad.com" }]}
+        footerText="© 2026 Audiomovers · An Abbey Road Studios company"
+      />
+      {route && (
+        <div style={{ position: "fixed", left: "50%", bottom: 16, transform: "translateX(-50%)", zIndex: 1000, maxWidth: "92%" }}
+          className="flex items-center gap-3 whitespace-nowrap border border-scheme-border bg-neutral-darkest px-5 py-3 text-small text-white">
+          <span style={{ opacity: .6 }}>Flow →</span><span className="font-semibold" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{route}</span>
+          <span style={{ opacity: .6 }}>wireframe not built yet</span>
+          <span style={{ cursor: "pointer", opacity: .7 }} onClick={() => setRoute(null)}>×</span>
+        </div>
+      )}
+    </div>
+  );
+};
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+window.addEventListener('load', function () {
+  try {
+    var src = document.getElementById('jsx-src').textContent;
+    var out = Babel.transform(src, { presets: [[Babel.availablePresets.react, { runtime: 'classic' }]] }).code;
+    (0, eval)(out);
+  } catch (e) {
+    document.getElementById('root').innerHTML = '<pre style="padding:24px;color:#c00;white-space:pre-wrap">' + (e.message || e) + '</pre>';
+  }
+});
+</script>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#B2D9EF"/><text x="50" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#000">PR</text></svg></template>
+</body>
+</html>

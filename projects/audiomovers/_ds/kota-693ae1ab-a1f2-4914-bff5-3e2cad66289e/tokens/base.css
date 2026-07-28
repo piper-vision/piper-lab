@@ -1,0 +1,26 @@
+/* Minimal base — body defaults + links + selection */
+
+body {
+  margin: 0;
+  font: var(--text-body);
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+a:hover { opacity: 0.6; }
+
+::selection {
+  background: var(--kota-pink);
+  color: var(--kota-black);
+}

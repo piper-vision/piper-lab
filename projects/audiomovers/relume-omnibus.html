@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audiomovers OMNIBUS 3 — Relume wireframe</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/tailwindcss-cdn@3.4.10/tailwindcss.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    container: { center: true },
+    extend: {
+      colors: {
+        'scheme-border': '#dcdcdc', 'scheme-text': '#141414', 'scheme-background': '#fff', 'scheme-foreground': '#fff',
+        'neutral-darkest': '#141414', neutral: { DEFAULT: '#5f5f5f', lightest: '#efefef' },
+      },
+      borderRadius: { button: '0', card: '0', badge: '0', image: '0' },
+      fontSize: {
+        h1: ['56px', { lineHeight: '1.06', fontWeight: '700', letterSpacing: '-0.02em' }], h2: ['44px', { lineHeight: '1.1', letterSpacing: '-0.01em' }],
+        h3: ['40px', { lineHeight: '1.1', letterSpacing: '-0.01em' }], h4: ['30px', { lineHeight: '1.2' }],
+        h5: ['24px', { lineHeight: '1.3' }], h6: ['19px', { lineHeight: '1.4' }],
+        medium: ['17px', { lineHeight: '1.55' }], small: ['13px', { lineHeight: '1.5' }],
+      },
+      spacing: { 18: '4.5rem' }, maxWidth: { xxs: '16rem' }, minHeight: { 18: '4.5rem' },
+    },
+  },
+};
+</script>
+<style>
+body{margin:0;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#5f5f5f;background:#fff;font-size:15px;line-height:1.55}
+h1,h2,h3,h4,h5,h6{color:#141414}
+@media (max-width:767px){
+  .text-h1{font-size:35px!important}
+  .text-h2{font-size:27px!important}
+  .text-h3{font-size:25px!important}
+  .text-h4{font-size:22px!important}
+  .text-h5{font-size:19px!important}
+}
+#root > div > section{border-bottom:1px solid #ededed}
+[data-slot=card] p{color:#5f5f5f}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/plain" id="jsx-src">
+/* Vendored Relume v3.7 sections (navbar2, header1, layout303, cta7, logo2, blog39, blog60, footer14).
+   Adaptations for no-build environment: cn() replaces clsx/tailwind-merge; variant maps replace cva;
+   inline SVGs replace relume-icons; CSS transitions replace motion/react in Navbar2. Class strings unchanged. */
+const { useState, useEffect } = React;
+const cn = (...a) => a.filter(Boolean).join(" ");
+
+// components/ui/button.tsx — variant/size class strings verbatim from Relume kit
+const buttonBase = "inline-flex items-center justify-center gap-3 rounded-button whitespace-nowrap text-[14px] font-semibold transition-all duration-200 ease-in-out focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 lg:text-[16px]";
+const buttonVariantCls = {
+  default: "bg-neutral-darkest text-white hover:bg-[#3c3c3c]",
+  // secondary matches primary hover: same grey fill, text flips white
+  alternate: "border border-white bg-white text-neutral-darkest hover:border-[#3c3c3c] hover:bg-[#3c3c3c] hover:text-white",
+  secondary: "border border-scheme-border bg-white text-scheme-text hover:border-[#3c3c3c] hover:bg-[#3c3c3c] hover:text-white",
+  link: "gap-2 text-scheme-text hover:underline hover:underline-offset-4", ghost: "hover:bg-neutral-darkest hover:text-white", none: "",
+};
+const buttonSizeCls = { default: "px-6 py-3", sm: "px-5 py-2", link: "p-0", icon: "size-10", none: "" };
+const Button = ({ className, variant = "default", size = "default", iconLeft, iconRight, children, ...props }) => (
+  <button data-slot="button" className={cn(buttonBase, buttonVariantCls[variant], buttonSizeCls[size], className)} {...props}>
+    {iconLeft}{children}{iconRight}
+  </button>
+);
+// components/ui/card.tsx
+const Card = ({ className, ...props }) => (
+  <div data-slot="card" className={cn("overflow-hidden rounded-card border border-scheme-border bg-scheme-foreground text-scheme-text transition-colors duration-200 hover:border-[#8a8a8a]", className)} {...props} />
+);
+// components/ui/badge.tsx
+const Badge = ({ className, ...props }) => (
+  <span data-slot="badge" className={cn("inline-flex items-center rounded-badge px-2 py-[0.175rem] text-sm leading-[1.5] font-semibold border border-neutral-lightest bg-neutral-lightest text-neutral-darkest", className)} {...props} />
+);
+// relume-icons substitutes
+const ChevronRight = ({ className }) => (<svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 6 6 6-6 6"/></svg>);
+const KeyboardArrowDown = ({ className }) => (<svg className={cn("size-5", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>);
+const RelumeIcon = ({ className }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18"/><path d="m3 9 6-6m3 18L21 12"/></svg>);
+const SearchIcon = ({ className }) => (<svg className={cn("size-5", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>);
+const socialGlyphs = {
+  facebook: <path d="M13.5 21v-7h2.3l.4-3h-2.7V9.1c0-.9.3-1.5 1.5-1.5h1.3V4.9c-.6-.1-1.4-.2-2.3-.2-2.3 0-3.8 1.4-3.8 3.9V11H8v3h2.2v7h3.3z" fill="currentColor" stroke="none" />,
+  instagram: <g><rect x="4.5" y="4.5" width="15" height="15" rx="4" /><circle cx="12" cy="12" r="3.4" /><circle cx="16.6" cy="7.4" r="0.6" fill="currentColor" stroke="none" /></g>,
+  x: <path d="M5 5l6 7.6L5.3 19h2.2l4.5-5.1L16 19h3.2l-6.3-8L18.6 5h-2.2l-4.1 4.7L8.2 5H5z" fill="currentColor" stroke="none" />,
+  linkedin: <g><rect x="5" y="10" width="3" height="9" fill="currentColor" stroke="none" /><circle cx="6.5" cy="6.5" r="1.6" fill="currentColor" stroke="none" /><path d="M11 19v-9h3v1.4c.5-.9 1.5-1.6 3-1.6 2.3 0 3.5 1.5 3.5 4.1V19h-3v-4.6c0-1.3-.5-2.1-1.6-2.1-1.2 0-1.9.9-1.9 2.1V19h-3z" fill="currentColor" stroke="none" /></g>,
+  youtube: <g><rect x="3.5" y="6.5" width="17" height="11" rx="3" /><path d="M10.5 9.8v4.4l4-2.2-4-2.2z" fill="currentColor" stroke="none" /></g>,
+};
+const SocialIcon = ({ kind, className }) => (
+  <span className={cn("flex size-9 items-center justify-center rounded-full border border-scheme-border transition-colors hover:bg-neutral-darkest hover:text-white", className)}>
+    <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{socialGlyphs[kind]}</svg>
+  </span>
+);
+const stripeSvg = (w, h, label) => {
+  const text = (label || "Image").toUpperCase().replace(/&/g, "&amp;");
+  const fs = 10;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='${w}' height='${h}' fill='#f4f4f4'/><text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-size='${fs}' letter-spacing='1.5' fill='#9a9a9a'>${text}</text></svg>`);
+};
+const ph = (label, w = 800, h = 450) => stripeSvg(w, h, label);
+const PLACEHOLDER = stripeSvg(800, 800);
+const PLACEHOLDER_L = stripeSvg(800, 450);
+
+// ---- Promo banner — slim announcement bar above the nav (CMS-swappable) ----
+const PromoBanner = ({ text, cta }) => (
+  <div className="flex items-center justify-center gap-3 bg-neutral-darkest px-[5%] py-2.5 text-center">
+    <p className="text-small text-white">{text}</p>
+    <a href="#" data-route={cta["data-route"]} className="whitespace-nowrap text-small font-semibold text-white underline underline-offset-2 hover:opacity-70">{cta.title}</a>
+  </div>
+);
+
+// ---- Navbar2 (Relume) — motion animations replaced with CSS ----
+const Navbar2 = ({ logo, navLinks, buttons }) => {
+  const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 991px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 991px)");
+    const h = () => setIsMobile(mq.matches);
+    mq.addEventListener ? mq.addEventListener("change", h) : mq.addListener(h);
+    return () => (mq.removeEventListener ? mq.removeEventListener("change", h) : mq.removeListener(h));
+  }, []);
+  return (
+    <section className="sticky top-0 z-[999] flex w-full items-center border-b border-scheme-border bg-scheme-background lg:min-h-18 lg:px-[5%]">
+      <div className="mx-auto size-full lg:grid lg:grid-cols-[0.375fr_1fr_0.375fr] lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex min-h-16 items-center justify-between px-[5%] md:min-h-18 lg:min-h-full lg:px-0">
+          <a href={logo.url} className="flex items-center"><img src="uploads/audiomovers-logo.svg" alt="Audiomovers" style={{ height: 21, width: "auto" }} /></a>
+          <div className="flex items-center gap-2 lg:hidden">
+            <a href="#" data-route="/search" aria-label="Search" className="flex size-10 items-center justify-center text-black"><SearchIcon /></a>
+            <div className="flex items-center gap-2">{buttons.filter(b => b.variant !== "link").map((b, i) => (<Button key={i} className="px-3 py-1" size="sm" {...b}>{b.title}</Button>))}</div>
+            <button className="-mr-2 flex size-12 flex-col items-center justify-center" onClick={() => setOpen(p => !p)} data-route="[toggle mobile nav]">
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "transform .2s", transform: open ? "translateY(8px) rotate(-45deg)" : "none" }} />
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "width .2s", width: open ? 0 : "1.5rem" }} />
+              <span className="my-[3px] h-0.5 w-6 bg-scheme-text" style={{ transition: "transform .2s", transform: open ? "translateY(-8px) rotate(45deg)" : "none" }} />
+            </button>
+          </div>
+        </div>
+        <div className="overflow-hidden px-[5%] text-center lg:flex lg:items-center lg:justify-center lg:overflow-visible lg:px-0"
+          style={isMobile ? { height: open ? "auto" : 0, transition: "height .4s" } : {}}>
+          {isMobile && <a href="#" data-route="my.audiomovers.com — login" className="block py-3 text-base font-semibold">Log in</a>}
+          {navLinks.map((nl, i) => nl.mega
+            ? <MegaMenu key={i} navLink={nl} isMobile={isMobile} />
+            : nl.subMenuLinks && nl.subMenuLinks.length > 0
+            ? <SubMenu key={i} navLink={nl} isMobile={isMobile} />
+            : <a key={i} href={nl.url} className="block py-3 text-base text-black hover:underline hover:underline-offset-4 first:pt-7 lg:px-4 lg:py-2 first:lg:pt-2">{nl.title}</a>)}
+        </div>
+        <div className="hidden items-center gap-2 justify-self-end lg:flex">
+          <a href="#" data-route="/search" aria-label="Search" className="flex size-10 items-center justify-center text-black transition-colors hover:bg-neutral-lightest"><SearchIcon /></a>
+          {buttons.map((b, i) => (<Button key={i} className="whitespace-nowrap px-4 py-2" size="sm" {...b}>{b.title}</Button>))}
+        </div>
+      </div>
+    </section>
+  );
+};
+const MegaMenu = ({ navLink, isMobile }) => {
+  const [dd, setDd] = useState(false);
+  const m = navLink.mega;
+  return (
+    <section className="lg:relative" onMouseEnter={() => !isMobile && setDd(true)} onMouseLeave={() => !isMobile && setDd(false)}>
+      <p role="button" className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-center text-base text-black lg:w-auto lg:flex-none lg:justify-start lg:px-4 lg:py-2" onClick={() => setDd(p => !p)}>
+        <span>{navLink.title}</span>
+        <span style={{ transition: "transform .3s", transform: dd ? "rotate(180deg)" : "none" }}><KeyboardArrowDown className="text-scheme-text" /></span>
+      </p>
+      {dd && (
+        <div className="bg-scheme-background lg:absolute lg:left-1/2 lg:top-full lg:z-50 lg:w-max lg:-translate-x-1/2 lg:border lg:border-[#d8d8d8] lg:bg-white lg:p-8" style={{ boxShadow: "0 10px 28px rgba(0,0,0,.14)" }}>
+          <div className="grid grid-cols-1 gap-6 text-left lg:grid-cols-[minmax(230px,max-content)_minmax(230px,max-content)_230px]">
+            {m.columns.map((col, i) => (
+              <div key={i} className="flex flex-col lg:border-r lg:border-[#ededed] lg:pr-10">
+                <p className="mb-2 text-small text-neutral">{col.heading}</p>
+                {col.links.map((s, j) => (
+                  <a key={j} href={s.url} data-route={s["data-route"]} className="-mx-3 block whitespace-nowrap px-3 py-2.5 text-left text-black transition-colors hover:bg-neutral-lightest">
+                    <span>{s.title}</span>
+                  </a>
+                ))}
+                {col.cta && <a href="#" data-route={col.cta["data-route"]} className="mt-1 py-2.5 text-base font-semibold text-black hover:underline hover:underline-offset-4">{col.cta.title} →</a>}
+              </div>
+            ))}
+            <div className="flex flex-col">
+              <img src={m.promo.image} alt={m.promo.heading} className="mb-3 aspect-video w-full object-cover" />
+              <p className="mb-2 text-small font-semibold text-black">{m.promo.heading}</p>
+              <a href="#" data-route={m.promo.cta["data-route"]} className="text-small font-semibold text-black hover:underline hover:underline-offset-4">{m.promo.cta.title} →</a>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
+const SubMenu = ({ navLink, isMobile }) => {
+  const [dd, setDd] = useState(false);
+  return (
+    <section className="relative" onMouseEnter={() => !isMobile && setDd(true)} onMouseLeave={() => !isMobile && setDd(false)}>
+      <p role="button" className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-center text-base text-black lg:w-auto lg:flex-none lg:justify-start lg:px-4 lg:py-2" onClick={() => setDd(p => !p)}>
+        <span>{navLink.title}</span>
+        <span style={{ transition: "transform .3s", transform: dd ? "rotate(180deg)" : "none" }}><KeyboardArrowDown className="text-scheme-text" /></span>
+      </p>
+      {dd && (
+        <div className="bg-scheme-background lg:absolute lg:top-full lg:z-50 lg:left-1/2 lg:min-w-[290px] lg:-translate-x-1/2 lg:border lg:border-[#d8d8d8] lg:bg-white lg:p-2" style={{ boxShadow: "0 10px 28px rgba(0,0,0,.14)" }}>
+          {navLink.subMenuLinks.map((s, i) => s.divider
+            ? <div key={i} className="mx-3 my-2 h-px bg-[#ededed] lg:mx-0" />
+            : (
+              <a key={i} href={s.url} data-route={s["data-route"]} className={"block px-4 py-2.5 text-center text-black transition-colors hover:bg-neutral-lightest lg:px-3 lg:text-left " + (s.bold ? "font-semibold" : "")}>
+                <span className="flex items-center justify-between gap-3 whitespace-nowrap"><span>{s.title}</span>{s.tag && <span className="text-[11px] font-semibold text-[#2f6fd0]">{s.tag}</span>}</span>
+                {s.desc && <span className="mt-0.5 block max-w-[300px] text-[12px] leading-snug text-neutral">{s.desc}</span>}
+              </a>
+            ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+// ---- Header1 (Relume, verbatim structure) ----
+const Header1 = ({ heading, description, buttons, image, imageBadge, annotationChip, subBold, subGrey, trustLine }) => (
+  <section className="flex items-center px-[5%] py-12 md:py-14 lg:py-16" style={{ minHeight: "calc(min(100vh, 810px) - 111.5px)" }}>
+    <div className="container">
+      <div className="grid grid-cols-1 gap-x-20 gap-y-12 md:gap-y-16 lg:grid-cols-2 lg:items-center">
+        <div>
+          {annotationChip && <div className="mb-4"><Badge>{annotationChip}</Badge></div>}
+          <h1 className="mb-5 text-h1 font-bold md:mb-6">{heading}</h1>
+          <p className="text-medium">{description}</p>
+          <div className="mt-6 flex flex-wrap gap-4 md:mt-8">
+            {buttons.map((b, i) => {
+              const { note, title, ...rest } = b;
+              return (
+                <Button key={i} {...rest} className="px-6 py-2.5">
+                  <span className="flex flex-col items-start">
+                    <span>{title}</span>
+                    {note && <span className="text-[12px] font-normal opacity-60">{note}</span>}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+          {(subBold || subGrey) && <div className="mt-5">
+            {subBold && <p className="text-small font-bold text-black">{subBold}</p>}
+            {subGrey && <p className="text-small text-neutral">{subGrey}</p>}
+          </div>}
+          {trustLine && <div className="mt-5 inline-flex items-center gap-2 border border-scheme-border bg-white px-3 py-2 text-small text-black"><span className="size-2 rounded-full bg-black"></span>{trustLine}</div>}
+        </div>
+        <div className="relative">{imageBadge && <span className="absolute left-4 top-4 z-10 bg-neutral-darkest px-3 py-1.5 text-small font-semibold text-white">{imageBadge}</span>}<img src={image.src} className="w-full rounded-image object-cover" style={{ maxHeight: "calc(min(100vh, 810px) - 240px)" }} alt={image.alt} /></div>
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout303 (Relume, verbatim structure) ----
+const Layout303 = ({ heading, sections }) => (
+  <section className="bg-[#fafafa] px-[5%] py-12 md:py-16">
+    <div className="container">
+      <div className="mb-8 max-w-3xl md:mb-10"><h2 className="text-h3 font-bold">{heading}</h2></div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 md:gap-y-16 lg:grid-cols-4">
+        {sections.map((s, i) => (
+          <div key={i}>
+            <div className="mb-5 md:mb-6"><div className="size-12 border border-scheme-border bg-neutral-lightest"></div></div>
+            <h3 className="mb-3 text-h5 font-bold md:mb-4">{s.heading}</h3>
+            <p>{s.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout1 (Relume, verbatim structure) — flippable image side via `flip` (adaptation) ----
+const Layout1 = ({ tagline, heading, description, buttons, image, flip }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:items-center md:gap-x-12 lg:gap-x-20">
+        <div className={flip ? "md:order-2" : ""}>
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h1 className="mb-5 text-h2 font-bold md:mb-6">{heading}</h1>
+          <p className="text-medium">{description}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-8">
+            {buttons.map((b, i) => (<Button key={i} {...b}>{b.title}</Button>))}
+          </div>
+        </div>
+        <div className={flip ? "md:order-1" : ""}><img src={image.src} className="w-full rounded-image object-cover" alt={image.alt} /></div>
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Layout307 (Relume, verbatim structure) ----
+const Layout307 = ({ heading, sections }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 max-w-lg md:mb-18 lg:mb-20"><h2 className="text-h3 font-bold">{heading}</h2></div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 md:gap-y-16 lg:grid-cols-4 lg:gap-y-16">
+        {sections.map((s, i) => (
+          <div key={i}>
+            <div className="mb-5 md:mb-6"><img src={s.image.src} alt={s.image.alt} className="rounded-image" /></div>
+            <h3 className="mb-3 text-h5 font-bold md:mb-4">{s.heading}</h3>
+            <p>{s.description}</p>
+            <div className="mt-6 flex gap-4 md:mt-8"><Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} {...s.button}>{s.button.title}</Button></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Product routing grid — custom composition on Card/Badge/Button primitives (no clean Relume match — flag custom) ----
+const RoutingGrid = ({ heading, description, cards, alsoLabel, chips }) => (
+  <section className="px-[5%] py-10 md:py-14 lg:py-16">
+    <div className="container">
+      <div className="mx-auto mb-10 max-w-lg text-center md:mb-12">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium">{description}</p>
+      </div>
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {cards.map((c, i) => (
+          <Card key={i} className="p-6">
+            <img src={c.image.src} alt={c.image.alt} className="mb-5 aspect-video w-full object-cover" />
+            <div className="mb-3 flex flex-wrap gap-2">{c.tags.map((t, j) => (<Badge key={j}>{t}</Badge>))}</div>
+            <h3 className="mb-2 text-h5 font-bold">{c.name}</h3>
+            <p className="mb-5">{c.desc}</p>
+            <div className="flex flex-wrap gap-3">
+              <Button {...c.cta}>{c.cta.title}</Button>
+              <Button variant="secondary" {...c.learn}>Learn more</Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <span className="col-span-2 text-small font-semibold text-neutral md:col-span-5">{alsoLabel}</span>
+        {chips.map((t, i) => (
+          <Card key={i} className="flex flex-col p-4">
+            <img src={t.image.src} alt={t.title} className="mb-3 aspect-video w-full object-cover" />
+            <h4 className="mb-3 text-h6 font-bold">{t.title}</h4>
+            <div className="mt-auto"><Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} data-route={t["data-route"]}>Learn more</Button></div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Discipline router — custom composition on Card primitive ----
+const Disciplines = ({ heading, description, cards }) => (
+  <section className="bg-white px-[5%] py-16 md:py-24">
+    <div className="container">
+      <div className="mx-auto mb-12 max-w-lg text-center">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium">{description}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map((d, i) => (
+          <Card key={i} className="cursor-pointer p-6" data-route={d.route} role="link">
+            <img src={d.image.src} alt={d.title} className="mb-4 aspect-video w-full object-cover" />
+            <Badge className="mb-3">{d.tag}</Badge>
+            <h3 className="mb-2 text-h5 font-bold">{d.title}</h3>
+            <p className="mb-4">{d.body}</p>
+            <span className="text-small font-semibold">Explore →</span>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Stats — structure per Relume stat sections ----
+const Stats = ({ stats }) => (
+  <section className="bg-[#fafafa] px-[5%] py-12 md:py-16">
+    <div className="container grid grid-cols-1 gap-8 text-center md:grid-cols-3">
+      {stats.map((s, i) => (
+        <div key={i}>
+          <div className="text-h2 font-bold text-black">{s.num}</div>
+          <div className="mt-1 text-medium text-neutral">{s.label}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+// ---- Testimonial — carousel banner with full-bleed image background (custom — flag) ----
+const Testimonial = ({ slides }) => {
+  const [i, setI] = useState(0);
+  const s = slides[i];
+  return (
+    <section id="testimonials" className="relative px-[5%] py-20 md:py-28" style={{ background: "#f4f4f4" }}>
+      <span className="pointer-events-none absolute top-1/2 hidden -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-mono text-[10px] tracking-[1.5px] text-[#9a9a9a] lg:block" style={{ left: "25%" }}>BACKGROUND — ARTIST / STUDIO PHOTOGRAPHY</span>
+      <div className="container flex justify-end">
+        <div className="w-full max-w-xl text-left">
+          <div className="grid">
+            {slides.map((sl, d) => (<p key={d} className="text-h4 font-bold text-black" style={{ gridArea: "1 / 1", visibility: d === i ? "visible" : "hidden" }}>“{sl.quote}”</p>))}
+          </div>
+          <div className="mb-8 mt-6 flex items-center gap-3">
+            <div className="size-11 rounded-full border border-scheme-border bg-white"></div>
+            <div className="text-left">
+              <div className="text-small font-bold text-black">{s.name}</div>
+              <div className="text-small text-neutral">{s.role}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+          <button aria-label="Previous" onClick={(e) => { e.stopPropagation(); setI((i - 1 + slides.length) % slides.length); }} className="flex size-10 items-center justify-center border border-scheme-border bg-white"><ChevronRight className="rotate-180" /></button>
+          <div className="flex gap-2">
+            {slides.map((_, d) => (<button key={d} aria-label={"Slide " + (d + 1)} onClick={(e) => { e.stopPropagation(); setI(d); }} className="size-2.5 rounded-full" style={{ background: d === i ? "#141414" : "#bdbdbd" }}></button>))}
+          </div>
+          <button aria-label="Next" onClick={(e) => { e.stopPropagation(); setI((i + 1) % slides.length); }} className="flex size-10 items-center justify-center border border-scheme-border bg-white"><ChevronRight /></button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ---- Final CTA — custom dark two-path section (flag custom) ----
+const FinalCta = ({ heading, description, paths }) => (
+  <section className="bg-neutral-lightest px-[5%] py-16 md:py-24">
+    <div className="container">
+      <div className="mx-auto mb-10 max-w-lg text-center">
+        <h2 className="mb-3 text-h3 font-bold">{heading}</h2>
+        <p className="text-medium text-neutral">{description}</p>
+      </div>
+      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 md:grid-cols-2">
+        {paths.map((p, i) => (
+          <Card key={i} className="p-6">
+            <p className="mb-2 text-small font-semibold text-neutral">{p.tag}</p>
+            <div className="mb-4 text-h6 font-bold">{p.title}</div>
+            <Button variant={i === 0 ? "primary" : "secondary"} className="w-full" {...p.button}>{p.button.title}</Button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Cta7 (Relume, verbatim structure) ----
+const Cta7 = ({ heading, description, buttons }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28 bg-neutral-lightest">
+    <div className="container grid w-full grid-cols-1 items-start justify-between gap-6 md:grid-cols-[1fr_max-content] md:gap-x-12 md:gap-y-8 lg:gap-x-20">
+      <div className="md:mr-12 lg:mr-0">
+        <div className="w-full max-w-lg">
+          <h2 className="mb-3 text-h3 font-bold md:mb-4">{heading}</h2>
+          <p className="text-medium">{description}</p>
+        </div>
+      </div>
+      <div className="flex items-start justify-end gap-4 md:justify-start">
+        {buttons.map((b, i) => (<Button key={i} {...b}>{b.title}</Button>))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Logo2 (Relume) — logo img slots as grey boxes + artists line (per reference) ----
+const Logo2 = ({ heading, slots, artistsLine }) => (
+  <section className="px-[5%] py-6 md:py-8 lg:py-10">
+    <div className="container text-center">
+      <h1 className="mb-5 text-small font-semibold text-neutral">{heading}</h1>
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        {Array.from({ length: slots }).map((_, i) => (<div key={i} className="h-9 w-28 border border-scheme-border bg-neutral-lightest"></div>))}
+      </div>
+      <p className="mx-auto max-w-2xl text-small text-neutral">{artistsLine}</p>
+    </div>
+  </section>
+);
+
+// ---- Blog39 (Relume, verbatim structure) ----
+const Blog39 = ({ tagline, heading, description, button, blogPosts }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 flex flex-wrap items-end justify-between gap-4 md:mb-18 lg:mb-20">
+        <div className="w-full max-w-2xl">
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h2 className="text-h2 font-bold">{heading}</h2>
+          {description && <p className="mt-5 text-medium">{description}</p>}
+        </div>
+        <Button {...button}>{button.title}</Button>
+      </div>
+      <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 md:gap-y-16 lg:grid-cols-3">
+        {blogPosts.map((post, i) => (
+          <Card key={i}>
+            <a href={post.url} className="w-full max-w-full"><div className="w-full overflow-hidden"><img src={post.image.src} alt={post.image.alt} className="aspect-video size-full object-cover" /></div></a>
+            <div className="px-5 py-6 md:p-6">
+              <div className="mb-2"><Badge>{post.category}</Badge></div>
+              <a href={post.url} className="mb-2 block max-w-full"><h5 className="text-h5 font-bold hover:underline hover:underline-offset-4">{post.title}</h5></a>
+              <p>{post.description}</p>
+              <div className="mt-5 flex items-center md:mt-6">
+                <div className="mr-4 size-12 min-h-12 min-w-12 shrink-0 overflow-hidden rounded-full"><img src={post.avatar.src} alt={post.avatar.alt} className="size-full object-cover" /></div>
+                <div>
+                  <h6 className="text-small font-semibold">{post.fullName}</h6>
+                  <div className="flex items-center"><p className="text-small">{post.date}</p><span className="mx-2">•</span><p className="text-small">{post.readTime}</p></div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Blog60 (Relume, verbatim structure) — used for the podcast teaser ----
+const Blog60 = ({ tagline, heading, description, button, blogPosts }) => (
+  <section className="px-[5%] py-16 md:py-24 lg:py-28">
+    <div className="container">
+      <div className="mb-12 grid grid-cols-1 items-start justify-start gap-y-8 md:mb-18 md:grid-cols-[1fr_max-content] md:items-end md:justify-between md:gap-x-12 md:gap-y-4 lg:mb-20 lg:gap-x-20">
+        <div className="w-full max-w-lg">
+          <p className="mb-3 font-semibold md:mb-4">{tagline}</p>
+          <h1 className="mb-3 text-h2 font-bold md:mb-4">{heading}</h1>
+          <p className="text-medium">{description}</p>
+        </div>
+        <div className="hidden flex-wrap items-center justify-end md:block"><Button {...button}>{button.title}</Button></div>
+      </div>
+      <div className="grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-x-8 lg:gap-x-12">
+        {blogPosts.map((post, i) => (
+          <Card key={i} className="flex size-full flex-col items-center justify-start">
+            <a href={post.url} className="w-full"><img src={post.image.src} alt={post.image.alt} className="aspect-video size-full object-cover" /></a>
+            <div className="w-full px-5 py-6 md:p-6">
+              <div className="mb-3 flex w-full items-center justify-start md:mb-4">
+                <Badge className="mr-4">{post.category}</Badge>
+                <p className="inline text-small font-semibold">{post.readTime}</p>
+              </div>
+              <div className="flex w-full flex-col items-start justify-start">
+                <a className="mb-2 block" href={post.url}><h2 className="text-h5 font-bold">{post.title}</h2></a>
+                <p>{post.description}</p>
+                <Button variant="link" size="link" iconRight={<ChevronRight className="text-scheme-text" />} className="mt-5 flex items-center justify-center gap-x-2 md:mt-6" {...post.button}>{post.button.title}</Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <div className="mt-12 flex flex-wrap justify-end md:hidden"><Button {...button}>{button.title}</Button></div>
+    </div>
+  </section>
+);
+
+// ---- Footer14 (Relume) — brand block + link columns, legals in bottom bar ----
+const Footer14 = ({ logoText, description, columnLinks, legalLinks, footerText }) => (
+  <footer className="bg-neutral-lightest px-[5%] py-10 md:py-14">
+    <div className="container">
+      <div className="mb-10 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr]">
+        <div className="pr-8">
+          <div className="mb-4 flex items-center gap-3"><img src="uploads/audiomovers-logo.svg" alt="Audiomovers" style={{ height: 18, width: "auto" }} /></div>
+          <p className="max-w-[220px] text-small text-neutral">{description}</p>
+        </div>
+        {columnLinks.map((col, i) => (
+          <div key={i} className="flex flex-col items-start justify-start">
+            <h2 className="mb-2 font-semibold">{col.title}</h2>
+            <ul>{col.links.map((l, j) => (<li key={j} className="py-1 text-small"><a href={l.url} className="flex items-center gap-3 text-neutral hover:underline hover:underline-offset-4">{l.title}</a></li>))}</ul>
+          </div>
+        ))}
+      </div>
+      <div className="h-px w-full bg-scheme-border" />
+      <div className="flex flex-col-reverse items-start gap-4 pt-5 text-small text-neutral sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <p>{footerText}</p>
+          {legalLinks.map((l, j) => (<a key={j} href={l.url} className="hover:underline hover:underline-offset-4">{l.title}</a>))}
+        </div>
+        <div className="flex items-center justify-center gap-3">{["facebook","instagram","x","linkedin","youtube"].map(k => (<a key={k} href="#social" data-route={k + ".com/audiomovers"} aria-label={k}><SocialIcon kind={k} className="text-scheme-text" /></a>))}</div>
+      </div>
+    </div>
+  </footer>
+);
+
+// ---- Annotation strip (wireframe metadata, toggleable via ?annot=0) ----
+const showAnnot = new URLSearchParams(location.search).get("annot") !== "0";
+const showTags = new URLSearchParams(location.search).get("tags") === "1";
+const Annot = ({ children, noTag }) => {
+  const first = React.Children.toArray(children)[0];
+  const tag = String((first && first.props && first.props.children) || "").split("—")[0].trim();
+  return (
+    <React.Fragment>
+      {showAnnot && <div className="flex flex-wrap justify-between gap-2 border-y border-dashed border-neutral bg-neutral-lightest px-4 py-1 font-mono text-[10px] text-neutral">{children}</div>}
+      {showTags && !showAnnot && !noTag && <div style={{ position: "relative", zIndex: 20 }}><span style={{ position: "absolute", top: 6, left: 6 }} className="border border-scheme-border bg-white px-2 py-1 font-mono text-[10px] text-neutral">{tag}</span></div>}
+    </React.Fragment>
+  );
+};
+
+// ---- OMNIBUS 3 page content (Template B — perpetual purchase · copy from audiomovers.com + OMNIBUS 3.0 launch coverage, July 2026) ----
+const nav = {
+  logo: { url: "relume-home", text: "AUDIOMOVERS" },
+  navLinks: [
+    { title: "Products", url: "#", subMenuLinks: [
+      { title: "LISTENTO", url: "/products/listento", tag: "Most popular", desc: "Real-time lossless audio from your DAW." }, { title: "GLIMPSE", url: "/products/glimpse", tag: "New", desc: "Real-time audio-to-picture collaboration." },
+      { divider: true },
+      { title: "OMNIBUS 3", url: "/products/omnibus", tag: "40% off" }, { title: "MINIBUS", url: "/products/minibus" },
+      { title: "Binaural Renderer", url: "/products/binaural-renderer-for-apple-music" }, { title: "INJECT", url: "/products/inject" }, { title: "AirCaster", url: "/products/aircaster" },
+    ]},
+    { title: "Solutions", url: "#", mega: {
+      columns: [
+        { heading: "Organisations", links: [
+          { title: "Businesses and Studios", url: "/sectors/business", "data-route": "/sectors/business" },
+          { title: "Education", url: "/sectors/education", "data-route": "/sectors/education" },
+          { title: "Students", url: "/sectors/students", "data-route": "/sectors/students" },
+        ]},
+        { heading: "Industry", links: [
+          { title: "Music production & mixing", url: "/industry/music", "data-route": "/industry/music" },
+          { title: "Film & TV post-production", url: "/products/glimpse", "data-route": "/products/glimpse" },
+          { title: "Games & broadcast", url: "/products/glimpse", "data-route": "/products/glimpse" },
+        ]},
+      ],
+      promo: {
+        image: ph("PROMO IMAGE", 200, 113),
+        heading: "Black Friday: 40% off OMNIBUS",
+        cta: { title: "Shop the sale", "data-route": "/products/omnibus" },
+        note: "Design note: swap per active campaign — e.g. Black Friday perpetual-product push, a GLIMPSE launch, or a trade-show feature. Not a fixed product.",
+      },
+    }},
+    { title: "Downloads", url: "/downloads" }, { title: "News", url: "/news" }, { title: "Support", url: "/support/get-help" },
+  ],
+  buttons: [{ title: "Log in", variant: "link", size: "link", className: "px-2", "data-route": "my.audiomovers.com — login" }, { title: "Buy OMNIBUS — $119.99", "data-route": "checkout — OMNIBUS perpetual (no separate pricing page)" }],
+};
+
+const omniFeatures = [
+  {
+    tagline: "Virtual patchbay", heading: "Route anything to anywhere on your Mac.",
+    description: "Route audio between any application and any audio device — physical or virtual — without complicated workarounds. Split audio from one source to multiple destinations, with selectable I/O channel counts.",
+    image: { src: ph("OMNIBUS UI — ROUTING GRID SCREENSHOT", 590, 413) },
+  },
+  {
+    tagline: "AVB & NDI networking", heading: "Every Mac becomes a networked audio device.",
+    description: "New in 3.0: send and receive multichannel audio between machines on the same network via AVB or NDI — no drivers to install, no complex routing configs. The setup Abbey Road runs in every room.",
+    image: { src: ph("NETWORK VIEW — TWO MACHINES SCREENSHOT", 590, 413) },
+  },
+  {
+    tagline: "Session control", heading: "Capture, snapshot, recall.",
+    description: "Application Capture grabs audio from any running software, with separate system and application outputs. Save and export entire sessions, and recall snapshots from an Elgato Stream Deck, MIDI controller or key command.",
+    image: { src: ph("SNAPSHOTS + STREAM DECK SCREENSHOT", 590, 413) },
+  },
+];
+const Tick = () => (<svg width="14" height="11" viewBox="0 0 14 11" fill="none" stroke="black" strokeWidth="2"><path d="M1 5.5 L5 9.5 L13 1"/></svg>);
+const SubNav = () => {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const footer = document.querySelector("footer");
+      const cta = document.getElementById("closing-cta");
+      const el = cta || footer;
+      const hideZone = el && el.getBoundingClientRect().top < window.innerHeight;
+      setShown(window.scrollY > 80 && !hideZone);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-scheme-border bg-white px-[5%]" style={{ boxShadow: "0 -6px 20px rgba(0,0,0,.06)", transform: shown ? "translateY(0)" : "translateY(110%)", transition: "transform .3s ease" }}>
+      <div className="container flex items-center gap-1 overflow-x-auto">
+        {showTags && !showAnnot && <span className="mr-2 border border-scheme-border bg-white px-2 py-1 font-mono text-[10px] text-neutral">03 · ANCHOR SUB-NAV</span>}
+        {[["Features", "#features"], ["Specs", "#specs"], ["Pricing", "#pricing"], ["Demos", "#demos"], ["FAQs", "#faqs"]].map(([label, href], i) => (
+          <a key={i} href={href} className="whitespace-nowrap px-3 py-3 text-small font-semibold text-neutral hover:text-black hover:underline hover:underline-offset-8">{label}</a>
+        ))}
+      </div>
+    </nav>
+  );
+};
+
+
+// ---- Perpetual price block — Template B: one price, no tiers (per sitemap §4) ----
+const PriceBlock = () => (
+  <section id="pricing" className="bg-[#fafafa] px-[5%] py-16 md:py-24">
+    <div className="container max-w-6xl">
+      <h2 className="mx-auto mb-3 max-w-lg text-center text-h3 font-bold">One price. Yours forever.</h2>
+      <p className="mx-auto mb-12 max-w-xl text-center text-medium text-neutral">OMNIBUS 3 is a perpetual licence — buy it once, own it outright. No subscription.</p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.7fr_1fr_1fr]">
+        <div className="relative flex flex-col border-2 border-black bg-white p-8">
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2"><span className="whitespace-nowrap text-h6 font-bold">OMNIBUS 3</span><span className="whitespace-nowrap bg-neutral-darkest px-2 py-0.5 text-[11px] font-semibold text-white">Black Friday — 40% off</span></div>
+          <div className="text-h4 font-bold text-black">$119.99 <s className="text-h6 font-normal text-neutral">$199.99</s></div>
+          <div className="mt-1 text-small text-neutral">one-off · perpetual licence · sale ends Dec 1</div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button className="w-full" data-route="checkout — OMNIBUS perpetual (no separate pricing page)">Buy Now — $119.99</Button>
+            <Button className="w-full" variant="secondary" data-route="/download/omnibus — free 7-day demo">Get free 7-day demo</Button>
+          </div>
+          <p className="mt-2 text-center text-[11px] text-neutral">Full-featured demo · no card required</p>
+          <ul className="mt-5 flex flex-col gap-2.5 border-t border-scheme-border pt-5">
+            {["Free 7-day demo", "OMNIBUS device channel count 256 channels I/O", "AVB & NDI support", "Up to 4 OMNIBUS devices", "Stream Deck support", "Up to 128 Snapshots", "Save and load entire OMNIBUS sessions", "Centralise, simplify, and control all audio"].map((b, j) => (
+              <li key={j} className="flex items-start gap-2.5 text-small text-black"><span className="mt-1 flex-none"><Tick /></span>{b}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-col border border-scheme-border bg-white p-8">
+          <span className="text-h6 font-bold">Already own OMNIBUS 2.0?</span>
+          <div className="mt-4 flex w-full flex-col">
+            <div className="flex items-start justify-between gap-4 py-3">
+              <span><span className="block text-small font-bold text-black">Upgrade to 3.0</span><span className="block text-small text-neutral">Reduced upgrade price for 2.0 owners</span></span>
+              <span className="whitespace-nowrap text-small font-bold text-black">$24.99</span>
+            </div>
+            <div className="flex items-start justify-between gap-4 border-t border-scheme-border py-3">
+              <span><span className="block text-small font-bold text-black">Upgrade with LISTENTO Pro</span><span className="block text-small text-neutral">Free with an active Pro subscription + 2.0 licence</span></span>
+              <span className="whitespace-nowrap text-small font-bold text-black">Free</span>
+            </div>
+          </div>
+          <div className="mt-2"><Button variant="secondary" className="w-full" data-route="my.audiomovers.com — upgrade from account">Upgrade from your account</Button></div>
+          <p className="mt-auto border-t border-scheme-border pt-5 text-small text-neutral">Buying for a studio or institution? <a href="#" data-route="/solutions/business — info page" className="font-semibold text-black underline underline-offset-4">See organisation licensing</a></p>
+        </div>
+        <div className="flex flex-col border border-scheme-border bg-white p-8">
+          <div className="mb-1 flex items-center justify-between"><span className="text-h6 font-bold">Audiomovers Pro Bundle</span><span className="bg-neutral-lightest px-2 py-0.5 text-[11px] font-semibold text-black">Save 25%</span></div>
+          <div className="text-h4 font-bold text-black">$319.99 <s className="text-h6 font-normal text-neutral">$429.95</s></div>
+          <div className="mt-1 text-small text-neutral">one-off · all 5 perpetual products</div>
+          <p className="mt-4 text-small text-neutral">Includes AIRCASTER, BINAURAL RENDERER, INJECT, MINIBUS, and OMNIBUS.</p>
+          <div className="mt-auto pt-4"><Button variant="secondary" className="w-full" data-route="checkout — Audiomovers Pro Bundle (perpetual ×5)">Add Pro Bundle — $319.99</Button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+const Faqs = () => (
+  <section id="faqs" className="bg-white px-[5%] py-16 md:py-24">
+    <div className="container max-w-3xl">
+      <h2 className="mb-10 text-h3 font-bold">Product FAQs</h2>
+      <div className="flex flex-col">
+        {[
+          ["Is OMNIBUS 3 a subscription?", "No — it's a one-off $199.99 purchase with a perpetual licence. Buy it once and it's yours."],
+          ["What platforms does OMNIBUS support?", "OMNIBUS 3 runs on both macOS and Windows. One purchase covers up to three authorisations across different machines."],
+          ["What does the upgrade from 2.0 cost?", "OMNIBUS 2.0 owners upgrade for $24.99 — or free with an active LISTENTO Pro subscription."],
+          ["What's the difference between OMNIBUS and MINIBUS?", "MINIBUS is the NDI companion plugin for connecting machines — sold standalone for $49.99."],
+          ["How does the free demo work?", "A full-featured 7-day demo — no card required. Buy anytime to keep your setup."],
+        ].map(([q, a], i) => (
+          <div key={i} className="border-b border-scheme-border py-5 first:border-t">
+            <h3 className="mb-2 text-h6 font-bold">{q}</h3>
+            <p className="text-small">{a}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+const ClosingCta = () => (
+  <section id="closing-cta" className="bg-white px-[5%] py-16 md:py-24">
+    <div className="container max-w-4xl">
+      <div className="relative flex min-h-[380px] flex-col items-center justify-center overflow-hidden border border-scheme-border p-8 text-center" style={{ background: "rgb(244,244,244)" }}>
+        <span className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] tracking-[1.5px] text-[#9a9a9a]">FULL-BLEED IMAGE — STUDIO ROUTING SETUP</span>
+        <h2 className="mb-2 text-h3 font-bold">Own it outright</h2>
+        <p className="mb-6 text-medium text-neutral">One purchase, no renewals — set up your routing in minutes.</p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button data-route="checkout — OMNIBUS perpetual (no separate pricing page)">Buy OMNIBUS — $119.99</Button>
+          <Button variant="secondary" data-route="/download/omnibus — free 7-day demo">Get free 7-day demo</Button>
+        </div>
+        <p className="mt-3 text-small text-neutral"><span className="font-semibold text-black">$119.99</span> <s>$199.99</s> — Black Friday, ends Dec 1 · Or get all 5 perpetual tools with the <a href="#" data-route="#pricing" className="font-semibold text-black underline underline-offset-4">Pro Bundle — $319.99</a></p>
+      </div>
+    </div>
+  </section>
+);
+// ---- Compact feature grid — replaces 3 full-height layout1 rows ----
+const FeatureGrid = ({ heading, items }) => (
+  <section id="features" className="px-[5%] py-12 md:py-16">
+    <div className="container">
+      <h2 className="mb-8 max-w-lg text-h3 font-bold md:mb-10">{heading}</h2>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {items.map((f, i) => (
+          <div key={i}>
+            <img src={f.image.src} alt={f.heading} className="mb-4 aspect-video w-full object-cover" />
+            <p className="mb-1 text-small font-semibold text-neutral">{f.tagline}</p>
+            <h3 className="mb-2 text-h6 font-bold">{f.heading}</h3>
+            <p className="text-small">{f.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ---- Video demo row — "See it in action" (brief: video/demo row, Template A) ----
+const VideoSection = ({ heading, main, clips }) => (
+  <section id="demos" className="px-[5%] py-12 md:py-16">
+    <div className="container">
+      <h2 className="mb-8 max-w-lg text-h3 font-bold md:mb-10">{heading}</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr] lg:items-stretch">
+        <div className="relative">
+          <img src={main.image.src} alt={main.title} className="h-full w-full border border-scheme-border object-cover" style={{ aspectRatio: "16/9" }} />
+          <span className="absolute left-1/2 top-1/2 flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black"><svg width="16" height="18" viewBox="0 0 18 20" fill="white"><path d="M0 0 L18 10 L0 20 Z"/></svg></span>
+          <p className="absolute bottom-0 left-0 bg-white px-4 py-2 text-base font-semibold text-black">{main.title}</p>
+        </div>
+        <div className="flex flex-col justify-between gap-4">
+          {clips.map((c, i) => (
+            <a key={i} href="#" data-route={c["data-route"]} className="group grid flex-1 grid-cols-[132px_1fr] items-center gap-4">
+              <div className="relative">
+                <img src={c.image.src} alt={c.title} className="aspect-video w-full border border-scheme-border object-cover" />
+                <span className="absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black"><svg width="9" height="10" viewBox="0 0 18 20" fill="white"><path d="M0 0 L18 10 L0 20 Z"/></svg></span>
+              </div>
+              <p className="text-small font-semibold text-black group-hover:underline group-hover:underline-offset-4">{c.title}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+
+const App = () => {
+  const [route, setRoute] = useState(null);
+  const onClickCapture = (e) => {
+    const t = e.target.closest("a, button[data-slot=button]");
+    if (!t) return;
+    const dest = t.dataset.route || t.getAttribute("href");
+    if (!dest || dest === "#") return;
+    e.preventDefault();
+    if (dest === "relume-home" || dest === "/") { window.location.href = "relume-home.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/education") === 0) { window.location.href = "relume-sectors-education.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/students") === 0) { window.location.href = "relume-sectors-students.html" + window.location.search; return; }
+    if (dest.indexOf("/sectors/business") === 0 || dest.indexOf("/solutions/business") === 0) { window.location.href = "relume-sectors-business.html" + window.location.search; return; }
+    if (dest.indexOf("/industry/music") === 0) { window.location.href = "relume-industry-music.html" + window.location.search; return; }
+    if (dest.indexOf("/downloads") === 0) { window.location.href = "relume-downloads.html" + window.location.search; return; }
+    if (dest.indexOf("#") === 0) { const el = document.getElementById(dest.slice(1)); if (el) { const y = el.getBoundingClientRect().top + window.scrollY - 110; window.scrollTo({ top: y, behavior: "smooth" }); } return; }
+    if (dest.indexOf("/products/omnibus") === 0) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (dest === "/news" || dest.indexOf("/news?") === 0) { window.location.href = "relume-news.html" + window.location.search; return; }
+    if (dest.indexOf("/products/listento") === 0) { window.location.href = "relume-listento.html" + window.location.search; return; }
+    if (dest.indexOf("/download/omnibus") === 0) { window.location.href = "relume-download-omnibus.html" + window.location.search; return; }
+    if (dest.indexOf("/pricing/listento") === 0) { window.location.href = "relume-pricing-listento.html" + window.location.search; return; }
+    if (dest.indexOf("/press") === 0) { window.location.href = "relume-press.html" + window.location.search; return; }
+    if (dest.indexOf("/podcast") === 0) { window.location.href = "relume-podcast.html" + window.location.search; return; }
+    if (dest.indexOf("/search") === 0) { window.location.href = "relume-search.html" + window.location.search; return; }
+    if (dest.indexOf("/about") === 0) { window.location.href = "relume-about.html" + window.location.search; return; }
+    if (dest.indexOf("/terms") === 0 || dest.indexOf("/privacy") === 0 || dest.indexOf("/ccpa") === 0) { window.location.href = "relume-legal.html" + window.location.search; return; }
+    if (dest.indexOf("/support/get-help") === 0) { window.location.href = "relume-support.html" + window.location.search; return; }
+    setRoute(dest);
+  };
+  return (
+    <div onClickCapture={onClickCapture}>
+      <Annot><span>00 · PROMO BANNER — shared sitewide</span><span>CMS campaign slot — perpetual promos land here (e.g. Black Friday 40% off)</span></Annot>
+      <PromoBanner text="Black Friday: 40% off OMNIBUS until Dec 1" cta={{ title: "Shop the sale", "data-route": "/products/omnibus" }} />
+      <Annot><span>01 · NAVBAR — navbar2 (shared) · contextual CTA swaps to OMNIBUS demo on this page</span><span>persistent "TRY [PRODUCT] FREE" per brief</span></Annot>
+      <Navbar2 {...nav} />
+      <Annot><span>02 · PRODUCT HERO — header1 · Template B: one-off price, Buy Now / Free Demo, platforms</span><span>heading + description verbatim from live OMNIBUS page · structurally simpler than subscription hero (per sitemap §4)</span></Annot>
+      <Header1
+        annotationChip="OMNIBUS 3 • One-off purchase"
+        heading="Audio routing software for macOS and Windows"
+        description="Move audio between apps, gear, and even other computers, all from one place. Record your browser, livestream gameplay with chat and music, or manage a complex podcast setup — whatever your workflow, OMNIBUS 3 makes it simple."
+        buttons={[{ title: "Buy OMNIBUS — $119.99", "data-route": "checkout — OMNIBUS perpetual (no separate pricing page)" }, { title: "Free 7-day demo", variant: "secondary", "data-route": "/download/omnibus — free 7-day demo" }]}
+        subBold={<span><span className="bg-neutral-darkest px-1.5 py-0.5 text-white">40% off</span> $119.99 one-off <s className="font-normal text-neutral">$199.99</s> — yours forever, no subscription.</span>}
+        subGrey="macOS & Windows · Free 7-day demo, no card required."
+        image={{ src: ph("OMNIBUS 3 — HERO PRODUCT VISUAL", 590, 472), alt: "OMNIBUS 3 product visual" }}
+        imageBadge="Black Friday — 40% off"
+      />
+      <Annot noTag><span>03 · ANCHOR SUB-NAV — sticky (shared pattern) · features / specs / pricing / demos / FAQs</span><span>testimonials anchor dropped — shorter page</span></Annot>
+      <SubNav />
+      <Annot><span>04 · CREDENTIAL WALL — logo2 (shared pattern) · facility/studio credibility, not artist names</span><span>Abbey Road usage claim verbatim from OMNIBUS 3.0 launch press</span></Annot>
+      <Logo2 heading="Running in every room at Abbey Road Studios" slots={6} artistsLine="From Studio One to the writing rooms — saving an average of an hour of setup time per session. Facility logos TBC with client." />
+      <Annot><span>05 · FEATURES — compact 3-up benefit grid (shared component)</span><span>copy adapted from OMNIBUS 3.0 release notes / press</span></Annot>
+      <FeatureGrid heading="Everything between your apps, devices and machines" items={omniFeatures} />
+      <Annot><span>06 · SPEC LIST — layout303 (Template B: spec detail stays on the product page, per sitemap §4)</span><span>channel counts verbatim from 3.0 release</span></Annot>
+      <section id="specs"><Layout303 heading="Built for serious routing" sections={[
+        { heading: "4 virtual devices", description: "Four configurable virtual audio devices, ready to sit between any of your apps and hardware." },
+        { heading: "256 I/O per device", description: "Up to 256 input/output channels per virtual device — enough for full immersive stems." },
+        { heading: "AVB + NDI", description: "Both network protocols supported, turning any Mac on the network into an audio device." },
+        { heading: "Stream Deck & MIDI", description: "Recall snapshots and change parameters from an Elgato Stream Deck, MIDI program change or key command." },
+      ]} /></section>
+      <Annot><span>07 · PRICING — Template B: single perpetual price + upgrade paths (no tiers, no toggle)</span><span>CMS promo slot active: sale badge + strikethrough · Pro Bundle card verbatim from live site (Flag 6: "Add" = Paddle bundle checkout link, no on-site basket) · bullets verbatim from live pricing card · demo length standardised to 7 days throughout (live site was inconsistent: 7 vs 30) · Flag 8 resolved: no separate pricing pages for perpetual products — pricing lives here</span></Annot>
+      <PriceBlock />
+      <Annot><span>08 · SEE IT IN ACTION — video demo row (shared component)</span><span>titles verbatim from live site "Learn OMNIBUS 3.0" videos</span></Annot>
+      <VideoSection heading="See OMNIBUS 3 in action" main={{ title: "OMNIBUS 3 overview", image: { src: ph("MAIN DEMO VIDEO — OMNIBUS 3 OVERVIEW", 1180, 590) } }} clips={[
+        { title: "Getting started", "data-route": "video modal / YouTube", image: { src: ph("VIDEO — GETTING STARTED", 380, 214) } },
+        { title: "Using AVB and NDI", "data-route": "video modal / YouTube", image: { src: ph("VIDEO — USING AVB AND NDI", 380, 214) } },
+        { title: "Using Application Capture", "data-route": "video modal / YouTube", image: { src: ph("VIDEO — APPLICATION CAPTURE", 380, 214) } },
+      ]} />
+      <Annot><span>09 · PRODUCT FAQs — evaluation-focused (shared pattern)</span><span>perpetual-specific: licence, platform, upgrade, MINIBUS</span></Annot>
+      <Faqs />
+      <Annot><span>10 · TESTIMONIAL — carousel (shared component)</span><span>quote verbatim from live site testimonial (Rafa Sardina)</span></Annot>
+      <Testimonial slides={[
+        { quote: "Audiomovers OMNIBUS 3.0 represents the future of audio applications.", name: "Rafa Sardina", role: "Grammy-winning engineer & producer (Stevie Wonder, Lady Gaga)" },
+      ]} />
+      <Annot><span>11 · CLOSING CTA — single buy banner, bundle cross-link to pricing</span><span>Template B close: one product, one price, one decisionogic</span></Annot>
+      <ClosingCta />
+      <Annot><span>12 · FOOTER — footer14 (shared)</span><span>OMNIBUS 3 link = current page</span></Annot>
+      <Footer14
+        logoText="AUDIOMOVERS"
+        description="Remote audio collaboration, powered by Abbey Road."
+        columnLinks={[
+          { title: "Products", links: [{ title: "LISTENTO", url: "/products/listento" }, { title: "GLIMPSE", url: "/products/glimpse" }, { title: "OMNIBUS 3", url: "/products/omnibus", tag: "40% off" }, { title: "MINIBUS", url: "/products/minibus" }, { title: "Binaural Renderer", url: "/products/binaural-renderer-for-apple-music" }, { title: "INJECT", url: "/products/inject" }, { title: "AirCaster", url: "/products/aircaster" }] },
+          { title: "Sectors", links: [{ title: "Business", url: "/sectors/business" }, { title: "Education", url: "/sectors/education" }, { title: "Students", url: "/sectors/students" }] },
+          { title: "Pricing", links: [{ title: "LISTENTO", url: "/pricing/listento" }, { title: "GLIMPSE", url: "/pricing/glimpse" }] },
+          { title: "Company", links: [{ title: "About Us", url: "/about" }, { title: "Press", url: "/press" }, { title: "Support", url: "/support/get-help" }, { title: "Contact", url: "/support/contact-us" }] },
+          { title: "Explore", links: [{ title: "Downloads", url: "/downloads" }, { title: "News", url: "/news" }, { title: "Podcast", url: "/podcast" }] },
+        ]}
+        legalLinks={[{ title: "Terms", url: "/terms" }, { title: "Privacy Policy", url: "/privacy" }, { title: "CCPA Policy", url: "/ccpa" }, { title: "Abbey Road Studios ↗", url: "https://www.abbeyroad.com" }]}
+        footerText="© 2026 Audiomovers · An Abbey Road Studios company"
+      />
+      {route && (
+        <div style={{ position: "fixed", left: "50%", bottom: 16, transform: "translateX(-50%)", zIndex: 1000, maxWidth: "92%" }}
+          className="flex items-center gap-3 whitespace-nowrap border border-scheme-border bg-neutral-darkest px-5 py-3 text-small text-white">
+          <span style={{ opacity: .6 }}>Flow →</span><span className="font-semibold" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{route}</span>
+          <span style={{ opacity: .6 }}>wireframe not built yet</span>
+          <span style={{ cursor: "pointer", opacity: .7 }} onClick={() => setRoute(null)}>×</span>
+        </div>
+      )}
+    </div>
+  );
+};
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+window.addEventListener('load', function () {
+  try {
+    var src = document.getElementById('jsx-src').textContent;
+    var out = Babel.transform(src, { presets: [[Babel.availablePresets.react, { runtime: 'classic' }]] }).code;
+    (0, eval)(out);
+  } catch (e) {
+    document.getElementById('root').innerHTML = '<pre style="padding:24px;color:#c00;white-space:pre-wrap">' + (e.message || e) + '</pre>';
+  }
+});
+</script>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#D7E1D3"/><text x="50" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#000">O</text></svg></template>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/fonts.css">
+  <style>
+    body{margin:0;background:#EFEFEF}
+    a{color:#333;text-decoration-thickness:1px}
+    a:hover{text-decoration-thickness:2px}
+  </style>
+</helmet>
+<div style="background:#ececed;padding:0;font-family:'Neue Montreal',sans-serif;color:#333;width:6180px;box-sizing:border-box">
+  <div style="padding:56px;display:flex;flex-direction:column;gap:32px;width:6180px;box-sizing:border-box">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+    <div>
+      
+      <div style="font:400 56px/1 'Neue Montreal';letter-spacing:-0.03em;text-transform:uppercase;margin-top:12px">Wireframes</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;font:400 11px/1.4 'Neue Montreal';color:#666;max-width:640px;text-align:right">
+      <div style="display:flex;gap:8px">
+        
+        
+      </div>
+      
+    </div>
+  </div>
+  <div style="display:flex;gap:120px;align-items:flex-start">
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">01 — Homepage</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc }}" style="width:1440px;height:{{ deskH }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Homepage wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc }}" style="width:390px;height:{{ mobH }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Homepage wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">02 — LISTENTO product page</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc2 }}" style="width:1440px;height:{{ deskH2 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="LISTENTO wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc2 }}" style="width:390px;height:{{ mobH2 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="LISTENTO wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">03 — LISTENTO pricing page</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc3 }}" style="width:1440px;height:{{ deskH3 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="LISTENTO pricing wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc3 }}" style="width:390px;height:{{ mobH3 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="LISTENTO pricing wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">04 — OMNIBUS 3 product page</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc4 }}" style="width:1440px;height:{{ deskH4 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="OMNIBUS wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc4 }}" style="width:390px;height:{{ mobH4 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="OMNIBUS wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">05 — Downloads hub</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc5 }}" style="width:1440px;height:{{ deskH5 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Downloads wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc5 }}" style="width:390px;height:{{ mobH5 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Downloads wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">06 — Single download page (OMNIBUS template)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc6 }}" style="width:1440px;height:{{ deskH6 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Single download wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc6 }}" style="width:390px;height:{{ mobH6 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Single download wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">07 — Businesses and Studios (organisation)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc7 }}" style="width:1440px;height:{{ deskH7 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Business sector wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc7 }}" style="width:390px;height:{{ mobH7 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Business sector wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">08 — Education (organisation)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc10 }}" style="width:1440px;height:{{ deskH10 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Education sector wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc10 }}" style="width:390px;height:{{ mobH10 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Education sector wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">09 — Students (organisation)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc11 }}" style="width:1440px;height:{{ deskH11 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Students sector wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc11 }}" style="width:390px;height:{{ mobH11 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Students sector wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">10 — Music production &amp; mixing (industry)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc12 }}" style="width:1440px;height:{{ deskH12 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Music industry wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc12 }}" style="width:390px;height:{{ mobH12 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Music industry wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">11 — News</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc13 }}" style="width:1440px;height:{{ deskH13 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="News wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc13 }}" style="width:390px;height:{{ mobH13 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="News wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">12 — News article (template)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc14 }}" style="width:1440px;height:{{ deskH14 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Article wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc14 }}" style="width:390px;height:{{ mobH14 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Article wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">13 — Podcast (UNSUNG)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc15 }}" style="width:1440px;height:{{ deskH15 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Podcast wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc15 }}" style="width:390px;height:{{ mobH15 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Podcast wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">14 — Press</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc16 }}" style="width:1440px;height:{{ deskH16 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Press wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc16 }}" style="width:390px;height:{{ mobH16 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Press wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">15 — Press release (article)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc17 }}" style="width:1440px;height:{{ deskH17 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Press release wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc17 }}" style="width:390px;height:{{ mobH17 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Press release wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">16 — Search results</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc18 }}" style="width:1440px;height:{{ deskH18 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Search wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc18 }}" style="width:390px;height:{{ mobH18 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Search wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">17 — About</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc19 }}" style="width:1440px;height:{{ deskH19 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="About wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc19 }}" style="width:390px;height:{{ mobH19 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="About wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">18 — Legal (Terms)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc20 }}" style="width:1440px;height:{{ deskH20 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Legal wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc20 }}" style="width:390px;height:{{ mobH20 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Legal wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">19 — Support</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc21 }}" style="width:1440px;height:{{ deskH21 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Support wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc21 }}" style="width:390px;height:{{ mobH21 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Support wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">20 — Checkout (LISTENTO Pro yearly)</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc8 }}" style="width:1440px;height:{{ deskH8 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Checkout wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc8 }}" style="width:390px;height:{{ mobH8 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Checkout wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+  <div style="font:400 26px/1 'Neue Montreal';letter-spacing:-0.02em;text-transform:uppercase;border-top:1px solid #CFCFCF;padding-top:24px">21 — Order complete</div>
+  <div style="display:flex;gap:56px;align-items:flex-start">
+    <div style="width:1440px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Desktop · 1440</div>
+      <iframe src="{{ pageSrc9 }}" style="width:1440px;height:{{ deskH9 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Order complete wireframe — desktop"></iframe>
+    </div>
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="width:390px;flex:none">
+      <div style="font:500 11px/1 'Neue Montreal';letter-spacing:.12em;text-transform:uppercase;color:#888;margin-bottom:10px">Mobile · 390</div>
+      <iframe src="{{ pageSrc9 }}" style="width:390px;height:{{ mobH9 }};border:1px solid #CFCFCF;border-radius:8px;background:#fff;display:block;pointer-events:{{ pe }}" title="Order complete wireframe — mobile"></iframe>
+    </div>
+    </sc-if>
+  </div>
+  </div>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:4180,&quot;height&quot;:10500},&quot;previewMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;},&quot;showMobile&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;},&quot;sectionTags&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;}}">
+class Component extends DCLogic {
+  _goPreview() { window.location.href = encodeURIComponent('AM Wireframe Prototype V1.dc.html'); }
+  _checkPreviewMode() {
+    const pm = this.props.previewMode ?? false;
+    if (this._pmSeen === undefined) { this._pmSeen = pm; if (pm === true) this._goPreview(); return; }
+    if (pm !== this._pmSeen) {
+      this._pmSeen = pm;
+      if (pm === true) this._goPreview();
+    }
+  }
+  componentDidMount() { this._checkPreviewMode(); }
+  componentDidUpdate() { this._checkPreviewMode(); }
+  componentDidMount() {
+    this._hPoll = setInterval(() => {
+      const frames = document.querySelectorAll('iframe');
+      let changed = false;
+      const h = Object.assign({}, this.state && this.state.h || {});
+      frames.forEach((fr) => {
+        try {
+          const d = fr.contentDocument;
+          if (!d || !d.body) return;
+          const key = fr.getAttribute('title') || '';
+          const root = d.getElementById('root');
+          if (!root) return;
+          const v = Math.ceil(root.getBoundingClientRect().height);
+          if (v > 400 && h[key] !== v) { h[key] = v; changed = true; }
+        } catch (e) {}
+      });
+      if (changed) this.setState({ h });
+    }, 1200);
+  }
+  componentWillUnmount() { clearInterval(this._hPoll); }
+  renderVals() {
+    const mh = (this.state && this.state.h) || {};
+    const tabBase = 'font:500 12px "Neue Montreal",sans-serif;padding:6px 14px;border-radius:5px;cursor:pointer;display:inline-block;text-decoration:none;';
+    const tabOn = tabBase + 'background:#fff;color:#141414;border:1px solid #fff;';
+    const tabOff = tabBase + 'background:transparent;color:#dedede;border:1px solid #555;';
+    const q = '?annot=0&tags=' + ((this.props.sectionTags ?? true) ? '1' : '0');
+    return {
+      showMobile: this.props.showMobile ?? true,
+      pageSrc: 'relume-home.html' + q,
+      pageSrc2: 'relume-listento.html' + q,
+      pageSrc3: 'relume-pricing-listento.html' + q,
+      pageSrc4: 'relume-omnibus.html' + q,
+      pageSrc5: 'relume-downloads.html' + q,
+      pageSrc6: 'relume-download-omnibus.html' + q,
+      pageSrc7: 'relume-sectors-business.html' + q,
+      pageSrc10: 'relume-sectors-education.html' + q,
+      pageSrc11: 'relume-sectors-students.html' + q,
+      pageSrc12: 'relume-industry-music.html' + q,
+      pageSrc13: 'relume-news.html' + q,
+      pageSrc14: 'relume-article.html' + q,
+      pageSrc15: 'relume-podcast.html' + q,
+      pageSrc16: 'relume-press.html' + q,
+      pageSrc17: 'relume-press-article.html' + q,
+      pageSrc18: 'relume-search.html' + q,
+      pageSrc19: 'relume-about.html' + q,
+      pageSrc20: 'relume-legal.html' + q,
+      pageSrc21: 'relume-support.html' + q,
+      deskH21: (mh['Support wireframe — desktop'] || 3000) + 'px',
+      mobH21: (mh['Support wireframe — mobile'] || 4400) + 'px',
+      deskH20: (mh['Legal wireframe — desktop'] || 2800) + 'px',
+      mobH20: (mh['Legal wireframe — mobile'] || 3600) + 'px',
+      deskH19: (mh['About wireframe — desktop'] || 3200) + 'px',
+      mobH19: (mh['About wireframe — mobile'] || 4800) + 'px',
+      deskH18: (mh['Search wireframe — desktop'] || 3200) + 'px',
+      mobH18: (mh['Search wireframe — mobile'] || 4400) + 'px',
+      deskH17: (mh['Press release wireframe — desktop'] || 4200) + 'px',
+      mobH17: (mh['Press release wireframe — mobile'] || 6200) + 'px',
+      deskH16: (mh['Press wireframe — desktop'] || 3200) + 'px',
+      mobH16: (mh['Press wireframe — mobile'] || 4800) + 'px',
+      deskH15: (mh['Podcast wireframe — desktop'] || 3600) + 'px',
+      mobH15: (mh['Podcast wireframe — mobile'] || 5600) + 'px',
+      deskH14: (mh['Article wireframe — desktop'] || 4200) + 'px',
+      mobH14: (mh['Article wireframe — mobile'] || 6200) + 'px',
+      deskH13: (mh['News wireframe — desktop'] || 3400) + 'px',
+      mobH13: (mh['News wireframe — mobile'] || 5000) + 'px',
+      deskH12: (mh['Music industry wireframe — desktop'] || 3400) + 'px',
+      mobH12: (mh['Music industry wireframe — mobile'] || 5000) + 'px',
+      deskH11: (mh['Students sector wireframe — desktop'] || 3400) + 'px',
+      mobH11: (mh['Students sector wireframe — mobile'] || 5000) + 'px',
+      deskH10: (mh['Education sector wireframe — desktop'] || 3400) + 'px',
+      mobH10: (mh['Education sector wireframe — mobile'] || 5000) + 'px',
+      pageSrc8: 'relume-checkout-listento.html' + q,
+      pageSrc9: 'relume-order-complete.html' + q,
+      deskH9: (mh['Order complete wireframe — desktop'] || 1400) + 'px',
+      mobH9: (mh['Order complete wireframe — mobile'] || 2200) + 'px',
+      deskH8: (mh['Checkout wireframe — desktop'] || 2400) + 'px',
+      mobH8: (mh['Checkout wireframe — mobile'] || 3600) + 'px',
+      deskH7: (mh['Business sector wireframe — desktop'] || 3400) + 'px',
+      mobH7: (mh['Business sector wireframe — mobile'] || 5000) + 'px',
+      deskH6: (mh['Single download wireframe — desktop'] || 2600) + 'px',
+      mobH6: (mh['Single download wireframe — mobile'] || 3800) + 'px',
+      deskH5: (mh['Downloads wireframe — desktop'] || 3200) + 'px',
+      mobH5: (mh['Downloads wireframe — mobile'] || 4600) + 'px',
+      deskH4: (mh['OMNIBUS wireframe — desktop'] || 5200) + 'px',
+      mobH4: (mh['OMNIBUS wireframe — mobile'] || 7500) + 'px',
+      deskH3: (mh['LISTENTO pricing wireframe — desktop'] || 4200) + 'px',
+      mobH3: (mh['LISTENTO pricing wireframe — mobile'] || 6200) + 'px',
+      deskH2: (mh['LISTENTO wireframe — desktop'] || 6000) + 'px',
+      mobH2: (mh['LISTENTO wireframe — mobile'] || 8500) + 'px',
+      pe: 'none',
+      deskH: (mh['Homepage wireframe — desktop'] || 5800) + 'px',
+      mobH: (mh['Homepage wireframe — mobile'] || 9500) + 'px',
+    };
+  }
+}
+</script>
+</body>
+</html>
