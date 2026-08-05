@@ -7,6 +7,7 @@ export const CONFIG = {
   lineColor: 0xffffff,
   fillColor: 0x000000,   // tile faces (occludes lines behind, reads as black)
   lineOpacity: 0.9,
+  lineWidth: 1.5,        // outline width in CSS px (drawn as AA'd quads)
 
   // ---- tiles ----
   tileSide: 2.4,         // triangle edge length (spacing grid)
