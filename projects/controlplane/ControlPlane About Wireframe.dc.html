@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/motion.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/base.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/styles.css">
+  <script src="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/_ds_bundle.js"></script>
+  <style>
+    body { background: #EFEFEF; margin: 0; }
+    a { color: #000; } a:hover { color: #444; }
+  </style>
+</helmet>
+<div style="font-family: 'Neue Montreal', sans-serif; color: #000; padding: 48px clamp(16px, 3vw, 40px) 72px; display: flex; flex-direction: column; align-items: center; gap: 28px;">
+
+  <div style="width: 100%; max-width: 1440px; display: flex; align-items: baseline; justify-content: space-between; gap: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;">ControlPlane × KOTA</div>
+      <div style="font-size: 13px; color: #555;">About page wireframe · rev 1 · copy sourced per content prompt · <a href="ControlPlane Homepage Wireframe.dc.html">homepage →</a></div>
+    </div>
+    <div style="font-size: 12px; color: #555; letter-spacing: 0.06em; text-transform: uppercase;">Greyscale structure only, no look and feel</div>
+  </div>
+
+  <!-- Page meta panel -->
+  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 28px 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; box-sizing: border-box;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">URL</div>
+      <div style="font-size: 15px; font-weight: 500;">/about</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Page title</div>
+      <div style="font-size: 15px; font-weight: 500;">About ControlPlane: practitioner-led cloud native security</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Meta description</div>
+      <div style="font-size: 14px; line-height: 1.45; color: #333;">Founded in 2017 out of one of the first government Kubernetes deployments worldwide, ControlPlane secures cloud native platforms for regulated and security-critical organisations.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Primary reader</div>
+      <div style="font-size: 14px; line-height: 1.45; color: #333;">Security leadership evaluating credibility before a first conversation; also read by candidates. Source: company history document (About page only), per precedence.</div>
+    </div>
+  </div>
+
+  <!-- ===================== WIREFRAME FRAME ===================== -->
+  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #c9c9c9; border-radius: 4px; overflow: hidden;">
+
+    <!-- 01 NAVBAR -->
+    <div style="padding: 20px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">01 · Navbar · global, per sitemap rev 3 · interactive version on homepage wireframe</div>
+    </div>
+    <dc-import name="CPNav" active="whoWeAre" hint-size="100%,77px"></dc-import>
+
+    <!-- 02 HERO -->
+    <div style="padding: 20px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">02 · Hero (split) · copy: company history, founding story</div>
+    </div>
+    <div style="padding: 72px clamp(24px, 5vw, 72px) 80px; background: #f6f6f6; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 64px; align-items: center;">
+      <div style="display: flex; flex-direction: column; gap: 22px;">
+        <div style="font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #444;">Who we are</div>
+        <div style="font-size: 54px; line-height: 1.06; letter-spacing: -0.02em;">Founded on a platform that had to be secure.</div>
+        <div style="font-size: 18px; line-height: 1.55; color: #333;">ControlPlane began in 2017, inside one of the first government Kubernetes deployments worldwide. Our founder was leading a cloud native transformation for critical national infrastructure at the UK Home Office and saw the gap at first hand: traditional security wasn't designed for a declarative, software-defined world.</div>
+        <div style="font-size: 16px; line-height: 1.55; color: #333;">The mission has not changed since: keeping people safe on the internet by securing, implementing and up-skilling the organisations that handle sensitive and personally identifiable information.</div>
+      </div>
+      <div style="height: 380px; border-radius: 20px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; text-align: center; padding: 0 32px;">[TK: founding-era or team photography; none supplied]</div>
+    </div>
+
+    <!-- 03 TIMELINE -->
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">03 · Timeline · copy: company history, condensed to five moments</div>
+    </div>
+    <div style="padding: 28px clamp(24px, 5vw, 72px) 72px; display: flex; flex-direction: column; gap: 0;">
+      <div style="font-size: 40px; letter-spacing: -0.02em; padding-bottom: 36px;">How we got here</div>
+      <div style="display: grid; grid-template-columns: 110px 1fr; border-top: 1px solid #000;">
+        <div style="padding: 28px 0; font-size: 22px; font-weight: 500; border-bottom: 1px solid #ddd;">2017</div>
+        <div style="padding: 28px 0; font-size: 15.5px; line-height: 1.55; color: #333; border-bottom: 1px solid #ddd;"><strong>Born from real-world need.</strong> Founded during a cloud native transformation for critical national infrastructure at the UK Home Office — one of the first government Kubernetes deployments worldwide.</div>
+        <div style="padding: 28px 0; font-size: 22px; font-weight: 500; border-bottom: 1px solid #ddd;">2018</div>
+        <div style="padding: 28px 0; font-size: 15.5px; line-height: 1.55; color: #333; border-bottom: 1px solid #ddd;"><strong>Proving the approach, then sharing the tools.</strong> A complete cloud native migration for one of the UK's largest media organisations, and the release of Kubesec and Netassert — among the first security testing tools built for Kubernetes — open sourced and adopted across the global community.</div>
+        <div style="padding: 28px 0; font-size: 22px; font-weight: 500; border-bottom: 1px solid #ddd;">2019</div>
+        <div style="padding: 28px 0; font-size: 15.5px; line-height: 1.55; color: #333; border-bottom: 1px solid #ddd;"><strong>Raising the bar across the industry.</strong> Regular speaking and training at KubeCon NA, OWASP and DevOpsDays; CTFs at KubeCon; training delivered for O'Reilly and SANS.</div>
+        <div style="padding: 28px 0; font-size: 22px; font-weight: 500; border-bottom: 1px solid #ddd;">2020</div>
+        <div style="padding: 28px 0; font-size: 15.5px; line-height: 1.55; color: #333; border-bottom: 1px solid #ddd;"><strong>Trusted with the standards themselves.</strong> Google engaged us to write the official GKE CIS Benchmarks. The Linux Foundation's Financial Services User Group engaged us to threat model Kubernetes itself.</div>
+        <div style="padding: 28px 0; font-size: 22px; font-weight: 500;">Today</div>
+        <div style="padding: 28px 0; font-size: 15.5px; line-height: 1.55; color: #333;"><strong>Over 250 years of collective cloud native experience.</strong> The same hands-on mindset, now applied across consultancy, training and enterprise products — with security treated as enablement, not impediment.</div>
+      </div>
+    </div>
+
+    <!-- 04 WHAT WE BELIEVE -->
+    <div style="padding: 0 72px; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">04 · Principles (3-up) · copy: history + guidance, evidence-first framing</div>
+    </div>
+    <div style="margin-top: 20px; background: #111; color: #fff; padding: 64px clamp(24px, 5vw, 72px); display: flex; flex-direction: column; gap: 40px;">
+      <div style="font-size: 40px; letter-spacing: -0.02em;">How we work</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
+        <div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #555; padding-top: 20px;">
+          <div style="font-size: 20px; font-weight: 500;">Hands-on, not advisory-only</div>
+          <div style="font-size: 15px; line-height: 1.55; color: #ccc;">We build, break and secure cloud native systems every day. Recommendations come from engineers who have run the same platforms in production.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #555; padding-top: 20px;">
+          <div style="font-size: 20px; font-weight: 500;">Open source by instinct</div>
+          <div style="font-size: 15px; line-height: 1.55; color: #ccc;">We open sourced our own tooling from the start, employ maintainers of the projects we secure, and have donated tens of thousands of pounds to security-critical open source maintainers.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #555; padding-top: 20px;">
+          <div style="font-size: 20px; font-weight: 500;">Security as enablement</div>
+          <div style="font-size: 15px; line-height: 1.55; color: #ccc;">Agile security practices combined with infrastructure delivery, underpinned by developer compassion: security that helps teams ship, rather than stopping them.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 LEADERSHIP -->
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">05 · Leadership · content gap, structure proposed</div>
+    </div>
+    <div style="padding: 28px clamp(24px, 5vw, 72px) 72px; display: flex; flex-direction: column; gap: 36px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+        <div style="font-size: 40px; letter-spacing: -0.02em;">Leadership</div>
+        <div style="font-size: 16px; color: #444; max-width: 480px; line-height: 1.5;">Founder-led, with maintainers and practitioners across the team.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="height: 220px; border-radius: 20px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9;"></div>
+          <div style="font-size: 18px; font-weight: 500;">Andrew Martin</div>
+          <div style="font-size: 14px; color: #555;">Founder &amp; CEO · co-author, O'Reilly's Hacking Kubernetes</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="height: 220px; border-radius: 20px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9;"></div>
+          <div style="border: 1px dashed #999; border-radius: 12px; padding: 8px 12px; font-size: 12px; font-style: italic; color: #666; background: #fafafa;">[TK: remaining leadership team — names, roles and one-line credentials; client to supply]</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="height: 220px; border-radius: 20px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9;"></div>
+          <div style="font-size: 14px; color: #999; font-style: italic;">—</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="height: 220px; border-radius: 20px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9;"></div>
+          <div style="font-size: 14px; color: #999; font-style: italic;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 GLOBAL PRESENCE -->
+    <div style="padding: 0 72px; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">06 · Presence strip · copy: guidance (HQ London, EU/NA/APAC)</div>
+    </div>
+    <div style="margin: 20px clamp(24px, 5vw, 72px) 0; border-top: 1px solid #000; border-bottom: 1px solid #000; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+      <div style="padding: 28px 24px 28px 0; border-right: 1px solid #ddd; font-size: 15px; line-height: 1.5;"><strong>HQ London</strong><br>with people across Europe, North America and APAC</div>
+      <div style="padding: 28px 24px; border-right: 1px solid #ddd; font-size: 15px; line-height: 1.5;"><strong>Regulated industries</strong><br>banking, government, telecoms, critical infrastructure, energy</div>
+      <div style="padding: 28px 0 28px 24px; font-size: 15px; line-height: 1.5;"><strong>23 published case studies</strong><br>across regulated and security-critical organisations</div>
+    </div>
+
+    <!-- 07 CROSS-LINKS -->
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">07 · Onward routes (2-up) · to /careers and /community per sitemap</div>
+    </div>
+    <div style="padding: 28px clamp(24px, 5vw, 72px) 72px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+      <div style="border: 1px solid #000; border-radius: 20px; padding: 36px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-size: 24px; font-weight: 500;">Careers</div>
+        <div style="font-size: 15px; line-height: 1.55; color: #333;">Work on security-critical platforms with maintainers and published practitioners.</div>
+        <div style="font-size: 15px; font-weight: 500; margin-top: auto;">Open roles →</div>
+      </div>
+      <div style="border: 1px solid #000; border-radius: 20px; padding: 36px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-size: 24px; font-weight: 500;">In the community</div>
+        <div style="font-size: 15px; line-height: 1.55; color: #333;">CNCF, OpenSSF, FINOS and OpenUK involvement, conference talks, CTFs and the open source projects we maintain.</div>
+        <a href="ControlPlane Community Wireframe.dc.html" style="font-size: 15px; font-weight: 500; margin-top: auto;">In the community →</a>
+      </div>
+    </div>
+
+    <!-- 08 FINAL CTA -->
+    <div style="padding: 0 72px; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">08 · Final CTA · named next step</div>
+    </div>
+    <div style="margin-top: 20px; padding: 64px clamp(24px, 5vw, 72px) 88px; background: #f6f6f6; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px;">
+      <div style="font-size: 44px; letter-spacing: -0.02em; max-width: 720px; line-height: 1.1;">Talk to the people who do the work.</div>
+      <div style="font-size: 17px; line-height: 1.55; color: #333; max-width: 600px;">First conversations are with senior engineers, not account managers.</div>
+      <a href="ControlPlane Contact Wireframe.dc.html" style="background: #000; color: #fff; border-radius: 999px; padding: 14px 30px; font-size: 16px; font-weight: 500; margin-top: 6px; text-decoration: none;">Contact us</a>
+    </div>
+
+    <!-- 09 FOOTER -->
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};">
+      <div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">09 · Footer · global (CPFooter)</div>
+    </div>
+    <dc-import name="CPFooter" hint-size="100%,420px" style="margin-top: 20px; display: block;"></dc-import>
+  </div>
+  <!-- ===================== /FRAME ===================== -->
+
+  <!-- Closing annotation panels -->
+  <div style="width: 100%; max-width: 1440px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
+    <div style="background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">[TK] markers on this page</div>
+      <div style="font-size: 14px; line-height: 1.6; color: #333; display: flex; flex-direction: column; gap: 10px;">
+        <div><strong>Hero</strong> · [TK: founding-era or team photography; none supplied]</div>
+        <div><strong>Leadership</strong> · [TK: remaining leadership team — names, roles and one-line credentials; client to supply]</div>
+        <div><strong>Timeline</strong> · [TK: whether the Home Office may be named on the website; the history document names it, but the naming rule restricts customers to published case studies — client to confirm]</div>
+      </div>
+    </div>
+    <div style="background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">Source conflicts and choices made</div>
+      <div style="font-size: 14px; line-height: 1.6; color: #333; display: flex; flex-direction: column; gap: 10px;">
+        <div><strong>Named customers.</strong> The history document names JPMC, BP, Scottish Government, Lloyds Bank and News International; the guidance restricts naming to published case studies. Guidance followed: engagements described without names ("one of the UK's largest media organisations"), except Google and the Linux Foundation, which are cited as the commissioning bodies of public standards work rather than customers.</div>
+        <div><strong>Superlatives.</strong> The history document says "world's leading cloud native security consultancy" and "highest skilled … anywhere on the planet"; the voice rules require confident understatement and evidence over adjectives. Voice rules followed: superlatives replaced with the specific evidence behind them.</div>
+        <div><strong>Avoid-list wording.</strong> "Bleeding edge" and "journey" appear in the history document and are on the avoid list; rewritten.</div>
+        <div><strong>Citigroup ISRP claim.</strong> "Supporting the only major bank not to receive an ISRP MRA that year" is a quantified customer result not in the approved proof set; omitted pending written approval.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Wireframe&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      labelDisplay: (this.props.showAnnotations ?? true) ? 'block' : 'none'
+    };
+  }
+}
+</script>
+</body>
+</html>

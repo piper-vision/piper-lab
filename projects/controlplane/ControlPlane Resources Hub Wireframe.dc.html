@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/motion.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/tokens/base.css">
+  <link rel="stylesheet" href="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/styles.css">
+  <script src="_ds/kota-693ae1ab-a1f2-4914-bff5-3e2cad66289e/_ds_bundle.js"></script>
+  <style>
+    body { background: #EFEFEF; margin: 0; }
+    a { color: #000; } a:hover { color: #444; }
+  </style>
+</helmet>
+<div style="font-family: 'Neue Montreal', sans-serif; color: #000; padding: 48px clamp(16px, 3vw, 40px) 72px; display: flex; flex-direction: column; align-items: center; gap: 28px;">
+  <div style="width: 100%; max-width: 1440px; display: flex; align-items: baseline; justify-content: space-between; gap: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 16px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;">ControlPlane × KOTA</div>
+      <div style="font-size: 13px; color: #555;">Resources hub wireframe · rev 2 · working filters · <a href="ControlPlane Homepage Wireframe.dc.html">home →</a></div>
+    </div>
+    <div style="font-size: 12px; color: #555; letter-spacing: 0.06em; text-transform: uppercase;">Greyscale structure only, no look and feel</div>
+  </div>
+  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 28px 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; box-sizing: border-box;">
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">URL</div><div style="font-size: 15px; font-weight: 500;">/resources</div></div>
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Page title</div><div style="font-size: 15px; font-weight: 500;">Resources: research, talks and tooling from ControlPlane engineers</div></div>
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Meta description</div><div style="font-size: 14px; line-height: 1.45; color: #333;">Webinars, publications, events and open source tools from the ControlPlane team, in one filterable hub.</div></div>
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Primary reader</div><div style="font-size: 14px; line-height: 1.45; color: #333;">Platform and SRE teams primarily; the hub orients and routes, each stream keeps its own index.</div></div>
+  </div>
+  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #c9c9c9; border-radius: 4px; overflow: hidden;">
+    <div style="padding: 20px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">01 · Navbar · global (CPNav)</div></div>
+    <dc-import name="CPNav" active="resources" hint-size="100%,77px"></dc-import>
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">02 · Hero + filter row · filters are clickable in this wire</div></div>
+    <div style="padding: 64px clamp(24px, 5vw, 72px) 80px; background: #f6f6f6; display: flex; flex-direction: column; gap: 22px;">
+      <div style="font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #444;">Resources</div>
+      <div style="font-size: 54px; line-height: 1.06; letter-spacing: -0.02em; max-width: 980px;">Written by the people doing the work.</div>
+      <div style="font-size: 18px; line-height: 1.55; color: #333; max-width: 760px;">Research, talks, tooling and commentary from our engineers: the same material we use inside engagements.</div>
+      <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+          <span onClick="{{ f.set }}" style="border: 1px solid #000; border-radius: 999px; padding: 10px 22px; font-size: 14.5px; cursor: pointer; background: {{ f.bg }}; color: {{ f.fg }}; font-weight: {{ f.w }};">{{ f.name }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ showFeatured }}" hint-placeholder-val="{{ true }}">
+      <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">03 · Featured · Hacking Kubernetes · shown on All and Publications only</div></div>
+      <div style="margin: 20px clamp(24px, 5vw, 72px) 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 28px 0; display: flex; justify-content: space-between; align-items: center; gap: 32px;">
+        <div style="font-size: 20px; max-width: 720px; line-height: 1.4;"><strong>Hacking Kubernetes</strong> (O’Reilly). The definitive guide to threat modelling, hacking and hardening Kubernetes, written by our team.</div>
+        <a href="ControlPlane Hacking Kubernetes Wireframe.dc.html" style="border: 1px solid #000; border-radius: 999px; padding: 12px 26px; font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;">About the book →</a>
+      </div>
+    </sc-if>
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">04 · Grid · content follows the selected filter</div></div>
+    <div style="padding: 28px clamp(24px, 5vw, 72px) 64px; display: flex; flex-direction: column; gap: 32px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+        <div style="font-size: 40px; letter-spacing: -0.02em;">{{ gridTitle }}</div>
+        <div style="font-size: 16px; color: #444; max-width: 520px; line-height: 1.5;">{{ gridSub }}</div>
+      </div>
+      <sc-if value="{{ showTags }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 14px; border-top: 1px solid #ddd; padding-top: 20px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <span onClick="{{ toggleTags }}" style="border: 1px solid #000; border-radius: 999px; padding: 9px 20px; font-size: 13.5px; font-weight: 500; cursor: pointer; background: {{ tagsBtnBg }}; color: {{ tagsBtnFg }};">Filter by tags {{ tagsCaret }}</span>
+            <span style="font-size: 13px; color: #666;">{{ tagSummary }}</span>
+          </div>
+          <sc-if value="{{ tagsOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <sc-for list="{{ tags }}" as="t" hint-placeholder-count="8">
+                <span onClick="{{ t.set }}" style="border: 1px solid {{ t.border }}; border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; background: {{ t.bg }}; color: {{ t.fg }};">{{ t.name }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noItems }}" hint-placeholder-val="{{ false }}">
+        <div style="border: 1px dashed #999; border-radius: 16px; padding: 32px; text-align: center; font-size: 15px; color: #666; font-style: italic;">No publications match this tag yet. More are migrated as the content audit completes.</div>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 28px;">
+        <sc-for list="{{ items }}" as="it" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="height: 150px; border-radius: 16px; background: repeating-linear-gradient(45deg, #ececec, #ececec 12px, #f7f7f7 12px, #f7f7f7 24px); border: 1px solid #d9d9d9;"></div>
+            <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #666;">{{ it.kind }}</div>
+            <sc-if value="{{ it.hasHref }}" hint-placeholder-val="{{ false }}">
+              <a href="{{ it.href }}" style="font-size: 18px; font-weight: 500; line-height: 1.35; text-decoration: underline;">{{ it.title }}</a>
+            </sc-if>
+            <sc-if value="{{ it.noHref }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 18px; font-weight: 500; line-height: 1.35;">{{ it.title }}</div>
+            </sc-if>
+            <sc-if value="{{ it.hasNote }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 13px; line-height: 1.45; color: #666; font-style: italic;">{{ it.note }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">05 · Final CTA</div></div>
+    <div style="padding: 64px clamp(24px, 5vw, 72px) 88px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px;">
+      <div style="font-size: 44px; letter-spacing: -0.02em; max-width: 720px; line-height: 1.1;">Want this in your inbox?</div>
+      <div style="font-size: 17px; line-height: 1.55; color: #333; max-width: 640px;">Occasional, engineer-written. No gating, no drip campaigns.</div>
+      <span style="background: #000; color: #fff; border-radius: 999px; padding: 14px 30px; font-size: 16px; font-weight: 500; margin-top: 6px;">[TK: newsletter mechanism to confirm]</span>
+    </div>
+    <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">06 · Footer · global (CPFooter)</div></div>
+    <dc-import name="CPFooter" hint-size="100%,420px" style="margin-top: 20px; display: block;"></dc-import>
+  </div>
+  <div style="width: 100%; max-width: 1440px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
+    <div style="background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">[TK] markers on this page</div>
+      <div style="font-size: 14px; line-height: 1.6; color: #333; display: flex; flex-direction: column; gap: 10px;">
+        <div><strong>Grid</strong> · [TK: publication, webinar and talk titles; selected from existing material by marketing]</div>
+        <div><strong>Useful tools</strong> · [TK: fourth tool or accelerator, if one is public; delivery team to confirm]</div>
+        <div><strong>CTA</strong> · [TK: newsletter mechanism to confirm]</div>
+      </div>
+    </div>
+    <div style="background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">Source conflicts and choices made</div>
+      <div style="font-size: 14px; line-height: 1.6; color: #333; display: flex; flex-direction: column; gap: 10px;">
+        <div><strong>Hub vs blog.</strong> The hub shows curated slices and routes to stream indexes; blog content is reachable via nav and footer only, per client direction.</div>
+        <div><strong>Filters.</strong> The four filters map to the sitemap’s Library group; each stream keeps its own index page, the hub filter is a preview.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Wireframe&quot;}}">
+class Component extends DCLogic {
+  state = { filter: 'All', tag: 'Show all', tagsOpen: false };
+  filterFromHash() {
+    const map = { webinars: 'Webinars', publications: 'Publications', events: 'Events and talks', tools: 'Useful tools' };
+    const h = (window.location.hash || '').replace('#', '').toLowerCase();
+    return map[h] || null;
+  }
+  componentDidMount() {
+    const f = this.filterFromHash();
+    if (f) this.setState({ filter: f });
+    this._onHash = () => { const nf = this.filterFromHash(); if (nf) this.setState({ filter: nf }); };
+    window.addEventListener('hashchange', this._onHash);
+  }
+  componentWillUnmount() { window.removeEventListener('hashchange', this._onHash); }
+  renderVals() {
+    const DATA = {
+      'Events and talks': [
+        { kind: 'Events and talks', title: 'FluxCon, KubeCon EU 2026', note: 'Amsterdam, NL · 23rd to 26th March 2026 · Flux and GitOps-driven continuous delivery at scale', href: 'ControlPlane Event Wireframe.dc.html' },
+        { kind: 'Events and talks', title: 'FluxCon, KubeCon NA 2025', note: 'Atlanta, GA · 10th November 2025 · The first community conference dedicated to Flux CD' },
+        { kind: 'Events and talks', title: 'Open Source in Finance Forum London 2025', note: 'London, UK · 24th June 2025 · Financial services, technology and open source innovation' },
+        { kind: 'Events and talks', title: 'GitOpsCon Europe 2025', note: 'Virtual · 28th May 2025 · GitOps adoption, collaboration and knowledge sharing' },
+        { kind: 'Events and talks', title: 'KubeCon EU London 2025', note: 'London, UK · 2nd to 5th April 2025 · Kubernetes security landscape and Flux CD updates' }
+      ],
+      'Publications': [
+        { kind: 'Publications', title: 'OpenAI Internal Model Red Teaming', note: '2025 · OpenAI · Red Team Network contributions to Operator, GPT-4o, o3-mini and Deep Research system cards', tags: ['security','generative-ai','red-team','assurance'], href: 'ControlPlane Publication Wireframe.dc.html' },
+        { kind: 'Publications', title: 'eBPF Foundation Security Threat Model', note: '2024 · eBPF Foundation · A comprehensive threat model for eBPF-based security solutions', tags: ['security','threat-modeling','infrastructure','monitoring'] },
+        { kind: 'Publications', title: 'NIST SP 800-233 Service Mesh Proxy Models', note: '2024 · NIST · Security guide to service mesh proxy models for cloud-native applications', tags: ['security','zero-trust','networking','infrastructure'] },
+        { kind: 'Publications', title: 'Flux D1 Reference GitOps Architecture', note: '2024 · Flux CD · A hardened reference architecture for GitOps with Flux CD', tags: ['security','gitops','infrastructure','automation'] },
+        { kind: 'Publications', title: 'FINOS AI Security Reference Architecture', note: '2024 · FINOS · AI security reference architecture for financial services', tags: ['security','generative-ai','red-team','infrastructure','governance'] },
+        { kind: 'Publications', title: 'FINOS AI Governance Framework', note: '2024 · FINOS · AI governance framework for financial services', tags: ['security','generative-ai','compliance','containers','governance'] },
+        { kind: 'Publications', title: 'CNCF Flatcar Threat Model', note: '2023 · CNCF TAG Security · A project graduation threat model with the TAG Security community', tags: ['security','infrastructure','threat-modeling','containers'] },
+        { kind: 'Publications', title: 'CNCF FluxCD Threat Model', note: '2023 · CNCF TAG Security · Threat model for Flux CD as part of CNCF graduation', tags: ['security','gitops','threat-modeling','supply-chain','assurance'] }
+      ],
+      'Webinars': [
+        { kind: 'Webinars', title: 'FluxCon | Welcome + Opening Remarks', note: 'CNCF · Stefan Prodan, Francesco Beltramini & Jorge Castro · 11:21' },
+        { kind: 'Webinars', title: 'GitOps Evolution Through the Lens of a Flux Maintainer', note: 'CNCF · Stefan Prodan · 26:58' },
+        { kind: 'Webinars', title: 'FluxCon | Closing Remarks', note: 'CNCF · Stefan Prodan & Francesco Beltramini · 3:44' },
+        { kind: 'Webinars', title: 'Open Source Tools To Empower Ethical and Robust AI Systems', note: 'CNCF · Vicente Herrera & Alberto Rodríguez Fernandez · 26:17' },
+        { kind: 'Webinars', title: 'See it, Hack It, Sort It: How can OSS protect our AI enablers', note: 'OpenUK · State of Open Con 25 · 15:59' },
+        { kind: 'Webinars', title: 'Mastering the Cloud Native Wave: Security Resilience in Modern Systems', note: 'FINOS · Andrew Martin & Francesco Beltramini · 28:48' },
+        { kind: 'Webinars', title: 'Hack & Snack – Beer, Pizza & DevSecOps!', note: 'AI Security Engineers Community · streamed live · 1:38:19' },
+        { kind: 'Webinars', title: 'Building inclusive Agile teams: ending the pain of periods', note: 'Agile on the Beach · Maddie Clingan & Marion Peters · 41:24' }
+      ],
+      'Useful tools': [
+        { kind: 'Useful tools', title: 'Open Source', note: 'Kubesec, netassert, Simulator, BadRobot and truffleproc: our red and blue team tooling', href: 'ControlPlane Open Source Wireframe.dc.html' },
+        { kind: 'Useful tools', title: 'Innovation and R&D', note: '[TK: description; delivery team to confirm what is public]' },
+        { kind: 'Useful tools', title: 'Community', note: '[TK: description; e.g. CNCF, OpenSSF, FINOS and OpenUK involvement]' },
+        { kind: 'Useful tools', title: 'Presentations', note: '[TK: description; e.g. talk decks and recordings]' }
+      ]
+    };
+    const ALL = [DATA['Events and talks'][0], DATA['Publications'][0], DATA['Webinars'][0], DATA['Useful tools'][0], DATA['Publications'][1], DATA['Events and talks'][1], DATA['Publications'][2], DATA['Useful tools'][1]];
+    const f = this.state.filter;
+    const tag = this.state.tag;
+    let raw = f === 'All' ? ALL : DATA[f];
+    if (f === 'Publications' && tag !== 'Show all') raw = raw.filter(it => (it.tags || []).includes(tag));
+    const items = raw.map(it => ({ kind: it.kind, title: it.title, note: it.note || '', href: it.href || '', hasHref: !!it.href, noHref: !it.href, hasNote: !!it.note }));
+    const filters = ['All', 'Webinars', 'Publications', 'Events and talks', 'Useful tools'].map(name => ({
+      name, bg: name === f ? '#000' : 'transparent', fg: name === f ? '#fff' : '#000', w: name === f ? '500' : '400',
+      set: () => this.setState({ filter: name, tag: 'Show all' })
+    }));
+    const TAGS = ['Show all','assurance','automation','blue-team','compliance','containers','generative-ai','gitops','governance','incident-response','infrastructure','kubernetes','monitoring','networking','pentesting','red-team','security','soc','supply-chain','threat-modeling','zero-trust'];
+    const tags = TAGS.map(name => ({
+      name, bg: name === tag ? '#000' : 'transparent', fg: name === tag ? '#fff' : '#000', border: name === tag ? '#000' : '#bbb',
+      set: () => this.setState({ tag: name })
+    }));
+    const subs = { 'All': 'A curated slice across all types; each stream has its own index.', 'Webinars': 'Live sessions and recordings; titles pending content audit.', 'Publications': 'Books, benchmarks and threat models our team has authored.', 'Events and talks': 'Where to find us in person, and what we have presented.', 'Useful tools': 'Open source security tooling we released and maintain.' };
+    return {
+      labelDisplay: (this.props.showAnnotations ?? true) ? 'block' : 'none',
+      filters, items, gridTitle: f === 'All' ? 'Latest' : f, gridSub: subs[f],
+      showFeatured: f === 'All' || f === 'Publications',
+      showTags: f === 'Publications', tags, noItems: items.length === 0,
+      tagsOpen: this.state.tagsOpen,
+      toggleTags: () => this.setState(s => ({ tagsOpen: !s.tagsOpen })),
+      tagsCaret: this.state.tagsOpen ? '▴' : '▾',
+      tagsBtnBg: this.state.tagsOpen || tag !== 'Show all' ? '#000' : 'transparent',
+      tagsBtnFg: this.state.tagsOpen || tag !== 'Show all' ? '#fff' : '#000',
+      tagSummary: tag === 'Show all' ? '' : 'Showing: ' + tag
+    };
+  }
+}
+</script>
+</body>
+</html>

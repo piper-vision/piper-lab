@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position: relative; font-family: 'Neue Montreal', sans-serif; color: #000; background: #fff;">
+  <div style="padding: 20px clamp(20px, 5vw, 72px); border-bottom: 1px solid #000; display: flex; align-items: center; justify-content: space-between; gap: clamp(16px, 2vw, 32px);">
+    <a href="ControlPlane Homepage Wireframe.dc.html" style="display: inline-flex;"><img src="controlplane-logo-black.svg" alt="ControlPlane" style="height: 22px; filter: grayscale(1);"></a>
+    <div style="display: flex; align-items: center; gap: clamp(12px, 2vw, 28px); font-size: 15px; flex-wrap: wrap; justify-content: flex-end;">
+      <span onClick="{{ toggleWhatWeDo }}" style="white-space: nowrap; flex-shrink: 0; cursor: pointer; font-weight: {{ whatWeDoWeight }}; border-bottom: 2px solid {{ whatWeDoUnderline }}; padding-bottom: 2px;">What we do {{ whatWeDoCaret }}</span>
+      <span onClick="{{ toggleWhoWeHelp }}" style="white-space: nowrap; flex-shrink: 0; cursor: pointer; font-weight: {{ whoWeHelpWeight }}; border-bottom: 2px solid {{ whoWeHelpUnderline }}; padding-bottom: 2px;">Who we help {{ whoWeHelpCaret }}</span>
+      <span onClick="{{ toggleWhoWeAre }}" style="white-space: nowrap; flex-shrink: 0; cursor: pointer; font-weight: {{ whoWeAreWeight }}; border-bottom: 2px solid {{ whoWeAreUnderline }}; padding-bottom: 2px;">Who we are {{ whoWeAreCaret }}</span>
+      <span onClick="{{ toggleResources }}" style="white-space: nowrap; flex-shrink: 0; cursor: pointer; font-weight: {{ resourcesWeight }}; border-bottom: 2px solid {{ resourcesUnderline }}; padding-bottom: 2px;">Resources {{ resourcesCaret }}</span>
+      <span style="border: 1px solid #999; border-radius: 999px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #555;">⌕</span>
+      <a href="ControlPlane Contact Wireframe.dc.html" style="background: #000; color: #fff; border-radius: 999px; padding: 10px 22px; font-weight: 500; text-decoration: none;">Contact us</a>
+    </div>
+  </div>
+
+  <sc-if value="{{ showWhatWeDo }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid #000; z-index: 40; padding: 40px 72px 48px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #888;">What we do · hub /what-we-do · six problem groups</div>
+        <a onClick="{{ closeMenu }}" href="ControlPlane What We Do Wireframe.dc.html" style="border: 1px solid #000; border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; text-decoration: none; color: #000;">All offerings →</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 48px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Understand your risk</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Threat Modelling Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Threat Modelling</a>
+          <span style="font-size: 14.5px;">Cloud Native Security Assurance</span>
+          <span style="font-size: 14.5px;">Advisory Services</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Test and train</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Pentesting Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Pentesting &amp; Red/Purple Team</a>
+          <span style="font-size: 14.5px;">CTF &amp; TTX Exercises</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Build a secure platform</div>
+          <span style="font-size: 14.5px;">Kubernetes &amp; Container Security</span>
+          <span style="font-size: 14.5px;">Platform Engineering</span>
+          <span style="font-size: 14.5px;">DevOps &amp; Secure Deployment</span>
+          <span style="font-size: 14.5px;">Zero Trust</span>
+          <span style="font-size: 14.5px;">Software Supply Chain Security</span>
+          <span style="font-size: 13px; font-style: italic; color: #888;">Services · [TK: naming to confirm]</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Secure your AI</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane AI Security Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">AI Security</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Prove compliance</div>
+          <span style="font-size: 14.5px;">CRA &amp; OSS Compliance</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Enterprise products</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Flux CD Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Enterprise for Flux CD</a>
+          <a onClick="{{ closeMenu }}" href="ControlPlane OpenBao Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Enterprise for OpenBao</a>
+        </div>
+      </div>
+      <div style="border-top: 1px solid #ddd; padding-top: 20px; display: flex; align-items: center; gap: 24px; font-size: 14px;">
+        <a onClick="{{ closeMenu }}" href="ControlPlane Case Studies Wireframe.dc.html" style="font-weight: 500; text-decoration: underline;">Case studies · 23 →</a>
+        <span style="color: #666;">Featured: OpenAI · UK Gov · Citigroup</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showWhoWeHelp }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid #000; z-index: 40; padding: 40px 72px 48px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #888;">Who we help · hub /who-we-help</div>
+        <a onClick="{{ closeMenu }}" href="ControlPlane Who We Help Wireframe.dc.html" style="border: 1px solid #000; border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; text-decoration: none; color: #000;">Who we help →</a>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Industries · 5</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Banking Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Banking and financial services</a>
+          <span style="font-size: 14.5px;">Government and public sector</span>
+          <span style="font-size: 14.5px;">Telecommunications</span>
+          <span style="font-size: 14.5px;">Critical infrastructure</span>
+          <span style="font-size: 14.5px;">Energy and utilities</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Teams we work with · 3</div>
+          <span style="font-size: 14.5px;">Security leadership</span>
+          <span style="font-size: 14.5px;">Platform and SRE teams</span>
+          <span style="font-size: 14.5px;">Risk and compliance</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showWhoWeAre }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid #000; z-index: 40; padding: 40px 72px 48px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #888;">Who we are · hub /about</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">The company · 3</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane About Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">About ControlPlane</a>
+          <span style="font-size: 14.5px;">Careers</span>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Community Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">In the community</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Ecosystem · 1</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Partners Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Partners</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showResources }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid #000; z-index: 40; padding: 40px 72px 48px; display: flex; flex-direction: column; gap: 28px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+        <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #888;">Resources · hub /resources</div>
+        <a href="ControlPlane Resources Hub Wireframe.dc.html" style="border: 1px solid #000; border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; text-decoration: none; color: #000;">All resources →</a>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Insights · 2</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Blog Index Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Blog</a>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Resources Hub Wireframe.dc.html#webinars" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Webinars and live sessions</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 8px;">Library · 4</div>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Resources Hub Wireframe.dc.html#publications" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Publications</a>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Resources Hub Wireframe.dc.html#events" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Events and talks</a>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Resources Hub Wireframe.dc.html#tools" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Useful tools</a>
+          <a onClick="{{ closeMenu }}" href="ControlPlane Hacking Kubernetes Wireframe.dc.html" style="font-size: 14.5px; font-weight: 500; text-decoration: underline;">Hacking Kubernetes</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 500}, &quot;active&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;whatWeDo&quot;, &quot;whoWeHelp&quot;, &quot;whoWeAre&quot;, &quot;resources&quot;], &quot;default&quot;: null, &quot;tsType&quot;: &quot;string | null&quot;, &quot;section&quot;: &quot;Nav&quot;}}">
+class Component extends DCLogic {
+  state = { open: null };
+  toggle(name) { this.setState(s => ({ open: s.open === name ? null : name })); }
+  renderVals() {
+    const open = this.state.open;
+    const active = this.props.active ?? null;
+    const vals = {};
+    for (const name of ['whatWeDo','whoWeHelp','whoWeAre','resources']) {
+      const isOpen = open === name;
+      const on = isOpen || active === name;
+      const cap = name[0].toUpperCase() + name.slice(1);
+      vals['show' + cap] = isOpen;
+      vals[name + 'Weight'] = on ? '500' : '400';
+      vals[name + 'Underline'] = on ? '#000' : 'transparent';
+      vals[name + 'Caret'] = isOpen ? '▴' : '▾';
+      vals['toggle' + cap] = () => this.toggle(name);
+    }
+    vals.closeMenu = () => this.setState({ open: null });
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
