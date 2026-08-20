@@ -53,7 +53,7 @@
       <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">03 · Featured · Hacking Kubernetes · shown on All and Publications only</div></div>
       <div style="margin: 20px clamp(24px, 5vw, 72px) 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 28px 0; display: flex; justify-content: space-between; align-items: center; gap: 32px;">
         <div style="font-size: 20px; max-width: 720px; line-height: 1.4;"><strong>Hacking Kubernetes</strong> (O’Reilly). The definitive guide to threat modelling, hacking and hardening Kubernetes, written by our team.</div>
-        <a href="ControlPlane Hacking Kubernetes Wireframe.dc.html" style="border: 1px solid #000; border-radius: 999px; padding: 12px 26px; font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;">About the book →</a>
+        <a href="hacking-kubernetes.html" style="border: 1px solid #000; border-radius: 999px; padding: 12px 26px; font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;">About the book →</a>
       </div>
     </sc-if>
     <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">04 · Grid · content follows the selected filter</div></div>
@@ -144,14 +144,14 @@ class Component extends DCLogic {
   renderVals() {
     const DATA = {
       'Events and talks': [
-        { kind: 'Events and talks', title: 'FluxCon, KubeCon EU 2026', note: 'Amsterdam, NL · 23rd to 26th March 2026 · Flux and GitOps-driven continuous delivery at scale', href: 'ControlPlane Event Wireframe.dc.html' },
+        { kind: 'Events and talks', title: 'FluxCon, KubeCon EU 2026', note: 'Amsterdam, NL · 23rd to 26th March 2026 · Flux and GitOps-driven continuous delivery at scale', href: 'event.html' },
         { kind: 'Events and talks', title: 'FluxCon, KubeCon NA 2025', note: 'Atlanta, GA · 10th November 2025 · The first community conference dedicated to Flux CD' },
         { kind: 'Events and talks', title: 'Open Source in Finance Forum London 2025', note: 'London, UK · 24th June 2025 · Financial services, technology and open source innovation' },
         { kind: 'Events and talks', title: 'GitOpsCon Europe 2025', note: 'Virtual · 28th May 2025 · GitOps adoption, collaboration and knowledge sharing' },
         { kind: 'Events and talks', title: 'KubeCon EU London 2025', note: 'London, UK · 2nd to 5th April 2025 · Kubernetes security landscape and Flux CD updates' }
       ],
       'Publications': [
-        { kind: 'Publications', title: 'OpenAI Internal Model Red Teaming', note: '2025 · OpenAI · Red Team Network contributions to Operator, GPT-4o, o3-mini and Deep Research system cards', tags: ['security','generative-ai','red-team','assurance'], href: 'ControlPlane Publication Wireframe.dc.html' },
+        { kind: 'Publications', title: 'OpenAI Internal Model Red Teaming', note: '2025 · OpenAI · Red Team Network contributions to Operator, GPT-4o, o3-mini and Deep Research system cards', tags: ['security','generative-ai','red-team','assurance'], href: 'publication.html' },
         { kind: 'Publications', title: 'eBPF Foundation Security Threat Model', note: '2024 · eBPF Foundation · A comprehensive threat model for eBPF-based security solutions', tags: ['security','threat-modeling','infrastructure','monitoring'] },
         { kind: 'Publications', title: 'NIST SP 800-233 Service Mesh Proxy Models', note: '2024 · NIST · Security guide to service mesh proxy models for cloud-native applications', tags: ['security','zero-trust','networking','infrastructure'] },
         { kind: 'Publications', title: 'Flux D1 Reference GitOps Architecture', note: '2024 · Flux CD · A hardened reference architecture for GitOps with Flux CD', tags: ['security','gitops','infrastructure','automation'] },
@@ -171,7 +171,7 @@ class Component extends DCLogic {
         { kind: 'Webinars', title: 'Building inclusive Agile teams: ending the pain of periods', note: 'Agile on the Beach · Maddie Clingan & Marion Peters · 41:24' }
       ],
       'Useful tools': [
-        { kind: 'Useful tools', title: 'Open Source', note: 'Kubesec, netassert, Simulator, BadRobot and truffleproc: our red and blue team tooling', href: 'ControlPlane Open Source Wireframe.dc.html' },
+        { kind: 'Useful tools', title: 'Open Source', note: 'Kubesec, netassert, Simulator, BadRobot and truffleproc: our red and blue team tooling', href: 'open-source.html' },
         { kind: 'Useful tools', title: 'Innovation and R&D', note: '[TK: description; delivery team to confirm what is public]' },
         { kind: 'Useful tools', title: 'Community', note: '[TK: description; e.g. CNCF, OpenSSF, FINOS and OpenUK involvement]' },
         { kind: 'Useful tools', title: 'Presentations', note: '[TK: description; e.g. talk decks and recordings]' }
