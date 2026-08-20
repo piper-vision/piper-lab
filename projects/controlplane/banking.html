@@ -22,14 +22,15 @@
   </style>
 </helmet>
 <div style="font-family: 'Neue Montreal', sans-serif; color: #000; padding: 48px clamp(16px, 3vw, 40px) 72px; display: flex; flex-direction: column; align-items: center; gap: 28px;">
-  <div style="width: 100%; max-width: 1440px; display: flex; align-items: baseline; justify-content: space-between; gap: 24px;">
+  <div style="position: fixed; top: 16px; right: 16px; z-index: 100;"><span onClick="{{ toggleAnn }}" style="background: #111; color: #fff; border-radius: 999px; padding: 9px 18px; font-size: 12.5px; font-weight: 500; cursor: pointer; letter-spacing: 0.04em; box-shadow: 0 2px 10px rgba(0,0,0,0.25);">{{ annLabel }}</span></div>
+  <div style="width: 100%; max-width: 1440px; display: {{ headerDisplay }}; align-items: baseline; justify-content: space-between; gap: 24px;">
     <div style="display: flex; align-items: baseline; gap: 16px;">
       <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;">ControlPlane × KOTA</div>
       <div style="font-size: 13px; color: #555;">Banking & financial services wireframe · rev 1 · copy sourced per content prompt · <a href="index.html">home →</a></div>
     </div>
     <div style="font-size: 12px; color: #555; letter-spacing: 0.06em; text-transform: uppercase;">Greyscale structure only, no look and feel</div>
   </div>
-  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 28px 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; box-sizing: border-box;">
+  <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 28px 36px; display: {{ panelDisplay }}; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; box-sizing: border-box;">
     <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">URL</div><div style="font-size: 15px; font-weight: 500;">/who-we-help/banking-financial-services</div></div><div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Page title</div><div style="font-size: 15px; font-weight: 500;">Cloud native security for banking and financial services</div></div><div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Meta description</div><div style="font-size: 14px; line-height: 1.45; color: #333;">Regulatory immunity engineering, security assurance, open source ingestion and platform security for banks: proven at tier-1 scale, including Citigroup.</div></div><div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">Primary reader</div><div style="font-size: 14px; line-height: 1.45; color: #333;">Security leadership at banks, with risk and compliance close behind. Business-risk register; evidence over adjectives.</div></div>
   </div>
   <div style="width: 100%; max-width: 1440px; background: #fff; border: 1px solid #c9c9c9; border-radius: 4px; overflow: hidden;">
@@ -50,7 +51,7 @@
     <div style="padding: 40px clamp(24px, 5vw, 72px) 0; display: {{ labelDisplay }};"><div style="display: inline-flex; gap: 10px; background: #111; color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">08 · Footer · global (CPFooter)</div></div>
     <dc-import name="CPFooter" hint-size="100%,420px" style="margin-top: 20px; display: block;"></dc-import>
   </div>
-  <div style="width: 100%; max-width: 1440px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
+  <div style="width: 100%; max-width: 1440px; display: {{ panelDisplay }}; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
     <div style="background: #fff; border: 1px solid #d9d9d9; border-radius: 20px; padding: 32px 36px; display: flex; flex-direction: column; gap: 14px;">
       <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;">[TK] markers on this page</div>
       <div style="font-size: 14px; line-height: 1.6; color: #333; display: flex; flex-direction: column; gap: 10px;">
@@ -70,8 +71,18 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Wireframe&quot;}}">
 class Component extends DCLogic {
+  state = { ann: null };
   renderVals() {
-    return { labelDisplay: (this.props.showAnnotations ?? true) ? "block" : "none" };
+    let stored = null;
+    try { stored = localStorage.getItem('cpWireAnn'); } catch (e) {}
+    const on = this.state.ann ?? (stored !== null ? stored === '1' : (this.props.showAnnotations ?? true));
+    return {
+      labelDisplay: on ? 'block' : 'none',
+      headerDisplay: on ? 'flex' : 'none',
+      panelDisplay: on ? 'grid' : 'none',
+      annLabel: on ? 'Hide annotations' : 'Show annotations',
+      toggleAnn: () => { try { localStorage.setItem('cpWireAnn', on ? '0' : '1'); } catch (e) {} this.setState({ ann: !on }); }
+    };
   }
 }
 </script>
