@@ -1,0 +1,62 @@
+/* KOTA colour system — source: my.corebook.io/KOTA/colour
+   "Vibrant but professional. Minimal black and white punctuated with
+   highlights of the five colours; gradients for atmospheric backgrounds." */
+
+:root {
+  /* Primary palette */
+  --kota-black: #000000;
+  --kota-grey: #efefef;
+  --kota-white: #ffffff;
+
+  /* Secondary palette — highlights only, never for body text */
+  --kota-pink: #efb2d9;
+  --kota-purple: #c4b5f3;
+  --kota-blue: #a8e1ec;
+  --kota-green: #d7e1d3;
+  --kota-peach: #f8e5cb;
+
+  /* Brand gradient pairs (linear) */
+  --gradient-purple-pink: linear-gradient(135deg, var(--kota-purple) 0%, var(--kota-pink) 100%);
+  --gradient-blue-purple: linear-gradient(135deg, var(--kota-blue) 0%, var(--kota-purple) 100%);
+  --gradient-peach-pink: linear-gradient(135deg, var(--kota-peach) 0%, var(--kota-pink) 100%);
+  --gradient-blue-peach: linear-gradient(135deg, var(--kota-blue) 0%, var(--kota-peach) 100%);
+
+  /* Flow gradients — atmospheric, organic backgrounds (CSS recipe of the
+     brand's Flow Gradient assets). Saturated cousins of the secondary hues. */
+  --flow-vivid-pink: oklch(0.72 0.24 340);
+  --flow-vivid-magenta: oklch(0.62 0.26 350);
+  --flow-vivid-purple: oklch(0.62 0.24 300);
+  --flow-vivid-blue: oklch(0.82 0.11 220);
+  --flow-light:
+    radial-gradient(90% 120% at 85% 10%, var(--flow-vivid-blue) 0%, transparent 50%),
+    radial-gradient(120% 140% at 15% 95%, var(--flow-vivid-magenta) 0%, transparent 60%),
+    radial-gradient(100% 100% at 50% 55%, var(--flow-vivid-pink) 0%, transparent 70%),
+    linear-gradient(160deg, var(--kota-pink) 0%, var(--flow-vivid-purple) 100%);
+  --flow-dark:
+    radial-gradient(80% 90% at 80% 0%, var(--flow-vivid-purple) 0%, transparent 55%),
+    radial-gradient(90% 110% at 10% 100%, var(--flow-vivid-magenta) 0%, transparent 55%),
+    var(--kota-black);
+  --flow-soft:
+    radial-gradient(80% 110% at 80% 15%, var(--kota-blue) 0%, transparent 55%),
+    radial-gradient(110% 130% at 12% 90%, var(--kota-pink) 0%, transparent 60%),
+    linear-gradient(150deg, var(--kota-peach) 0%, var(--kota-purple) 100%);
+
+  /* Semantic aliases */
+  --bg-page: var(--kota-grey);
+  --bg-inverse: var(--kota-black);
+  --surface-card: var(--kota-white);
+  --surface-card-inverse: #111111;
+
+  --text-primary: var(--kota-black);
+  --text-secondary: rgba(0, 0, 0, 0.62);
+  --text-inverse: var(--kota-white);
+  --text-inverse-secondary: rgba(255, 255, 255, 0.68);
+
+  --border-strong: var(--kota-black);
+  --border-subtle: rgba(0, 0, 0, 0.16);
+  --border-inverse: var(--kota-white);
+  --border-inverse-subtle: rgba(255, 255, 255, 0.24);
+
+  --focus-ring: 0 0 0 2px var(--kota-white), 0 0 0 4px var(--kota-black);
+  --overlay-scrim: rgba(0, 0, 0, 0.55);
+}
