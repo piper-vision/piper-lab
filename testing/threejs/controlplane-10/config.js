@@ -66,7 +66,7 @@ window.CONFIG = {
     thickness: 0.6,    // ribbons are thin, so keep the simulated volume thin too
     dispersion: 9,     // chromatic split at the edges (safe to go high: only the gradient is refracted)
     roughness: 0.22,   // body roughness blurs the refraction; clearcoat keeps surface highlights sharp
-    transmissionScale: 1, // refraction buffer resolution multiplier (only the background lands in it)
+    transmissionScale: 0.5, // refraction buffer resolution multiplier (0.5 = quarter the pixels; the roughness blur hides it)
     iridescence: 0.7,
     envIntensity: 0.45, // a flat band at grazing angles reflects the env hard; keep this modest
     tint: 0xffffff,
@@ -82,4 +82,15 @@ window.CONFIG = {
 
   camera: { fov: 38, distance: 4.5, lookAtY: -1.1 }, // lookAtY < 0 pitches the view down onto the band
   exposure: 1.05,
+
+  // Performance: fixed costs plus adaptive resolution. The renderer starts at
+  // maxPixelRatio and steps down toward minPixelRatio while frames run slower
+  // than targetFrameMs (Retina laptops with integrated GPUs need this).
+  quality: {
+    msaa: 4,             // MSAA samples on the HDR scene target (FXAA covers the rest)
+    maxPixelRatio: 1.5,
+    minPixelRatio: 0.75,
+    targetFrameMs: 20,   // ~50 fps; drop resolution while slower than this
+    stepEverySec: 1.5,   // how long to average before each step
+  },
 };

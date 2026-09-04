@@ -5,7 +5,8 @@ const C = window.CONFIG;
 // ---------------------------------------------------------------- renderer
 const container = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+let pixelRatio = Math.min(window.devicePixelRatio, C.quality.maxPixelRatio);
+renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 // The transmission buffer has no MSAA; a 1px bright edge in it mips down into
 // a beaded line when refracted. Supersampling it gives the blur a clean base.
@@ -386,7 +387,7 @@ scene.add(rim);
 // the composite so the threshold works on linear HDR values.
 const post = (() => {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const hdr = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 8 });
+  const hdr = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: C.quality.msaa });
   const mk = () => new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });
   const pingA = mk(), pingB = mk();
   const ldr = new THREE.WebGLRenderTarget(size.x, size.y); // tone-mapped sRGB frame, input to FXAA
@@ -591,6 +592,33 @@ function updateBreakaway(t) {
   }
 }
 
+// ---------------------------------------------------------------- resolution
+function applySize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(pixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  post.resize();
+}
+
+// Adaptive resolution: average the frame time over a window and, while it is
+// slower than the target, step the pixel ratio down. It never steps back up,
+// so the picture does not pulse between qualities.
+const Q = C.quality;
+let frameAccum = 0, frameCount = 0, lastFrame = performance.now();
+function adaptResolution(now) {
+  frameAccum += now - lastFrame;
+  frameCount++;
+  lastFrame = now;
+  if (frameAccum < Q.stepEverySec * 1000) return;
+  const avg = frameAccum / frameCount;
+  frameAccum = 0; frameCount = 0;
+  if (avg > Q.targetFrameMs && pixelRatio > Q.minPixelRatio) {
+    pixelRatio = Math.max(Q.minPixelRatio, +(pixelRatio - 0.25).toFixed(2));
+    applySize();
+  }
+}
+
 // ---------------------------------------------------------------- loop
 const clock = new THREE.Clock();
 function tick() {
@@ -600,16 +628,16 @@ function tick() {
   for (const rb of ribbons) updateRibbon(rb, t);
 
   post.render();
+  adaptResolution(performance.now());
   requestAnimationFrame(tick);
 }
 tick();
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  post.resize();
-});
+window.addEventListener('resize', applySize);
 
 // Debug hook for stills / tuning from the console.
-window.glassDebug = { scene, camera, renderer, ribbons, triangles, glass, bgUniforms };
+window.glassDebug = {
+  scene, camera, renderer, ribbons, triangles, glass, bgUniforms,
+  get pixelRatio() { return pixelRatio; },
+  setPixelRatio(r) { pixelRatio = r; applySize(); },
+};
