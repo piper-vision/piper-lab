@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // same registry drives "Copy settings as JSON" (export) and presets (import):
 // a preset is simply a JSON object in that exported shape, applied with
 // applySettings(). Keys 1/2/3 apply window.PRESETS[0..2] (see presets.js).
-export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, requestRender }) {
+export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, requestRender, getPixelRatio, setPixelRatio }) {
   const css = `
     #attr-panel { position: fixed; top: 120px; right: 32px; width: 300px; max-height: calc(100vh - 140px);
       overflow-y: auto; background: rgba(0, 22, 20, 0.88); color: #d6efec; font: 12px/1.4 system-ui, sans-serif;
@@ -204,6 +204,17 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     slider(s, 'hover.follow', 'Follow', 2, 40, 0.5, () => Hv.follow, (v) => { Hv.follow = v; }, (v) => v.toFixed(1));
   }
 
+  // ---- render (device-specific; excluded from the JSON export so presets never carry it)
+  {
+    const s = section('Render');
+    slider(s, 'render.pixelRatio', 'Pixel ratio', 0.5, 3, 0.05, () => getPixelRatio(), (v) => setPixelRatio(v),
+      (v) => v.toFixed(2) + 'x');
+    const note = document.createElement('div');
+    note.className = 'sub';
+    note.textContent = 'device ratio ' + window.devicePixelRatio.toFixed(2) + 'x · press F for fps';
+    s.appendChild(note);
+  }
+
   // ---- camera
   {
     const s = section('Camera');
@@ -358,6 +369,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   function exportSettings() {
     const out = {};
     for (const [path, h] of registry) {
+      if (path.startsWith('render.')) continue;   // device-specific, not part of a look
       let v = h.get();
       if (path === 'motion.paused' || path === 'dof.enabled' || path === 'fade.enabled' || path === 'hover.enabled') v = v > 0.5;   // booleans read nicer in JSON
       setPath(out, path, v);

@@ -917,6 +917,8 @@ function tick() {
   if (hover.settling || (hover.active && C.hover.enabled)) needsRender = true;
   frameDt = dt;
 
+  fpsTick(now);
+
   if (needsRender) {
     const t = sceneTime;
     bgUniforms.uTime.value = t;
@@ -928,6 +930,28 @@ function tick() {
   requestAnimationFrame(tick);
 }
 let frameDt = 1 / 60;   // last frame's delta, used by the hover ripple easing
+
+// ---------------------------------------------------------------- fps readout (F)
+// Counts every animation frame (rendered or not while frozen) and refreshes
+// the readout twice a second. Hidden until F is pressed.
+const fpsEl = document.getElementById('fps');
+let fpsFrames = 0, fpsWindowStart = 0;
+function fpsTick(now) {
+  fpsFrames++;
+  if (now - fpsWindowStart < 0.5) return;
+  const fps = fpsFrames / (now - fpsWindowStart);
+  fpsFrames = 0; fpsWindowStart = now;
+  if (fpsEl && !fpsEl.hidden) {
+    fpsEl.textContent = fps.toFixed(0) + ' fps · ' + (1000 / fps).toFixed(1) + ' ms · ' + pixelRatio.toFixed(2) + 'x';
+  }
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'f' && e.key !== 'F') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !['range', 'color', 'checkbox', 'button'].includes(t.type)))) return;
+  if (fpsEl) { fpsEl.hidden = !fpsEl.hidden; if (!fpsEl.hidden) fpsEl.textContent = '… fps'; }
+});
 // (the render loop is started at the bottom of the file, after the default preset is applied)
 
 window.addEventListener('resize', applySize);
@@ -966,6 +990,8 @@ const panelApi = initPanel({
   applyCamera,
   sunLights,
   requestRender,
+  getPixelRatio: () => livePixelRatio,
+  setPixelRatio: (r) => { livePixelRatio = r; applySize(); },
 });
 window.glassDebug.panel = panelApi;   // panel.applySettings(json) / applyPreset(i) / exportSettings()
 

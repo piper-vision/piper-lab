@@ -120,11 +120,19 @@
     .cta .btn .arrow { width: 28px; height: 28px; }
     .cta .btn .arrow svg { width: 14px; height: 14px; }
 
+    /* FPS readout: press F. Sits under the right-hand nav cluster. */
+    #fps {
+      position: absolute; right: var(--pad); top: calc(clamp(18px, 2vw, 36px) + 56px + 10px);
+      font: 300 13px/1 'Aspekta', system-ui, sans-serif; color: #fff; letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums; text-align: right; pointer-events: none; opacity: 0.9;
+    }
+    #fps[hidden] { display: none; }
+
     /* Headline: vertically centred, left aligned */
     .hero {
       position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
       margin: 0; font-weight: 300; letter-spacing: -0.02em; line-height: 1.02;
-      font-size: clamp(44px, 5.9vw, 116px); max-width: 15ch;
+      font-size: 90px; max-width: 15ch;   /* fixed per design; does not scale with the viewport */
     }
 
     /* Bottom row: copy + CTA left, publication card right */
@@ -207,6 +215,8 @@
           <a class="btn" href="#">Contact Us</a>
         </div>
       </nav>
+
+      <div id="fps" hidden aria-live="off"></div>
 
       <h1 class="hero">We secure<br />the platforms<br />the world runs on.</h1>
 
