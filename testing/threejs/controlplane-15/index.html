@@ -120,11 +120,11 @@
     .cta .btn .arrow { width: 28px; height: 28px; }
     .cta .btn .arrow svg { width: 14px; height: 14px; }
 
-    /* FPS readout: press F. Sits under the right-hand nav cluster. */
+    /* FPS readout: press F. Sits under the logo, clear of the attributes panel on the right. */
     #fps {
-      position: absolute; right: var(--pad); top: calc(clamp(18px, 2vw, 36px) + 56px + 10px);
+      position: absolute; left: var(--pad); top: calc(clamp(18px, 2vw, 36px) + 56px + 10px);
       font: 300 13px/1 'Aspekta', system-ui, sans-serif; color: #fff; letter-spacing: 0.02em;
-      font-variant-numeric: tabular-nums; text-align: right; pointer-events: none; opacity: 0.9;
+      font-variant-numeric: tabular-nums; text-align: left; pointer-events: none; opacity: 0.9;
     }
     #fps[hidden] { display: none; }
 
