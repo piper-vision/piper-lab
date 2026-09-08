@@ -46,7 +46,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   const panel = document.createElement('div');
   panel.id = 'attr-panel';
   panel.hidden = true;
-  panel.innerHTML = '<h1>Attributes <span>A hide · 1/2/3 presets · Ctrl+Z undo</span></h1>';
+  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · 1/2/3 presets · Ctrl+Z</span></h1>';
   document.body.appendChild(panel);
   // While motion is frozen the scene only re-renders on demand; any edit here is a demand.
   panel.addEventListener('input', () => requestRender());
@@ -158,6 +158,18 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     return b;
   });
   panel.appendChild(presetRow);
+
+  // ---- hide UI (for video capture). Hides the page overlay AND this panel;
+  // U brings the overlay back, A the panel.
+  const uiEl = document.querySelector('.ui');
+  const setUiHidden = (hide) => { if (uiEl) uiEl.hidden = hide; };
+  const hideBtn = document.createElement('button');
+  hideBtn.className = 'export';
+  hideBtn.style.marginTop = '0';
+  hideBtn.style.marginBottom = '8px';
+  hideBtn.textContent = 'Hide UI for recording (U to restore)';
+  hideBtn.addEventListener('click', () => { setUiHidden(true); panel.hidden = true; });
+  panel.appendChild(hideBtn);
 
   // ---- rotation
   {
@@ -430,6 +442,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     }
     if (isTyping(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'a' || e.key === 'A') { e.preventDefault(); panel.hidden = !panel.hidden; return; }
+    if (e.key === 'u' || e.key === 'U') { e.preventDefault(); setUiHidden(!(uiEl && uiEl.hidden)); return; }
     if (e.key === '1' || e.key === '2' || e.key === '3') { e.preventDefault(); applyPreset(+e.key - 1); }
   });
 

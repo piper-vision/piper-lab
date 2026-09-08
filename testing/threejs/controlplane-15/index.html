@@ -64,6 +64,7 @@
        through to the frame so the hover ripple works everywhere. */
     .ui { position: absolute; inset: 0; pointer-events: none; }
     .ui a, .ui button { pointer-events: auto; }
+    .ui[hidden] { display: none; }   /* "Hide UI" in the panel / U key, for clean video capture */
 
     /* Top nav: logo left, centred pill nav, actions right */
     .nav {
@@ -132,7 +133,7 @@
     .hero {
       position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
       margin: 0; font-weight: 300; letter-spacing: -0.02em; line-height: 1.02;
-      font-size: 90px; max-width: 15ch;   /* fixed per design; does not scale with the viewport */
+      font-size: 100px; max-width: 15ch;  /* fixed per design; does not scale with the viewport */
     }
 
     /* Bottom row: copy + CTA left, publication card right */

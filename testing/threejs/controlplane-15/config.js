@@ -141,7 +141,7 @@ window.CONFIG = {
   // maxPixelRatio (adaptive step-down was removed at James's request).
   quality: {
     msaa: 4,             // MSAA samples on the HDR scene target (FXAA covers the rest)
-    maxPixelRatio: 2,    // cap on device pixel ratio (2 = full Retina)
+    maxPixelRatio: 1.25, // cap on device pixel ratio. James measured on his MacBook: 1.25 = 70 fps / 13 ms and still looks good; 2 (full Retina) was too slow
     // Frozen frames (Space / panel Motion) render as stills at higher quality:
     stillSupersample: 2,   // native device pixel ratio x this (2 = 4x the pixels, downscaled = clean bevel lines)
     stillPixelRatio: 4,    // hard cap on the still pixel ratio
