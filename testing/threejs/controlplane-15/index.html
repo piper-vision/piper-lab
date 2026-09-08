@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ControlPlane — We secure the platforms the world runs on</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M16%203%20L28%2010%20L28%2022%20L16%2029%20L4%2022%20L4%2010%20Z'%20fill='none'%20stroke='%235CE5DF'%20stroke-width='2'/%3E%3C/svg%3E" />
+  <script>
+    // lab.piper.vision serves this page at an extensionless URL with no
+    // trailing slash, which makes ./src and ./vendor resolve one level up.
+    // Injecting <base> pins relative URLs (incl. the import map) to this page.
+    (function () {
+      var p = location.pathname;
+      if (!/\.[a-z0-9]+$/i.test(p) && p.charAt(p.length - 1) !== '/') {
+        document.write('<base href="' + p + '/">');
+      }
+    })();
+  </script>
+  <style>
+    @font-face {
+      font-family: 'Aspekta';
+      src: url('./assets/fonts/Aspekta-300.otf') format('opentype');
+      font-weight: 300;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Aspekta';
+      src: url('./assets/fonts/Aspekta-400.otf') format('opentype');
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    :root {
+      --page: #EEEFEE;
+      /* UI buttons (Contact Us + Explore what we do); editable live from the attributes panel */
+      --green: #0F8C4F;          /* button fill */
+      --green-hover: #12A05B;    /* button fill on hover */
+      --btn-text: #ffffff;       /* button text + the arrow badge background */
+      --glass: rgba(0, 30, 28, 0.55);
+      --nav-glass: rgba(0, 0, 0, 0.3);   /* top nav containers: 30% black + 10px blur */
+
+      --frame-inset: 20px;
+      --pad: clamp(24px, 2.5vw, 48px);
+    }
+
+    html, body { margin: 0; height: 100%; background: var(--page); overflow: hidden; }
+    body { font-family: 'Aspekta', system-ui, -apple-system, 'Segoe UI', sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; }
+
+    /* The scene lives in a rounded frame inset from the page edge; it resizes with the window. */
+    #frame {
+      position: fixed;
+      inset: var(--frame-inset);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #003732;
+    }
+    #scene { position: absolute; inset: 0; }
+    #scene canvas { display: block; width: 100% !important; height: 100% !important; }
+
+    /* ---- UI overlay */
+    /* Only interactive controls take the pointer; text and layout boxes let it
+       through to the frame so the hover ripple works everywhere. */
+    .ui { position: absolute; inset: 0; pointer-events: none; }
+    .ui a, .ui button { pointer-events: auto; }
+
+    /* Top nav: logo left, centred pill nav, actions right */
+    .nav {
+      position: absolute; top: clamp(18px, 2vw, 36px); left: var(--pad); right: var(--pad);
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav .logo { display: flex; align-items: center; }
+    .nav .logo img { width: 176px; height: auto; display: block; }
+
+    .nav .menu {
+      position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+      height: 56px; display: flex; align-items: center; gap: clamp(18px, 1.6vw, 30px);
+      padding: 0 clamp(18px, 1.6vw, 28px);
+      background: var(--nav-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-radius: 6px;
+    }
+    .nav .menu a {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-weight: 400; font-size: 14px; letter-spacing: 0; white-space: nowrap;
+      opacity: 0.95; transition: opacity 0.15s;
+    }
+    .nav .menu a:hover { opacity: 1; }
+    .nav .menu a svg { width: 9px; height: 9px; opacity: 0.85; }
+
+    /* Right cluster sits in the same glass container as the menu */
+    .nav .actions {
+      height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 8px;
+      background: var(--nav-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-radius: 6px;
+    }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.3); transition: background 0.15s;
+    }
+    .icon-btn:hover { background: rgba(0, 0, 0, 0.45); }
+    .icon-btn img { display: block; }
+    .icon-btn.search img { width: 13px; height: 13px; }
+    .icon-btn.github img { width: 20px; height: 20px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+      height: 40px; padding: 0 18px; border-radius: 4px; border: 0; cursor: pointer;
+      background: var(--green); color: var(--btn-text); font-weight: 400; font-size: 14px; letter-spacing: 0;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    .btn:hover { background: var(--green-hover); }
+    .btn .arrow {
+      width: 24px; height: 24px; border-radius: 3px; background: var(--btn-text); color: var(--green);
+      display: inline-flex; align-items: center; justify-content: center; margin-right: -6px;
+    }
+    .btn .arrow svg { width: 12px; height: 12px; }
+    /* The bottom CTA keeps the larger size from the design */
+    .cta .btn { height: 55px; padding: 0 22px; border-radius: 4px; font-size: 14px; font-weight: 300; letter-spacing: 0; }
+    .cta .btn .arrow { width: 28px; height: 28px; }
+    .cta .btn .arrow svg { width: 14px; height: 14px; }
+
+    /* Headline: vertically centred, left aligned */
+    .hero {
+      position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
+      margin: 0; font-weight: 300; letter-spacing: -0.02em; line-height: 1.02;
+      font-size: clamp(44px, 5.9vw, 116px); max-width: 15ch;
+    }
+
+    /* Bottom row: copy + CTA left, publication card right */
+    .bottom {
+      position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(24px, 2.6vw, 48px);
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 32px;
+    }
+    .cta { display: flex; align-items: center; gap: clamp(24px, 2.2vw, 44px); }
+    .cta p {
+      margin: 0; font-weight: 300; font-size: 20px; line-height: 1.32;
+      letter-spacing: -0.01em; max-width: 31ch;
+    }
+    .cta .divider { width: 1px; height: 72px; background: rgba(255, 255, 255, 0.28); }
+
+    .pub {
+      width: 321px; box-sizing: border-box;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 14px 14px 14px 18px; border-radius: 12px;
+      background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .pub .tag {
+      display: inline-block; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px;
+      margin-bottom: 12px; opacity: 0.95;
+    }
+    .pub > div:first-child { flex: 1; min-width: 0; }
+    .pub h3 { margin: 0; font-weight: 300; font-size: 16px; line-height: 1.3; letter-spacing: 0; }
+    .pub .cover {
+      width: 104px; height: 104px; border-radius: 8px; background: #fff; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; flex: none;
+    }
+    .pub .cover img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+    /* ---- responsive */
+    @media (max-width: 1180px) {
+      .nav .menu { display: none; }
+    }
+    @media (max-width: 900px) {
+      :root { --frame-inset: 12px; }
+      .nav { height: 48px; }
+      .nav .actions { height: 48px; padding: 0 6px; }
+      .icon-btn { width: 36px; height: 36px; }
+      .btn { height: 36px; padding: 0 14px; }
+      .cta .btn { height: 44px; padding: 0 18px; }
+      .hero { top: 42%; }
+      .bottom { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .cta { flex-wrap: wrap; }
+      .cta .divider { display: none; }
+      .pub { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .pub { display: none; }
+      .hero { max-width: 10ch; }
+    }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js" } }
+  </script>
+  <script src="./config.js"></script>
+  <script src="./presets.js"></script>
+</head>
+<body>
+  <div id="frame">
+    <div id="scene"></div>
+
+    <div class="ui">
+      <nav class="nav">
+        <a class="logo" href="#" aria-label="ControlPlane home"><img src="./assets/logo.svg" alt="ControlPlane" /></a>
+
+        <div class="menu">
+          <a href="#">What We Do <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3.5 5 6.5 8 3.5"/></svg></a>
+          <a href="#">Who We Help <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3.5 5 6.5 8 3.5"/></svg></a>
+          <a href="#">Who We Are <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3.5 5 6.5 8 3.5"/></svg></a>
+          <a href="#">Resources <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3.5 5 6.5 8 3.5"/></svg></a>
+        </div>
+
+        <div class="actions">
+          <button class="icon-btn search" aria-label="Search"><img src="./assets/search.svg" alt="" /></button>
+          <a class="icon-btn github" href="#" aria-label="GitHub"><img src="./assets/github.svg" alt="" /></a>
+          <a class="btn" href="#">Contact Us</a>
+        </div>
+      </nav>
+
+      <h1 class="hero">We secure<br />the platforms<br />the world runs on.</h1>
+
+      <div class="bottom">
+        <div class="cta">
+          <p>Security that moves at platform speed - from threat model to hardened production, without slowing delivery.</p>
+          <span class="divider"></span>
+          <a class="btn" href="#">Explore what we do
+            <span class="arrow"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7.5 2.5 12 7l-4.5 4.5"/></svg></span>
+          </a>
+        </div>
+
+        <a class="pub" href="#">
+          <div>
+            <span class="tag">Publications</span>
+            <h3>Hacking Kubernetes: Threat-Driven Analysis and Defense</h3>
+          </div>
+          <div class="cover"><img src="./assets/hacking-kubernetes.png" alt="Hacking Kubernetes book cover" /></div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">import './src/main.js';</script>
+</body>
+</html>
