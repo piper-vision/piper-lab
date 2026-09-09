@@ -57,7 +57,7 @@ window.PRESETS = [
     "reflections": 1
   },
 
-  // ---- 3: ControlPlane sage / lime - James's tuned JSON (2026-09-09).
+  // ---- 3: ControlPlane sage / lime - James's tuned JSON (2026-09-09, revised: minty lights, cooler fade).
   {
     "rotation": { "x": 0, "y": 0, "z": 0 },
     "motion": { "paused": false },
@@ -65,21 +65,21 @@ window.PRESETS = [
     "hover": { "radius": 0.35, "lift": 0.28, "ease": 7, "follow": 18 },
     "camera": { "distance": 4, "height": -0.6, "lookAtY": -1.5, "fov": 38 },
     "dof": { "enabled": true, "focus": 0.5, "width": 0.08, "feather": 0.35, "near": 1, "far": 1, "clampHighlights": 1.6 },
-    "fade": { "enabled": true, "color": "112014", "opacity": 0.72, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
+    "fade": { "enabled": true, "color": "0c221e", "opacity": 0.72, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
     "buttons": { "fill": "cef79e", "hover": "cef79e", "text": "000000" },
     "wash": { "hex": "a2bfa7", "intensity": 0 },
     "lights": {
       "Amber key":      { "hex": "cef79e", "intensity": 23,   "opacity": 1 },
       "Cyan kicker":    { "hex": "a2bfa7", "intensity": 8.5,  "opacity": 1 },
-      "Lavender pool":  { "hex": "cef79e", "intensity": 10,   "opacity": 0.49 },
+      "Lavender pool":  { "hex": "9cf7d9", "intensity": 10,   "opacity": 0.49 },
       "White overhead": { "hex": "cef79e", "intensity": 7,    "opacity": 1 },
-      "Warm bounce":    { "hex": "cef79e", "intensity": 21.9, "opacity": 1 },
-      "Aqua backdrop":  { "hex": "9fd0a7", "intensity": 6.2,  "opacity": 0.42 },
-      "Warm side band": { "hex": "b5ff61", "intensity": 18.2, "opacity": 1 }
+      "Warm bounce":    { "hex": "9cf7d0", "intensity": 21.4, "opacity": 1 },
+      "Aqua backdrop":  { "hex": "9fd0c4", "intensity": 6.2,  "opacity": 0.29 },
+      "Warm side band": { "hex": "61ff7b", "intensity": 18.2, "opacity": 1 }
     },
     "sun": { "key": { "color": "cef79e", "intensity": 1.2 }, "rim": { "color": "a2bfa7", "intensity": 1 } },
     "background": { "bright": "cef79e", "mid": "5f7f66", "dark": "112014" },
-    "triangles": { "color": "0a140c", "opacity": 0.8, "glintSharpness": 0.2 },
+    "triangles": { "color": "0c1814", "opacity": 0.8, "glintSharpness": 0.2 },
     "reflections": 1
   }
 ];
