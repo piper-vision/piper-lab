@@ -31,43 +31,55 @@ window.PRESETS = [
     "reflections": 1
   },
 
-  // ---- 2: ControlPlane brand palette, green set (primary 4c8055 / 68a4a5 / 012408, secondary a2bfa7 / 1a5974; accent teal 26a8a6 in the gradient glow + key/backdrop lights; CTAs 01844d)
+  // ---- 2: ControlPlane green - James's tuned JSON (2026-09-09).
   {
-    "fade": { "color": "012408", "opacity": 0.73, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
+    "rotation": { "x": 0, "y": 0, "z": 0 },
+    "motion": { "paused": false },
+    "ribbon": { "flowSpeed": 0.56, "waveAmp": 1.1, "waveDwell": 5, "wave2Amp": 0.25, "twistAmp": 0.25 },
+    "hover": { "enabled": true, "radius": 0.35, "lift": 0.28, "ease": 7, "follow": 18 },
+    "camera": { "distance": 4, "height": -0.6, "lookAtY": -1.5, "fov": 38 },
+    "dof": { "enabled": true, "focus": 0.5, "width": 0.08, "feather": 0.35, "near": 1, "far": 1, "clampHighlights": 1.6 },
+    "fade": { "enabled": true, "color": "002918", "opacity": 0.72, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
     "buttons": { "fill": "01844d", "hover": "0a9a5c", "text": "ffffff" },
-    "wash": { "hex": "a2bfa7", "intensity": 0.14 },
+    "wash": { "hex": "a2bfa7", "intensity": 0 },
     "lights": {
-      "Amber key":      { "hex": "26a8a6", "intensity": 13,    "opacity": 1 },
-      "Cyan kicker":    { "hex": "1a5974", "intensity": 12,    "opacity": 1 },
-      "Lavender pool":  { "hex": "a2bfa7", "intensity": 6,     "opacity": 1 },
-      "White overhead": { "hex": "f5f7ff", "intensity": 4,     "opacity": 1 },
-      "Warm bounce":    { "hex": "4c8055", "intensity": 9,     "opacity": 1 },
-      "Aqua backdrop":  { "hex": "26a8a6", "intensity": 2.4,   "opacity": 1 },
-      "Warm side band": { "hex": "a2bfa7", "intensity": 8,     "opacity": 1 }
+      "Amber key":      { "hex": "26a8a6", "intensity": 13,   "opacity": 1 },
+      "Cyan kicker":    { "hex": "1a5974", "intensity": 12,   "opacity": 1 },
+      "Lavender pool":  { "hex": "76bbbc", "intensity": 19.6, "opacity": 1 },
+      "White overhead": { "hex": "b4e4e4", "intensity": 18.5, "opacity": 1 },
+      "Warm bounce":    { "hex": "a2bfa7", "intensity": 24,   "opacity": 1 },
+      "Aqua backdrop":  { "hex": "26a8a6", "intensity": 9.4,  "opacity": 1 },
+      "Warm side band": { "hex": "76bbbc", "intensity": 12.8, "opacity": 1 }
     },
-    "background": { "bright": "26a8a6", "mid": "1a5974", "dark": "012408" },
-    "triangles": { "color": "011a06", "opacity": 0.8 },
-    "sun": { "key": { "color": "a2bfa7", "intensity": 0.3 }, "rim": { "color": "26a8a6", "intensity": 0.25 } },
+    "sun": { "key": { "color": "a1f7af", "intensity": 2.56 }, "rim": { "color": "a2bfa7", "intensity": 2.16 } },
+    "background": { "bright": "a2bfa7", "mid": "76bbbc", "dark": "012408" },
+    "triangles": { "color": "011a06", "opacity": 0.8, "glintSharpness": 0.2 },
     "reflections": 1
   },
 
-  // ---- 3: ControlPlane brand palette, bright-green set (primary 49ad5a / 1e4d26 / 001e06, secondary a2bfa7 / green ~00804a / yellow ffda46)
+  // ---- 3: ControlPlane sage / lime - James's tuned JSON (2026-09-09).
   {
-    "fade": { "color": "001e06", "opacity": 0.73, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
-    "buttons": { "fill": "49ad5a", "hover": "5abf6b", "text": "ffffff" },
-    "wash": { "hex": "a2bfa7", "intensity": 0.14 },
+    "rotation": { "x": 0, "y": 0, "z": 0 },
+    "motion": { "paused": false },
+    "ribbon": { "flowSpeed": 0.56, "waveAmp": 1.1, "waveDwell": 5, "wave2Amp": 0.25, "twistAmp": 0.25 },
+    "hover": { "enabled": true, "radius": 0.35, "lift": 0.28, "ease": 7, "follow": 18 },
+    "camera": { "distance": 4, "height": -0.6, "lookAtY": -1.5, "fov": 38 },
+    "dof": { "enabled": true, "focus": 0.5, "width": 0.08, "feather": 0.35, "near": 1, "far": 1, "clampHighlights": 1.6 },
+    "fade": { "enabled": true, "color": "112014", "opacity": 0.72, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
+    "buttons": { "fill": "cef79e", "hover": "cef79e", "text": "000000" },
+    "wash": { "hex": "a2bfa7", "intensity": 0 },
     "lights": {
-      "Amber key":      { "hex": "ffda46", "intensity": 10,    "opacity": 1 },
-      "Cyan kicker":    { "hex": "00804a", "intensity": 12,    "opacity": 1 },
-      "Lavender pool":  { "hex": "a2bfa7", "intensity": 6,     "opacity": 1 },
-      "White overhead": { "hex": "f5f7ff", "intensity": 4,     "opacity": 1 },
-      "Warm bounce":    { "hex": "1e4d26", "intensity": 9,     "opacity": 1 },
-      "Aqua backdrop":  { "hex": "49ad5a", "intensity": 2.2,   "opacity": 1 },
-      "Warm side band": { "hex": "ffda46", "intensity": 6,     "opacity": 1 }
+      "Amber key":      { "hex": "cef79e", "intensity": 23,   "opacity": 1 },
+      "Cyan kicker":    { "hex": "a2bfa7", "intensity": 8.5,  "opacity": 1 },
+      "Lavender pool":  { "hex": "cef79e", "intensity": 10,   "opacity": 0.49 },
+      "White overhead": { "hex": "cef79e", "intensity": 7,    "opacity": 1 },
+      "Warm bounce":    { "hex": "cef79e", "intensity": 21.9, "opacity": 1 },
+      "Aqua backdrop":  { "hex": "9fd0a7", "intensity": 6.2,  "opacity": 0.42 },
+      "Warm side band": { "hex": "b5ff61", "intensity": 18.2, "opacity": 1 }
     },
-    "background": { "bright": "49ad5a", "mid": "1e4d26", "dark": "001e06" },
-    "triangles": { "color": "00150a", "opacity": 0.8 },
-    "sun": { "key": { "color": "ffda46", "intensity": 0.3 }, "rim": { "color": "a2bfa7", "intensity": 0.25 } },
+    "sun": { "key": { "color": "cef79e", "intensity": 1.2 }, "rim": { "color": "a2bfa7", "intensity": 1 } },
+    "background": { "bright": "cef79e", "mid": "5f7f66", "dark": "112014" },
+    "triangles": { "color": "0a140c", "opacity": 0.8, "glintSharpness": 0.2 },
     "reflections": 1
   }
 ];
@@ -112,21 +124,22 @@ window.PRESET_2_PREVIOUS = {
     "reflections": 1
   };
 
-// Previous preset 3 (warm amber / graphite placeholder), kept so it can be restored.
+// Previous preset 3 (bright-green brand set 49ad5a / 1e4d26 / 001e06 + yellow), kept so it can be restored.
 window.PRESET_3_PREVIOUS = {
-    "fade": { "color": "2A1A0A", "opacity": 0.73, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
-    "buttons": { "fill": "E0742A", "hover": "F08A3E", "text": "ffffff" },
-    "wash": { "hex": "ffe6c8", "intensity": 0.14 },
+    "fade": { "color": "001e06", "opacity": 0.73, "size": 88, "x": 5, "y": 55, "blur": 12.5 },
+    "buttons": { "fill": "49ad5a", "hover": "5abf6b", "text": "ffffff" },
+    "wash": { "hex": "a2bfa7", "intensity": 0.14 },
     "lights": {
-      "Amber key":      { "hex": "ffb45f", "intensity": 16,    "opacity": 1 },
-      "Cyan kicker":    { "hex": "ffd28a", "intensity": 8,     "opacity": 1 },
-      "Lavender pool":  { "hex": "ffb3a0", "intensity": 6,     "opacity": 1 },
-      "White overhead": { "hex": "fff4e6", "intensity": 4,     "opacity": 1 },
-      "Warm bounce":    { "hex": "ff9a4a", "intensity": 12,    "opacity": 1 },
-      "Aqua backdrop":  { "hex": "ffc98c", "intensity": 2,     "opacity": 1 },
-      "Warm side band": { "hex": "ffd9a8", "intensity": 12,    "opacity": 1 }
+      "Amber key":      { "hex": "ffda46", "intensity": 10,    "opacity": 1 },
+      "Cyan kicker":    { "hex": "00804a", "intensity": 12,    "opacity": 1 },
+      "Lavender pool":  { "hex": "a2bfa7", "intensity": 6,     "opacity": 1 },
+      "White overhead": { "hex": "f5f7ff", "intensity": 4,     "opacity": 1 },
+      "Warm bounce":    { "hex": "1e4d26", "intensity": 9,     "opacity": 1 },
+      "Aqua backdrop":  { "hex": "49ad5a", "intensity": 2.2,   "opacity": 1 },
+      "Warm side band": { "hex": "ffda46", "intensity": 6,     "opacity": 1 }
     },
-    "background": { "bright": "f2b56b", "mid": "7a4a1e", "dark": "1c1410" },
-    "triangles": { "color": "1a120c", "opacity": 0.8 },
+    "background": { "bright": "49ad5a", "mid": "1e4d26", "dark": "001e06" },
+    "triangles": { "color": "00150a", "opacity": 0.8 },
+    "sun": { "key": { "color": "ffda46", "intensity": 0.3 }, "rim": { "color": "a2bfa7", "intensity": 0.25 } },
     "reflections": 1
   };
