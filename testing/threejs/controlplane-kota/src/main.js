@@ -956,6 +956,11 @@ function requestRender() { needsRender = true; }
 const clock = new THREE.Clock();
 let flowDist = 0, lastTick = 0;   // accumulated ribbon travel; integrating speed lets the panel change it seamlessly
 let sceneTime = 0;                // animation clock; stops advancing while C.motion.paused (everything keys off it)
+// Loop mode state: t counts seconds since the loop started (never wraps; the
+// maths is periodic), shapeStart / flowStart are the clocks at that moment.
+const loop = { active: false, t: 0, shapeStart: 0, flowStart: 0 };
+function startLoop() { loop.active = true; loop.t = 0; loop.shapeStart = sceneTime; loop.flowStart = flowDist; }
+function stopLoop() { loop.active = false; }   // clocks carry on from where the loop left them, no jump
 function tick() {
   const now = clock.getElapsedTime();
   const dt = Math.min(now - lastTick, 0.1);
@@ -968,8 +973,18 @@ function tick() {
   }
 
   if (!paused) {
-    sceneTime += dt;
-    flowDist += dt * R.flowSpeed;
+    if (loop.active) {
+      // Exact loop (see config.loop): the flow advances a whole number of
+      // triangle lengths per period; the shape clock swings about its start.
+      loop.t += dt;
+      const P = C.loop.period;
+      const n = Math.max(1, Math.round(R.flowSpeed * P / R.segment));
+      flowDist = loop.flowStart + (n * R.segment / P) * loop.t;
+      sceneTime = loop.shapeStart + (C.loop.swing * P / (2 * Math.PI)) * Math.sin(2 * Math.PI * loop.t / P);
+    } else {
+      sceneTime += dt;
+      flowDist += dt * R.flowSpeed;
+    }
     needsRender = true;
   }
   // A hover ripple that is still easing needs frames even while frozen.
@@ -997,8 +1012,10 @@ function renderFrame(target = null) {
 // is not touching the camera.
 const _wp = new THREE.Vector3();
 const sceneControl = {
-  get time() { return sceneTime; }, set time(v) { sceneTime = v; },
-  get flow() { return flowDist; }, set flow(v) { flowDist = v; },
+  // Setting a clock (undo / randomize) also re-anchors an active loop on it.
+  get time() { return sceneTime; }, set time(v) { sceneTime = v; if (loop.active) { loop.shapeStart = v; loop.t = 0; loop.flowStart = flowDist; } },
+  get flow() { return flowDist; }, set flow(v) { flowDist = v; if (loop.active) { loop.flowStart = v; loop.t = 0; loop.shapeStart = sceneTime; } },
+  loop, startLoop, stopLoop,
   renderFrame,
   setEvalRatio(r) { evalRatio = r; applySize(); },
   // Sub-sampled luminance (0..1) of the final LDR frame; row 0 is the bottom.
@@ -1135,6 +1152,7 @@ const panelApi = initPanel({
   setPixelRatio: (r) => { livePixelRatio = r; applySize(); },
 });
 window.glassDebug.panel = panelApi;   // panel.applySettings(json) / applyPreset(i) / exportSettings()
+window.glassDebug.sceneControl = sceneControl;   // clocks, loop, renderFrame, exportPNG
 
 // The site loads with preset 1 (presets.js) applied over the config.js
 // defaults, before the first frame is rendered so there is no flash.

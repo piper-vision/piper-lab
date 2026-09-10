@@ -46,7 +46,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   const panel = document.createElement('div');
   panel.id = 'attr-panel';
   panel.hidden = true;
-  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · H hover · R random · 1/2/3 · Ctrl+Z</span></h1>';
+  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · H hover · R random · L loop · Ctrl+Z</span></h1>';
   document.body.appendChild(panel);
   // While motion is frozen the scene only re-renders on demand; any edit here is a demand.
   panel.addEventListener('input', () => requestRender());
@@ -147,17 +147,39 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     requestAnimationFrame(() => { bakeQueued = false; envStudio.rebuild(); requestRender(); });
   };
 
-  // ---- presets (keys 1/2/3 + buttons)
-  const presetRow = document.createElement('div');
-  presetRow.className = 'presets';
-  const presetButtons = [0, 1, 2].map((i) => {
-    const b = document.createElement('button');
-    b.textContent = `Preset ${i + 1}`;
-    b.addEventListener('click', () => applyPreset(i));
-    presetRow.appendChild(b);
-    return b;
-  });
-  panel.appendChild(presetRow);
+  // ---- 15 second loop (L). Toggles the exact-period mode in main.js (see
+  // config.loop); the label shows where in the loop the scene is, so a manual
+  // recording can be trimmed to whole loops.
+  const loopBtn = document.createElement('button');
+  loopBtn.className = 'export';
+  loopBtn.style.marginTop = '0';
+  loopBtn.style.marginBottom = '6px';
+  const loopLabel = () => `${C.loop ? C.loop.period : 15} Second Loop`;
+  loopBtn.textContent = loopLabel();
+  let loopTimer = 0;
+  const setLoop = (on) => {
+    if (!sceneControl || !sceneControl.startLoop) return;
+    // Recording aid: the on-scene Randomize / Export PNG buttons go away while
+    // looping and come back when it stops (U also restores them).
+    if (toolsEl) toolsEl.hidden = on;
+    if (on) {
+      sceneControl.startLoop();
+      loopBtn.classList.add('active');
+      clearInterval(loopTimer);
+      loopTimer = setInterval(() => {
+        const P = C.loop.period, t = sceneControl.loop.t;
+        loopBtn.textContent = `${loopLabel()} · ${(t % P).toFixed(1)} s · loop ${Math.floor(t / P) + 1}`;
+      }, 100);
+    } else {
+      sceneControl.stopLoop();
+      loopBtn.classList.remove('active');
+      clearInterval(loopTimer);
+      loopBtn.textContent = loopLabel();
+    }
+    requestRender();
+  };
+  loopBtn.addEventListener('click', () => setLoop(!sceneControl.loop.active));
+  panel.appendChild(loopBtn);
 
   // ---- randomize scene (R). Freezes motion, drops the legibility fade and
   // picks the best-composed of several random camera / band / light / phase
@@ -586,6 +608,8 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     return { total, terms, mean, std, clipPct, centroid: [cx, cy], density: [dBottom, dMid, dTop], clearance };
   }
 
+  // Presets: only the approved look remains (presets.js); applied on load by
+  // main.js. Kept as a function so a look can still be re-applied from the console.
   let activePreset = -1;
   function applyPreset(i) {
     const list = window.PRESETS || [];
@@ -593,7 +617,6 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     record('preset:' + i + ':' + performance.now());   // never coalesced: each preset switch is its own undo step
     applySettings(list[i]);
     activePreset = i;
-    presetButtons.forEach((b, k) => b.classList.toggle('active', k === i));
   }
 
   const exportBtn = document.createElement('button');
@@ -634,11 +657,11 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
       return;
     }
     if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); return; }
-    if (e.key === '1' || e.key === '2' || e.key === '3') { e.preventDefault(); applyPreset(+e.key - 1); }
+    if (e.key === 'l' || e.key === 'L') { e.preventDefault(); setLoop(!sceneControl.loop.active); return; }
   });
 
   return {
-    panel, exportSettings, applySettings, applyPreset, undo, redo, randomize,
+    panel, exportSettings, applySettings, applyPreset, undo, redo, randomize, setLoop,
     get lastRoll() { return lastRoll; },
     clearHistory() { history.length = 0; future.length = 0; lastRecordPath = null; },
     get activePreset() { return activePreset; },

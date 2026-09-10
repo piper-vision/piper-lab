@@ -88,6 +88,17 @@ window.CONFIG = {
 
   motion: { paused: false },
 
+  // "15 Second Loop" (panel button / L): the scene becomes exactly periodic so
+  // the frame at `period` seconds matches the frame the loop started on.
+  //  - flow: the triangle travel speed snaps to a whole number of triangle
+  //    lengths per period (0.56 -> 0.55 units/s at 15 s), so the strip lands
+  //    back on itself;
+  //  - shape and background: their slow drifts are far too slow to complete a
+  //    cycle in 15 s, so instead their clock swings sinusoidally around the
+  //    start time (forward, then back, seamlessly). `swing` scales how far it
+  //    wanders: 1 = the same speed as normal at the loop point.
+  loop: { period: 15, swing: 1.0 },
+
   // Hover ripple: the triangle under the cursor and its neighbours lift along
   // the band's normal with a gaussian falloff, easing in and out so the wave
   // trails the pointer.
