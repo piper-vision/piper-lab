@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { initPanel } from './panel.js';
+import { initDiag } from './diag.js';
 
 const C = window.CONFIG;
 
@@ -572,6 +573,14 @@ const post = (() => {
   // frame, half and quarter resolution, blended in by vertical screen position.
   const dofA = mk(), dofB = mk(), dofC = mk(), dofD = mk();
   const ldr = new THREE.WebGLRenderTarget(size.x, size.y); // tone-mapped sRGB frame, input to FXAA
+  // Supersampling: when `scale` > 1 the whole chain renders at canvas size x
+  // scale, FXAA writes into `aa`, and a box-filter pass downsamples that onto
+  // the canvas (or an export target). The browser's own canvas scaling is
+  // bilinear, which at 3:1 skips samples and leaves the bevel lines jagged;
+  // this pass averages every source texel instead.
+  let scale = 1;
+  const base = new THREE.Vector2();
+  const aa = new THREE.WebGLRenderTarget(size.x, size.y);
 
   const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const quadScene = new THREE.Scene();
@@ -725,10 +734,35 @@ const post = (() => {
     depthTest: false, depthWrite: false, toneMapped: false,
   });
 
+  // Box-filter downsample: `uTaps` x `uTaps` samples spread over one output
+  // pixel's footprint (`uRatio` source texels), with linear filtering between.
+  const downMat = new THREE.ShaderMaterial({
+    uniforms: { tSrc: { value: null }, uTexel: { value: new THREE.Vector2() }, uRatio: { value: 1 }, uTaps: { value: 1 } },
+    vertexShader: vs,
+    fragmentShader: /* glsl */`
+      varying vec2 vUv; uniform sampler2D tSrc; uniform vec2 uTexel; uniform float uRatio; uniform float uTaps;
+      void main() {
+        vec3 sum = vec3(0.0); float n = 0.0;
+        for (int i = 0; i < 4; i++) {
+          if (float(i) >= uTaps) break;
+          for (int j = 0; j < 4; j++) {
+            if (float(j) >= uTaps) break;
+            vec2 off = ((vec2(float(i), float(j)) + 0.5) / uTaps - 0.5) * uRatio * uTexel;
+            sum += texture2D(tSrc, vUv + off).rgb; n += 1.0;
+          }
+        }
+        gl_FragColor = vec4(sum / n, 1.0);
+      }
+    `,
+    depthTest: false, depthWrite: false, toneMapped: false,
+  });
+
   function resize() {
-    renderer.getDrawingBufferSize(size);
+    renderer.getDrawingBufferSize(base);
+    size.set(Math.max(1, Math.floor(base.x * scale)), Math.max(1, Math.floor(base.y * scale)));
     hdr.setSize(size.x, size.y);
     ldr.setSize(size.x, size.y);
+    aa.setSize(size.x, size.y);
     fxaaMat.uniforms.uTexel.value.set(1 / size.x, 1 / size.y);
     const hw = Math.max(1, Math.floor(size.x / 2)), hh = Math.max(1, Math.floor(size.y / 2));
     pingA.setSize(hw, hh);
@@ -759,7 +793,9 @@ const post = (() => {
     renderer.render(quadScene, quadCam);
   }
 
-  function render() {
+  // Draw the frame to the canvas (target = null) or into a render target of
+  // any size (exports); the final pass downsamples when the sizes differ.
+  function render(target = null) {
     renderer.setRenderTarget(hdr);
     renderer.render(scene, camera);
 
@@ -801,10 +837,22 @@ const post = (() => {
     blit(compositeMat, ldr);
 
     fxaaMat.uniforms.tSrc.value = ldr.texture;
-    blit(fxaaMat, null);
+    if (scale === 1 && !target) { blit(fxaaMat, null); return; }
+    blit(fxaaMat, aa);
+    const outW = target ? target.width : base.x;
+    const ratio = size.x / outW;
+    downMat.uniforms.tSrc.value = aa.texture;
+    downMat.uniforms.uTexel.value.set(1 / size.x, 1 / size.y);
+    downMat.uniforms.uRatio.value = ratio;
+    downMat.uniforms.uTaps.value = ratio <= 1.01 ? 1 : Math.min(4, Math.ceil(ratio) + 1);
+    blit(downMat, target);
   }
 
-  return { render, resize, ldr };
+  return {
+    render, resize, ldr,
+    get scale() { return scale; },
+    setScale(s) { scale = Math.max(1, s || 1); resize(); },
+  };
 })();
 
 
@@ -882,13 +930,25 @@ function stillPixelRatio() {
     Math.sqrt(Q.stillMaxPixels / cssPixels));
 }
 
+let evalRatio = null;   // temporary override while the randomizer renders low-res candidates
+// Live: the canvas is drawn at livePixelRatio, no supersampling. Still: the
+// canvas sits at the device ratio and the post chain renders at the still
+// ratio, box-filtered down onto it (see post.setScale), so a 3x still really
+// averages 9 samples per device pixel instead of the browser's bilinear pick.
 function applySize() {
-  pixelRatio = stillMode ? stillPixelRatio() : livePixelRatio;
+  let canvasRatio, internal = 1;
+  if (evalRatio != null) canvasRatio = evalRatio;
+  else if (stillMode) {
+    const s = stillPixelRatio();
+    canvasRatio = Math.min(window.devicePixelRatio, s);
+    internal = s / canvasRatio;
+  } else canvasRatio = livePixelRatio;
+  pixelRatio = canvasRatio * internal;
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(pixelRatio);
+  renderer.setPixelRatio(canvasRatio);
   renderer.setSize(container.clientWidth, container.clientHeight);
-  post.resize();
+  post.setScale(internal);   // also resizes every target
   needsRender = true;
 }
 function requestRender() { needsRender = true; }
@@ -897,6 +957,11 @@ function requestRender() { needsRender = true; }
 const clock = new THREE.Clock();
 let flowDist = 0, lastTick = 0;   // accumulated ribbon travel; integrating speed lets the panel change it seamlessly
 let sceneTime = 0;                // animation clock; stops advancing while C.motion.paused (everything keys off it)
+// Loop mode state: t counts seconds since the loop started (never wraps; the
+// maths is periodic), shapeStart / flowStart are the clocks at that moment.
+const loop = { active: false, t: 0, shapeStart: 0, flowStart: 0 };
+function startLoop() { loop.active = true; loop.t = 0; loop.shapeStart = sceneTime; loop.flowStart = flowDist; }
+function stopLoop() { loop.active = false; }   // clocks carry on from where the loop left them, no jump
 function tick() {
   const now = clock.getElapsedTime();
   const dt = Math.min(now - lastTick, 0.1);
@@ -909,8 +974,18 @@ function tick() {
   }
 
   if (!paused) {
-    sceneTime += dt;
-    flowDist += dt * R.flowSpeed;
+    if (loop.active) {
+      // Exact loop (see config.loop): the flow advances a whole number of
+      // triangle lengths per period; the shape clock swings about its start.
+      loop.t += dt;
+      const P = C.loop.period;
+      const n = Math.max(1, Math.round(R.flowSpeed * P / R.segment));
+      flowDist = loop.flowStart + (n * R.segment / P) * loop.t;
+      sceneTime = loop.shapeStart + (C.loop.swing * P / (2 * Math.PI)) * Math.sin(2 * Math.PI * loop.t / P);
+    } else {
+      sceneTime += dt;
+      flowDist += dt * R.flowSpeed;
+    }
     needsRender = true;
   }
   // A hover ripple that is still easing needs frames even while frozen.
@@ -919,39 +994,124 @@ function tick() {
 
   fpsTick(now);
 
-  if (needsRender) {
-    const t = sceneTime;
-    bgUniforms.uTime.value = t;
-    updateBreakaway(t);
-    for (const rb of ribbons) updateRibbon(rb, t, flowDist);
-    post.render();
-    needsRender = false;
-  }
+  if (needsRender) renderFrame();
   requestAnimationFrame(tick);
 }
+// Pose the band for the current clock and draw one frame (also used by the
+// randomizer to render candidates synchronously).
+function renderFrame(target = null) {
+  renderer.info.reset();   // per-frame draw call / triangle totals for the diagnostics overlay
+  const t = sceneTime;
+  bgUniforms.uTime.value = t;
+  updateBreakaway(t);
+  for (const rb of ribbons) updateRibbon(rb, t, flowDist);
+  post.render(target);
+  needsRender = false;
+}
+
+// Hooks for the randomizer (panel.js): jump the animation clock, render a
+// candidate at a low resolution, read its luminance back and check the band
+// is not touching the camera.
+const _wp = new THREE.Vector3();
+const sceneControl = {
+  // Setting a clock (undo / randomize) also re-anchors an active loop on it.
+  get time() { return sceneTime; }, set time(v) { sceneTime = v; if (loop.active) { loop.shapeStart = v; loop.t = 0; loop.flowStart = flowDist; } },
+  get flow() { return flowDist; }, set flow(v) { flowDist = v; if (loop.active) { loop.flowStart = v; loop.t = 0; loop.shapeStart = sceneTime; } },
+  loop, startLoop, stopLoop,
+  renderFrame,
+  setEvalRatio(r) { evalRatio = r; applySize(); },
+  // Sub-sampled luminance (0..1) of the final LDR frame; row 0 is the bottom.
+  sampleLuma(step = 4) {
+    const t = post.ldr; const w = t.width, h = t.height;
+    const buf = new Uint8Array(w * h * 4);
+    renderer.readRenderTargetPixels(t, 0, 0, w, h, buf);
+    const sw = Math.floor(w / step), sh = Math.floor(h / step);
+    const lum = new Float32Array(sw * sh);
+    for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+      const i = (y * step * w + x * step) * 4;
+      lum[y * sw + x] = (0.2126 * buf[i] + 0.7152 * buf[i + 1] + 0.0722 * buf[i + 2]) / 255;
+    }
+    return { w: sw, h: sh, lum };
+  },
+  // Export the current scene (canvas only, no page UI) as a PNG at `scale` x
+  // the frame's css size. Rendered at the still ratio (at least `scale`) and
+  // downsampled, so bevel lines stay clean. Returns the output size.
+  exportPNG(scale = 2, filename) {
+    const cssW = container.clientWidth, cssH = container.clientHeight;
+    const outW = Math.round(cssW * scale), outH = Math.round(cssH * scale);
+    // Render as large as the budget allows (at least the output size, up to
+    // 2x it) and let the post chain box-filter down into the export target.
+    const renderRatio = Math.max(scale, Math.min(scale * 2, Math.sqrt(Q.stillMaxPixels / (cssW * cssH))));
+    renderer.setPixelRatio(renderRatio);
+    renderer.setSize(cssW, cssH);
+    post.setScale(1);
+    const out = new THREE.WebGLRenderTarget(outW, outH);
+    renderFrame(out);
+    const buf = new Uint8Array(outW * outH * 4);
+    renderer.readRenderTargetPixels(out, 0, 0, outW, outH, buf);
+    out.dispose();
+    applySize();   // back to the live / still setup
+    // GL rows run bottom-up; flip into an ImageData.
+    const img = new ImageData(outW, outH);
+    const row = outW * 4;
+    for (let y = 0; y < outH; y++) img.data.set(buf.subarray((outH - 1 - y) * row, (outH - y) * row), y * row);
+    for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+    const cv = document.createElement('canvas');
+    cv.width = outW; cv.height = outH;
+    cv.getContext('2d').putImageData(img, 0, 0);
+    const name = filename || ('controlplane-scene-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.png');
+    cv.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }, 'image/png');
+    return { width: outW, height: outH, renderedAt: [Math.round(cssW * renderRatio), Math.round(cssH * renderRatio)], name };
+  },
+  // Smallest distance from the camera to any lattice point of the posed band.
+  clearance() {
+    let best = Infinity;
+    for (const rb of ribbons) {
+      rb.group.updateMatrixWorld(true);
+      for (const col of rb.grid) for (const p of col) {
+        const d = _wp.copy(p).applyMatrix4(rb.group.matrixWorld).distanceTo(camera.position);
+        if (d < best) best = d;
+      }
+    }
+    return best;
+  },
+};
 let frameDt = 1 / 60;   // last frame's delta, used by the hover ripple easing
 
-// ---------------------------------------------------------------- fps readout (F)
-// Counts every animation frame (rendered or not while frozen) and refreshes
-// the readout twice a second. Hidden until F is pressed.
-const fpsEl = document.getElementById('fps');
-let fpsFrames = 0, fpsWindowStart = 0;
+// ---------------------------------------------------------------- diagnostics (D / ?diag)
+// Frame timing plus machine / browser / WebGL facts, with a copy-to-clipboard
+// report. renderer.info is reset once per frame (see renderFrame) so the draw
+// call and triangle counts cover the whole post chain.
+renderer.info.autoReset = false;
+const diag = initDiag({
+  renderer, container,
+  getState: () => ({
+    frozen: stillMode, loop: loop.active,
+    canvasRatio: renderer.getPixelRatio(), renderRatio: pixelRatio, postScale: post.scale,
+    livePixelRatio, maxPixelRatio: Q.maxPixelRatio, stillRatio: stillPixelRatio(),
+    msaa: Q.msaa, bloomPasses: C.bloom.passes, dof: C.dof.enabled,
+    rows: R.rows, perRow: ribbons[0] ? ribbons[0].rows[0].count : 0,
+  }),
+});
+let noteAt = 0;
 function fpsTick(now) {
-  fpsFrames++;
-  if (now - fpsWindowStart < 0.5) return;
-  const fps = fpsFrames / (now - fpsWindowStart);
-  fpsFrames = 0; fpsWindowStart = now;
-  if (fpsEl && !fpsEl.hidden) {
-    fpsEl.textContent = fps.toFixed(0) + ' fps · ' + (1000 / fps).toFixed(1) + ' ms · ' + pixelRatio.toFixed(2) + 'x';
+  diag.frame(frameDt);
+  diag.tick(now);
+  // The panel's Render section shows what is actually being drawn right now.
+  if (now - noteAt < 0.5) return;
+  noteAt = now;
+  const note = document.getElementById('attr-ratio-note');
+  if (note && !note.closest('#attr-panel')?.hidden) {
+    note.textContent = (stillMode ? 'frozen: rendering at ' : 'live: rendering at ') + pixelRatio.toFixed(2) + 'x'
+      + ' · still quality ' + stillPixelRatio().toFixed(2) + 'x · device ' + window.devicePixelRatio.toFixed(2) + 'x · D for diagnostics';
   }
 }
-window.addEventListener('keydown', (e) => {
-  if (e.key !== 'f' && e.key !== 'F') return;
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const t = e.target;
-  if (t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !['range', 'color', 'checkbox', 'button'].includes(t.type)))) return;
-  if (fpsEl) { fpsEl.hidden = !fpsEl.hidden; if (!fpsEl.hidden) fpsEl.textContent = '… fps'; }
-});
 // (the render loop is started at the bottom of the file, after the default preset is applied)
 
 window.addEventListener('resize', applySize);
@@ -989,11 +1149,14 @@ const panelApi = initPanel({
   camera,
   applyCamera,
   sunLights,
+  sceneControl,
   requestRender,
   getPixelRatio: () => livePixelRatio,
   setPixelRatio: (r) => { livePixelRatio = r; applySize(); },
 });
 window.glassDebug.panel = panelApi;   // panel.applySettings(json) / applyPreset(i) / exportSettings()
+window.glassDebug.sceneControl = sceneControl;   // clocks, loop, renderFrame, exportPNG
+window.glassDebug.diag = diag;                   // diag.reportText() / diag.setVisible(true)
 
 // The site loads with preset 1 (presets.js) applied over the config.js
 // defaults, before the first frame is rendered so there is no flash.

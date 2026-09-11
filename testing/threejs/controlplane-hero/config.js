@@ -88,6 +88,17 @@ window.CONFIG = {
 
   motion: { paused: false },
 
+  // "15 Second Loop" (panel button / L): the scene becomes exactly periodic so
+  // the frame at `period` seconds matches the frame the loop started on.
+  //  - flow: the triangle travel speed snaps to a whole number of triangle
+  //    lengths per period (0.56 -> 0.55 units/s at 15 s), so the strip lands
+  //    back on itself;
+  //  - shape and background: their slow drifts are far too slow to complete a
+  //    cycle in 15 s, so instead their clock swings sinusoidally around the
+  //    start time (forward, then back, seamlessly). `swing` scales how far it
+  //    wanders: 1 = the same speed as normal at the loop point.
+  loop: { period: 15, swing: 1.0 },
+
   // Hover ripple: the triangle under the cursor and its neighbours lift along
   // the band's normal with a gaussian falloff, easing in and out so the wave
   // trails the pointer.
@@ -135,6 +146,34 @@ window.CONFIG = {
   },
 
   camera: { fov: 38, distance: 4.0, height: -0.6, lookAtY: -1.5 }, // height = camera y (band sits around y -2.2); lookAtY < 0 pitches the view down onto the band
+
+  // "Randomize scene" (panel button / R). Each press draws `candidates` random
+  // scenes inside these ranges, renders each at a low resolution, scores the
+  // frame on composition, and keeps the best. Motion is frozen and the
+  // legibility fade switched off for the result. Lights are scaled relative to
+  // the look that was active before the first roll (so rolls never drift).
+  randomize: {
+    candidates: 12,
+    evalPixelRatio: 0.35,   // render scale for the candidate renders (the winner is re-rendered at still quality)
+    camera:   { distance: [2.5, 7], height: [-0.8, 2.0], lookAtY: [-3, 0.5], fov: [28, 55] },
+    rotation: { x: [-10, 10], y: [-25, 25], z: [-8, 8] },   // degrees, added to the band's resting orientation
+    ribbon:   { waveAmp: [0.6, 1.6], twistAmp: [0.1, 0.6] },
+    lightScale: [0.5, 1.8],   // env light intensity multiplier range
+    sunScale:   [0.4, 2.0],   // directional light multiplier range
+    phase: { time: [0, 600], flow: [0, 60] },   // animation clock / travel distance to jump to
+    minClearance: 0.7,        // reject candidates whose band comes closer than this to the camera (world units)
+    // Scoring weights (each term is roughly 0..1 before weighting). Tune to taste.
+    weights: {
+      clipping: 3.0,   // penalty per % of pure-white pixels above 1%
+      exposure: 2.0,   // penalty for mean brightness outside a comfortable range
+      contrast: 1.5,   // reward for a healthy spread between dark body and sheen
+      thirds:   2.5,   // penalty for the highlight sitting far from a rule-of-thirds intersection
+      edge:     2.0,   // penalty for the highlight hugging the frame edge
+      balance:  1.0,   // penalty for all the light mass on one side
+      horizon:  1.5,   // reward when the top of the frame dissolves (band not filling the whole view)
+      foreground: 1.5, // reward for near triangles at a good size (not a wall, not gravel)
+    },
+  },
   exposure: 1.05,
 
   // Performance. Render resolution is fixed: the device pixel ratio capped at
@@ -143,8 +182,8 @@ window.CONFIG = {
     msaa: 4,             // MSAA samples on the HDR scene target (FXAA covers the rest)
     maxPixelRatio: 1.25, // cap on device pixel ratio. James measured on his MacBook: 1.25 = 70 fps / 13 ms and still looks good; 2 (full Retina) was too slow
     // Frozen frames (Space / panel Motion) render as stills at higher quality:
-    stillSupersample: 2,   // native device pixel ratio x this (2 = 4x the pixels, downscaled = clean bevel lines)
-    stillPixelRatio: 4,    // hard cap on the still pixel ratio
-    stillMaxPixels: 9e6,   // cap on rendered pixels for a still (GPU memory guard: ~9 MP is a few hundred MB of targets)
+    stillSupersample: 3,   // native device pixel ratio x this, so a still always reaches the cap below (was 2; James saw jaggies on randomizer stills)
+    stillPixelRatio: 3,    // still pixel ratio (3x = 9x the pixels of 1x, downscaled = clean bevel lines)
+    stillMaxPixels: 24e6,  // cap on rendered pixels for a still (GPU memory guard; 3x on a full-screen MacBook is ~17 MP, so 3x holds up to ~2000x1330 css px)
   },
 };

@@ -54,7 +54,7 @@
       inset: var(--frame-inset);
       border-radius: 10px;
       overflow: hidden;
-      background: #003732;
+      background: #141529;   /* shown until the first WebGL frame; matches the approved preset's triangle colour */
     }
     #scene { position: absolute; inset: 0; }
     #scene canvas { display: block; width: 100% !important; height: 100% !important; }
@@ -121,13 +121,24 @@
     .cta .btn .arrow { width: 28px; height: 28px; }
     .cta .btn .arrow svg { width: 14px; height: 14px; }
 
-    /* FPS readout: press F. Sits under the logo, clear of the attributes panel on the right. */
-    #fps {
+    /* Scene tools: small Randomize / Export PNG buttons at the top left, under
+       the nav. Hidden until the first randomize (R / panel button); outside
+       .ui so they stay when the page UI is hidden. "Hide UI for recording"
+       and the 15 s loop hide them again. */
+    #tools {
       position: absolute; left: var(--pad); top: calc(clamp(18px, 2vw, 36px) + 56px + 10px);
-      font: 300 13px/1 'Aspekta', system-ui, sans-serif; color: #fff; letter-spacing: 0.02em;
-      font-variant-numeric: tabular-nums; text-align: left; pointer-events: none; opacity: 0.9;
+      display: flex; gap: 6px; z-index: 3;
     }
-    #fps[hidden] { display: none; }
+    #tools[hidden] { display: none; }
+    #tools button {
+      height: 28px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 6px; cursor: pointer;
+      background: var(--nav-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      color: #fff; font: 300 12px/1 'Aspekta', system-ui, sans-serif; letter-spacing: 0.02em; white-space: nowrap;
+      transition: background 0.15s;
+    }
+    #tools button:hover { background: rgba(0, 0, 0, 0.45); }
+
+    /* Diagnostics overlay (D / ?diag) is built and styled by src/diag.js; it sits under the tools. */
 
     /* Headline: vertically centred, left aligned */
     .hero {
@@ -199,6 +210,12 @@
   <div id="frame">
     <div id="scene"></div>
 
+    <div id="tools" hidden>
+      <button id="tool-randomize" type="button" title="R">Randomize</button>
+      <button id="tool-export" type="button" title="Save the scene at 2x">Export PNG</button>
+      <button id="tool-reset" type="button" title="Reload the page">Reset</button>
+    </div>
+
     <div class="ui">
       <nav class="nav">
         <a class="logo" href="#" aria-label="ControlPlane home"><img src="./assets/logo.svg" alt="ControlPlane" /></a>
@@ -217,7 +234,6 @@
         </div>
       </nav>
 
-      <div id="fps" hidden aria-live="off"></div>
 
       <h1 class="hero">We secure<br />the platforms<br />the world runs on.</h1>
 

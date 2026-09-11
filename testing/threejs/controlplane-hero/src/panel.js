@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // same registry drives "Copy settings as JSON" (export) and presets (import):
 // a preset is simply a JSON object in that exported shape, applied with
 // applySettings(). Keys 1/2/3 apply window.PRESETS[0..2] (see presets.js).
-export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, requestRender, getPixelRatio, setPixelRatio }) {
+export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, sceneControl, requestRender, getPixelRatio, setPixelRatio }) {
   const css = `
     #attr-panel { position: fixed; top: 120px; right: 32px; width: 300px; max-height: calc(100vh - 140px);
       overflow-y: auto; background: rgba(0, 22, 20, 0.88); color: #d6efec; font: 12px/1.4 system-ui, sans-serif;
@@ -46,7 +46,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   const panel = document.createElement('div');
   panel.id = 'attr-panel';
   panel.hidden = true;
-  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · H hover · 1/2/3 · Ctrl+Z</span></h1>';
+  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · H hover · R random · L loop · D diag · Ctrl+Z</span></h1>';
   document.body.appendChild(panel);
   // While motion is frozen the scene only re-renders on demand; any edit here is a demand.
   panel.addEventListener('input', () => requestRender());
@@ -147,17 +147,80 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     requestAnimationFrame(() => { bakeQueued = false; envStudio.rebuild(); requestRender(); });
   };
 
-  // ---- presets (keys 1/2/3 + buttons)
-  const presetRow = document.createElement('div');
-  presetRow.className = 'presets';
-  const presetButtons = [0, 1, 2].map((i) => {
-    const b = document.createElement('button');
-    b.textContent = `Preset ${i + 1}`;
-    b.addEventListener('click', () => applyPreset(i));
-    presetRow.appendChild(b);
-    return b;
-  });
-  panel.appendChild(presetRow);
+  // ---- 15 second loop (L). Toggles the exact-period mode in main.js (see
+  // config.loop); the label shows where in the loop the scene is, so a manual
+  // recording can be trimmed to whole loops.
+  const loopBtn = document.createElement('button');
+  loopBtn.className = 'export';
+  loopBtn.style.marginTop = '0';
+  loopBtn.style.marginBottom = '6px';
+  const loopLabel = () => `${C.loop ? C.loop.period : 15} Second Loop`;
+  loopBtn.textContent = loopLabel();
+  let loopTimer = 0;
+  const setLoop = (on) => {
+    if (!sceneControl || !sceneControl.startLoop) return;
+    // Recording aid: the on-scene Randomize / Export PNG buttons go away while
+    // looping and come back when it stops (U also restores them).
+    if (toolsEl) toolsEl.hidden = on;
+    if (on) {
+      sceneControl.startLoop();
+      loopBtn.classList.add('active');
+      clearInterval(loopTimer);
+      loopTimer = setInterval(() => {
+        const P = C.loop.period, t = sceneControl.loop.t;
+        loopBtn.textContent = `${loopLabel()} · ${(t % P).toFixed(1)} s · loop ${Math.floor(t / P) + 1}`;
+      }, 100);
+    } else {
+      sceneControl.stopLoop();
+      loopBtn.classList.remove('active');
+      clearInterval(loopTimer);
+      loopBtn.textContent = loopLabel();
+    }
+    requestRender();
+  };
+  loopBtn.addEventListener('click', () => setLoop(!sceneControl.loop.active));
+  panel.appendChild(loopBtn);
+
+  // ---- randomize scene (R). Freezes motion, drops the legibility fade and
+  // picks the best-composed of several random camera / band / light / phase
+  // combinations (see config.randomize and randomize() below).
+  const randomBtn = document.createElement('button');
+  randomBtn.className = 'export';
+  randomBtn.style.marginTop = '0';
+  randomBtn.style.marginBottom = '6px';
+  randomBtn.textContent = 'Randomize scene (R)';
+  randomBtn.addEventListener('click', () => randomize());
+  panel.appendChild(randomBtn);
+
+  // ---- export PNG: saves the scene (canvas only, no page UI) at 2x the frame size.
+  const exportPngBtn = document.createElement('button');
+  exportPngBtn.className = 'export';
+  exportPngBtn.style.marginTop = '0';
+  exportPngBtn.style.marginBottom = '6px';
+  exportPngBtn.textContent = 'Export PNG (2x)';
+  // Shared by the panel button and the small on-scene "Export PNG" button.
+  const exportPng = (btn, idleLabel) => {
+    if (!sceneControl || !sceneControl.exportPNG) return;
+    btn.textContent = 'Rendering…';
+    requestAnimationFrame(() => {
+      const r = sceneControl.exportPNG(2);
+      btn.textContent = `Saved ${r.width}×${r.height}`;
+      setTimeout(() => { btn.textContent = idleLabel; }, 2000);
+    });
+  };
+  exportPngBtn.addEventListener('click', () => exportPng(exportPngBtn, 'Export PNG (2x)'));
+  panel.appendChild(exportPngBtn);
+
+  // ---- on-scene tools (index.html #tools): stay visible when the page UI is hidden.
+  const toolsEl = document.getElementById('tools');
+  const toolRandom = document.getElementById('tool-randomize');
+  const toolExport = document.getElementById('tool-export');
+  if (toolRandom) toolRandom.addEventListener('click', () => randomize());
+  if (toolExport) toolExport.addEventListener('click', () => exportPng(toolExport, 'Export PNG'));
+  // Reset: a plain reload is the surest way out of a randomized / frozen state
+  // (the approved look, motion and overlay all come back).
+  const toolReset = document.getElementById('tool-reset');
+  if (toolReset) toolReset.addEventListener('click', () => location.reload());
 
   // ---- hide UI (for video capture). Hides the page overlay AND this panel;
   // U brings the overlay back, A the panel.
@@ -168,7 +231,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   hideBtn.style.marginTop = '0';
   hideBtn.style.marginBottom = '8px';
   hideBtn.textContent = 'Hide UI for recording (U to restore)';
-  hideBtn.addEventListener('click', () => { setUiHidden(true); panel.hidden = true; });
+  hideBtn.addEventListener('click', () => { setUiHidden(true); panel.hidden = true; if (toolsEl) toolsEl.hidden = true; });
   panel.appendChild(hideBtn);
 
   // ---- rotation
@@ -227,11 +290,15 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   // ---- render (device-specific; excluded from the JSON export so presets never carry it)
   {
     const s = section('Render');
-    slider(s, 'render.pixelRatio', 'Pixel ratio', 0.5, 3, 0.05, () => getPixelRatio(), (v) => setPixelRatio(v),
+    slider(s, 'render.pixelRatio', 'Live pixel ratio', 0.5, 3, 0.05, () => getPixelRatio(), (v) => setPixelRatio(v),
       (v) => v.toFixed(2) + 'x');
+    // Frozen frames ignore the slider and render at the still quality from
+    // config.quality; main.js keeps this line up to date with the real ratio.
     const note = document.createElement('div');
     note.className = 'sub';
-    note.textContent = 'device ratio ' + window.devicePixelRatio.toFixed(2) + 'x · press F for fps';
+    note.id = 'attr-ratio-note';
+    note.style.textTransform = 'none';
+    note.textContent = 'device ratio ' + window.devicePixelRatio.toFixed(2) + 'x · press D for diagnostics';
     s.appendChild(note);
   }
 
@@ -348,6 +415,13 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     });
   }
 
+  // ---- animation phase (no controls; hidden registry entries so undo/redo and
+  // the randomizer can move the clock. Excluded from the JSON export.)
+  if (sceneControl) {
+    reg('phase.time', { get: () => sceneControl.time, set: (v) => { sceneControl.time = v; }, refresh() {} });
+    reg('phase.flow', { get: () => sceneControl.flow, set: (v) => { sceneControl.flow = v; }, refresh() {} });
+  }
+
   // ---- undo / redo (Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y)
   // Every UI edit records the state *before* it. Successive edits to the same
   // control within a second are coalesced, so a slider drag is one undo step.
@@ -357,21 +431,22 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   function record(path) {
     const now = performance.now();
     if (path === lastRecordPath && now - lastRecordTime < 1000) { lastRecordTime = now; return; }
-    history.push(exportSettings());
+    history.push(exportSettings(true));
     if (history.length > HISTORY_MAX) history.shift();
     future.length = 0;
     lastRecordPath = path; lastRecordTime = now;
+    lastWasRoll = false;   // any other edit becomes the new base for the next randomize
   }
   function undo() {
     if (!history.length) return false;
-    future.push(exportSettings());
+    future.push(exportSettings(true));
     applySettings(history.pop());
     lastRecordPath = null;
     return true;
   }
   function redo() {
     if (!future.length) return false;
-    history.push(exportSettings());
+    history.push(exportSettings(true));
     applySettings(future.pop());
     lastRecordPath = null;
     return true;
@@ -386,10 +461,11 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     o[keys[keys.length - 1]] = value;
   };
 
-  function exportSettings() {
+  function exportSettings(includeHidden = false) {
     const out = {};
     for (const [path, h] of registry) {
       if (path.startsWith('render.')) continue;   // device-specific, not part of a look
+      if (path.startsWith('phase.') && !includeHidden) continue;   // animation clock: undo only, never part of a preset
       let v = h.get();
       if (path === 'motion.paused' || path === 'dof.enabled' || path === 'fade.enabled' || path === 'hover.enabled') v = v > 0.5;   // booleans read nicer in JSON
       setPath(out, path, v);
@@ -399,17 +475,146 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
 
   // Apply any subset of the exported shape. Unknown keys are ignored, missing
   // keys leave the current value alone, so a preset can be colours only.
-  function applySettings(json) {
+  function applySettings(json, refresh = true) {
     if (!json) return;
     for (const [path, h] of registry) {
       const v = getPath(json, path);
       if (v === undefined || v === null) continue;
       h.set(typeof v === 'boolean' ? (v ? 1 : 0) : v);
-      h.refresh();
+      if (refresh) h.refresh();
     }
     requestRender();
   }
 
+  // ---- randomize scene
+  // Draws `candidates` random scenes from config.randomize, renders each one
+  // small, scores the frame, keeps the winner. Everything the roll touches goes
+  // through the registry, so Ctrl+Z steps back through rolls like any edit.
+  let lastWasRoll = false, rollBase = null, lastRoll = null;
+  function randomize() {
+    const RZ = C.randomize;
+    if (!RZ || !sceneControl) return null;
+    // Light scaling is relative to the look that was live before the first of
+    // a run of rolls, so repeated presses never drift brighter or darker.
+    if (!lastWasRoll || !rollBase) rollBase = exportSettings(true);
+    record('randomize:' + performance.now());   // one undo step per roll
+    lastWasRoll = true;
+
+    const rnd = (r) => r[0] + Math.random() * (r[1] - r[0]);
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const generate = () => {
+      const j = JSON.parse(JSON.stringify(rollBase));
+      j.motion = { paused: true };
+      j.fade = { ...(j.fade || {}), enabled: false };
+      j.camera = { ...(j.camera || {}) };
+      for (const k of Object.keys(RZ.camera || {})) j.camera[k] = rnd(RZ.camera[k]);
+      j.rotation = { ...(j.rotation || {}) };
+      for (const k of Object.keys(RZ.rotation || {})) j.rotation[k] = rnd(RZ.rotation[k]);
+      j.ribbon = { ...(j.ribbon || {}) };
+      for (const k of Object.keys(RZ.ribbon || {})) j.ribbon[k] = rnd(RZ.ribbon[k]);
+      if (j.lights && RZ.lightScale) {
+        for (const name of Object.keys(j.lights)) {
+          const L = j.lights[name];
+          if (L && typeof L.intensity === 'number') L.intensity = clamp(L.intensity * rnd(RZ.lightScale), 0, 24);
+        }
+      }
+      if (j.sun && RZ.sunScale) {
+        for (const name of ['key', 'rim']) {
+          const S = j.sun[name];
+          if (S && typeof S.intensity === 'number') S.intensity = clamp(S.intensity * rnd(RZ.sunScale), 0, 3);
+        }
+      }
+      if (RZ.phase) j.phase = { time: rnd(RZ.phase.time), flow: rnd(RZ.phase.flow) };
+      return j;
+    };
+
+    const results = [];
+    let best = null;
+    sceneControl.setEvalRatio(RZ.evalPixelRatio || 0.35);
+    try {
+      for (let i = 0; i < (RZ.candidates || 12); i++) {
+        const cand = generate();
+        applySettings(cand, false);
+        envStudio.rebuild();              // light edits above queued a bake for the next frame; we need it now
+        sceneControl.renderFrame();
+        const score = scoreFrame(sceneControl.sampleLuma(4), sceneControl.clearance(), RZ);
+        results.push({ cand, ...score });
+        if (!best || score.total > best.total) best = results[results.length - 1];
+      }
+    } finally {
+      sceneControl.setEvalRatio(null);
+    }
+    applySettings(best.cand);              // full apply: refreshes the panel and re-renders at still quality
+    setUiHidden(true);                     // a roll is a plate, not a page: drop the overlay (U brings it back)
+    if (toolsEl) toolsEl.hidden = false;   // the on-scene Randomize / Export buttons appear from the first roll
+    lastRoll = { best, results };
+    return lastRoll;
+  }
+
+  // Composition score for one candidate frame. Every term is roughly 0..1
+  // before its weight; higher is better. Rejected candidates score -Infinity.
+  function scoreFrame({ w, h, lum }, clearance, RZ) {
+    const W = RZ.weights || {};
+    const terms = {};
+    if (clearance < (RZ.minClearance || 0)) return { total: -Infinity, terms: { clearance }, clearance };
+
+    // exposure / clipping / contrast
+    let sum = 0, sum2 = 0, clipped = 0;
+    const n = w * h;
+    for (let i = 0; i < n; i++) { const v = lum[i]; sum += v; sum2 += v * v; if (v > 0.97) clipped++; }
+    const mean = sum / n, std = Math.sqrt(Math.max(0, sum2 / n - mean * mean));
+    const clipPct = (clipped / n) * 100;
+    terms.clipping = -Math.max(0, clipPct - 1);                                        // per % above 1%
+    terms.exposure = -(mean < 0.14 ? (0.14 - mean) / 0.14 : mean > 0.5 ? (mean - 0.5) / 0.3 : 0);
+    terms.contrast = Math.min(1, std / 0.22);
+
+    // highlight placement: centroid of the brightest 5% of samples
+    const sorted = Float32Array.from(lum).sort();
+    const thr = sorted[Math.floor(n * 0.95)];
+    let cx = 0, cy = 0, cw = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = lum[y * w + x] - thr;
+      if (v > 0) { cx += (x + 0.5) / w * v; cy += (y + 0.5) / h * v; cw += v; }
+    }
+    if (cw > 0) { cx /= cw; cy /= cw; } else { cx = 0.5; cy = 0.5; }
+    let dThirds = Infinity;
+    for (const [tx, ty] of [[1 / 3, 1 / 3], [2 / 3, 1 / 3], [1 / 3, 2 / 3], [2 / 3, 2 / 3]]) {
+      dThirds = Math.min(dThirds, Math.hypot(cx - tx, cy - ty));
+    }
+    terms.thirds = -Math.min(1, dThirds / 0.33);
+    const edgeDist = Math.min(cx, 1 - cx, cy, 1 - cy);
+    terms.edge = -(edgeDist < 0.12 ? (0.12 - edgeDist) / 0.12 : 0);
+
+    // left / right balance of light mass
+    let left = 0, right = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (x < w / 2) left += lum[y * w + x]; else right += lum[y * w + x]; }
+    const imbalance = Math.abs(left - right) / Math.max(1e-6, left + right);
+    terms.balance = -Math.max(0, (imbalance - 0.25) / 0.5);
+
+    // edge density (triangle seams) per horizontal band: bottom quarter, middle half, top quarter
+    const density = (y0, y1) => {
+      let e = 0, c = 0;
+      for (let y = Math.floor(y0 * h); y < Math.floor(y1 * h) - 1; y++) for (let x = 0; x < w - 1; x++) {
+        const i = y * w + x;
+        const g = Math.abs(lum[i + 1] - lum[i]) + Math.abs(lum[i + w] - lum[i]);
+        if (g > 0.06) e++;
+        c++;
+      }
+      return c ? e / c : 0;
+    };
+    const dBottom = density(0, 0.25), dMid = density(0.25, 0.75), dTop = density(0.75, 1);
+    // horizon: the top of the frame should be calmer than the middle (band dissolving), not more seams
+    terms.horizon = dMid > 0 ? Math.min(1, Math.max(0, 1 - dTop / (dMid * 0.8))) : 0;
+    // foreground: near triangles read best at a middling seam density (huge facets = wall, tiny = gravel)
+    terms.foreground = dBottom < 0.02 ? -1 : dBottom > 0.3 ? -Math.min(1, (dBottom - 0.3) / 0.2) : Math.min(1, (dBottom - 0.02) / 0.06);
+
+    let total = 0;
+    for (const k of Object.keys(terms)) total += (W[k] ?? 1) * terms[k];
+    return { total, terms, mean, std, clipPct, centroid: [cx, cy], density: [dBottom, dMid, dTop], clearance };
+  }
+
+  // Presets: only the approved look remains (presets.js); applied on load by
+  // main.js. Kept as a function so a look can still be re-applied from the console.
   let activePreset = -1;
   function applyPreset(i) {
     const list = window.PRESETS || [];
@@ -417,7 +622,6 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     record('preset:' + i + ':' + performance.now());   // never coalesced: each preset switch is its own undo step
     applySettings(list[i]);
     activePreset = i;
-    presetButtons.forEach((b, k) => b.classList.toggle('active', k === i));
   }
 
   const exportBtn = document.createElement('button');
@@ -450,12 +654,18 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     }
     if (isTyping(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'a' || e.key === 'A') { e.preventDefault(); panel.hidden = !panel.hidden; return; }
-    if (e.key === 'u' || e.key === 'U') { e.preventDefault(); setUiHidden(!(uiEl && uiEl.hidden)); return; }
-    if (e.key === '1' || e.key === '2' || e.key === '3') { e.preventDefault(); applyPreset(+e.key - 1); }
+    if (e.key === 'u' || e.key === 'U') {
+      e.preventDefault();
+      setUiHidden(!(uiEl && uiEl.hidden));   // the on-scene tools are independent: they appear with the first roll
+      return;
+    }
+    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); return; }
+    if (e.key === 'l' || e.key === 'L') { e.preventDefault(); setLoop(!sceneControl.loop.active); return; }
   });
 
   return {
-    panel, exportSettings, applySettings, applyPreset, undo, redo,
+    panel, exportSettings, applySettings, applyPreset, undo, redo, randomize, setLoop,
+    get lastRoll() { return lastRoll; },
     clearHistory() { history.length = 0; future.length = 0; lastRecordPath = null; },
     get activePreset() { return activePreset; },
     get historyLength() { return history.length; },
