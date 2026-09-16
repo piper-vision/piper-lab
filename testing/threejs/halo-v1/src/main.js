@@ -368,7 +368,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-container.addEventListener('pointerdown', restart);
+// (no click-to-replay: the intro runs once per page load; hashDebug.restart() is still available)
 
 let lastNow = performance.now() / 1000;
 function frame() {
