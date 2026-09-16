@@ -16,8 +16,8 @@ export const CONFIG = {
   elevation: 41,             // degrees above the floor plane
   azimuth: 43,               // degrees around Y at the start; 45 = true diagonal
   orbitSpeed: 3,             // degrees per second the camera drifts around the #; 0 = static
-  viewWidth: 27,             // visible world width on landscape screens
-  viewWidthPortrait: 16,     // visible world width when the screen is taller than wide
+  viewWidth: 22,             // visible world width on landscape screens
+  viewWidthPortrait: 14,     // visible world width when the screen is taller than wide
 
   // ---- bars (the # is 2 top bars along X resting on 2 bottom bars along Z)
   barWidth: 1,
@@ -53,7 +53,7 @@ export const CONFIG = {
   kickUp: 3.0,               // upward velocity at full strength
   kickMinSpeed: 2.5,         // cursor must move faster than this (world units/s) to kick at all
   kickGain: 0.35,            // shove velocity = cursor speed (world units/s) * gain ...
-  kickMin: 6,                //   ... clamped to this range (units/s). 27 units = full landscape view width
+  kickMin: 6,                //   ... clamped to this range (units/s). viewWidth units = full landscape view width
   kickMax: 16,
   kickSpin: 4.0,             // rad/s tumble about the horizontal axis perpendicular to travel, at full strength
   kickYaw: 1.5,              // extra twist about vertical when hit near an end
