@@ -298,15 +298,16 @@ const glassDotU = {
   uDotBright: { value: GD.brightness },
   uDotEdgeAmt: { value: GD.edgeAmount ?? CD.edgeAmount },
   uDotPatch: { value: GD.patchAmount ?? CD.patchAmount },
-  uDotPatchScale: { value: CD.patchScale },
-  uDotDrift: { value: CD.drift },
+  uDotPatchScale: { value: GD.patchScale ?? CD.patchScale },
+  uDotDrift: { value: GD.drift ?? CD.drift },
+  uDotCycles: { value: GD.cycles ?? 1 },
 };
 const glassDotHead = /* glsl */`
   uniform sampler2D uHaze;
   uniform vec3 uOrigin;
   uniform vec2 uFlip, uBox;
   uniform float uK, uPhase, uDotOn;
-  uniform float uDotCount, uDotRadius, uDotBright, uDotEdgeAmt, uDotPatch, uDotPatchScale, uDotDrift;
+  uniform float uDotCount, uDotRadius, uDotBright, uDotEdgeAmt, uDotPatch, uDotPatchScale, uDotDrift, uDotCycles;
   varying vec3 vLocalPos, vLocalN;
   float gdHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float gdNoise(vec2 p) {
@@ -321,20 +322,29 @@ const glassDotBody = /* glsl */`
     float capness = smoothstep(0.6, 0.9, abs(vLocalN.z));
     vec2 svg = vec2((vLocalPos.x - uOrigin.x) * uFlip.x, (vLocalPos.y - uOrigin.y) * uFlip.y) / uK;
     float B = texture2D(uHaze, vec2(svg.x / uBox.x, 1.0 - svg.y / uBox.y)).r;
-    float edgeF = clamp((1.0 - B) * 2.0, 0.0, 1.0);
-    vec2 p = vLocalPos.xy * uDotCount;
+    float edgeF = clamp((1.0 - B) * 2.0, 0.0, 1.0) * capness;
+    // dot-grid coordinates: front/back faces use the logo plane (x, y); side
+    // walls and bevels use (distance along the wall, depth), so every
+    // surface carries the same dot pitch
+    vec2 wallT = normalize(vec2(-vLocalN.y, vLocalN.x) + 1e-5);
+    vec2 uvw = abs(vLocalN.z) > 0.7 ? vLocalPos.xy : vec2(dot(vLocalPos.xy, wallT), vLocalPos.z);
+    vec2 p = uvw * uDotCount;
     p.x += mod(floor(p.y), 2.0) * 0.5;
-    vec2 cellId = floor(p);
+    vec2 cellId = floor(p) + (abs(vLocalN.z) > 0.7 ? 0.0 : 57.0);
     float r = length(fract(p) - 0.5);
-    float ang = uPhase * 6.2831853;
-    float nz = gdNoise(vLocalPos.xy * uDotPatchScale + vec2(cos(ang), sin(ang)) * uDotDrift + 5.3);
-    float mask = clamp(edgeF * uDotEdgeAmt + smoothstep(0.45, 0.85, nz) * uDotPatch, 0.0, 1.0);
+    // patches of dots sweep across the whole shape; uDotCycles whole turns of
+    // the drift per loop keeps it seamless
+    float ang = uPhase * 6.2831853 * uDotCycles;
+    vec2 q = vLocalPos.xy * uDotPatchScale + vLocalPos.z * 3.0;
+    float nz = gdNoise(q + vec2(cos(ang), sin(ang)) * uDotDrift + 5.3)
+             * 0.65 + gdNoise(q * 2.1 - vec2(sin(ang), cos(ang)) * uDotDrift * 1.7 + 1.7) * 0.35;
+    float mask = clamp(edgeF * uDotEdgeAmt + smoothstep(0.42, 0.72, nz) * uDotPatch, 0.0, 1.0);
     float on = step(gdHash(cellId + 31.0), mask * 1.6);
     float rad = uDotRadius * sqrt(mask);
     float aa = fwidth(p.x) * 0.8;
     float dotv = (1.0 - smoothstep(rad - aa, rad + aa, r)) * on;
     float facing = smoothstep(0.08, 0.45, abs(dot(normal, normalize(vViewPosition))));
-    float dv = dotv * uDotBright * (0.4 + 0.6 * mask) * facing * capness;
+    float dv = dotv * uDotBright * (0.4 + 0.6 * mask) * facing;
     gl_FragColor.rgb += dv;
     gl_FragColor.a = min(1.0, gl_FragColor.a + dv);
   }
@@ -516,6 +526,7 @@ composer.addPass(new OutputPass());
 
 function resize() {
   const w = container.clientWidth, hgt = container.clientHeight;
+  if (!w || !hgt) return; // hidden / not laid out yet: keep the last good size
   renderer.setSize(w, hgt);
   composer.setSize(w, hgt);
   composer.setPixelRatio(renderer.getPixelRatio());
@@ -525,7 +536,14 @@ function resize() {
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
 }
-window.addEventListener('resize', () => { resize(); if (frozen !== null) render(frozen); });
+// ResizeObserver also catches the container getting its first real size
+// (e.g. a pane that loads hidden), which a window 'resize' never reports
+new ResizeObserver(() => {
+  resize();
+  // re-centre for the new camera/aspect (centring depends on both)
+  if (CONFIG.logo.autoCenter && logoTilt.children.length) centerLoop();
+  if (frozen !== null) render(frozen);
+}).observe(container);
 resize();
 
 // ---------------------------------------------------------------- loop
@@ -557,6 +575,8 @@ function render(seconds) {
 // Shift the logo so the space it sweeps over one loop is centred in the
 // frame (equal margins left/right and top/bottom in a screen recording).
 function centerLoop() {
+  if (!camera.position.z) return; // camera not placed yet (no size); the resize observer re-runs this
+  camera.updateMatrixWorld();
   logoFrame.position.set(0, 0, 0);
   const e = window.logoDebug.extents(120);
   const halfH = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
@@ -585,15 +605,19 @@ window.logoDebug = {
     const mesh = logoTilt.children.find((m) => m.isMesh && m.geometry.type === "ExtrudeGeometry") || logoTilt.children[0];
     const pos = mesh.geometry.attributes.position, v = new THREE.Vector3();
     const e = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+    const keep = logoSpin.rotation.y;
     for (let s = 0; s < steps; s++) {
-      render((s / steps) * CONFIG.loopSeconds);
+      // pose only (no draw), so this is cheap enough to run on every resize
+      logoSpin.rotation.y = logoBaseAngle + (s / steps) * TAU * CONFIG.logo.direction;
+      logoFrame.updateMatrixWorld(true);
       for (let i = 0; i < pos.count; i += 7) {
         v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld).project(camera);
         e.minX = Math.min(e.minX, v.x); e.maxX = Math.max(e.maxX, v.x);
         e.minY = Math.min(e.minY, v.y); e.maxY = Math.max(e.maxY, v.y);
       }
     }
-    if (frozen !== null) render(frozen);
+    logoSpin.rotation.y = keep;
+    logoFrame.updateMatrixWorld(true);
     return e;
   },
   snap(t = 0, q = 0.9) { frozen = t; render(t); return renderer.domElement.toDataURL('image/jpeg', q); },

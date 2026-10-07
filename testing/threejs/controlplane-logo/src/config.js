@@ -1,10 +1,10 @@
-// All tunables for the rotating ControlPlane logo cube.
+// All tunables for the rotating ControlPlane logo (old line logo, Vector2.svg).
 export const CONFIG = {
   background: '#000000',
 
   // One full 360° turn of both cube and logo, in seconds. Both spin at the
   // same rate in opposite directions, so the scene loops perfectly.
-  loopSeconds: 10,
+  loopSeconds: 15,
 
   camera: {
     fov: 16,          // narrow FOV ≈ near-orthographic, keeps the hexagon regular
@@ -60,10 +60,10 @@ export const CONFIG = {
     svg: './assets/logo.svg',
     width: 0.866,           // world width of the logo (cube is 1 wide)
     // The values below are in SVG units (the SVG is 209 wide).
-    depth: 14,
-    bevelThickness: 5,
-    bevelSize: 4.5,
-    bevelSegments: 8,
+    depth: 10,             // old logo is thin strokes (~8.5 SVG units wide), so a slimmer slab
+    bevelThickness: 2,
+    bevelSize: 2,
+    bevelSegments: 6,
     // Stands upright on its bottom edge, spins on the cube's up axis
     // (pivot = centre of its bottom edge), opposite to the cube.
     direction: 1,           // +1 = anti-clockwise seen from above
@@ -106,9 +106,12 @@ export const CONFIG = {
       enabled: true,
       brightness: 1.1, 
       radius: 0.3,
-      edgeAmount: 0.75,     // dots densest near the outline
-      patchAmount: 0.45,    // plus soft drifting patches
-      hazeWidth: 10,        // how far in from the outline the dots reach (SVG units)
+      edgeAmount: 0.15,     // a little extra density near the outline (front/back faces)
+      patchAmount: 1.0,     // patches of dots that sweep over every side of the shape
+      patchScale: 5,        // patch size (higher = smaller, busier patches)
+      drift: 0.6,           // how far the patches travel per drift cycle
+      cycles: 1,            // drift cycles per loop (whole number keeps the loop seamless)
+      hazeWidth: 3,         // how far in from the outline the dots reach (SVG units)
     }, // soft glow behind the logo (blur in SVG units)
     alwaysInFront: true,    // logo is drawn over the cube's front edges, like the reference
     material: {
