@@ -231,18 +231,18 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   exportPngBtn.className = 'export';
   exportPngBtn.style.marginTop = '0';
   exportPngBtn.style.marginBottom = '6px';
-  exportPngBtn.textContent = 'Export PNG (4x) (E)';
+  exportPngBtn.textContent = 'Export PNG (6x) (E)';
   // Shared by the panel button and the small on-scene "Export PNG" button.
   const exportPng = (btn, idleLabel, opts) => {
     if (!sceneControl || !sceneControl.exportPNG) return;
     btn.textContent = 'Rendering…';
     requestAnimationFrame(() => {
-      const r = sceneControl.exportPNG(C.export?.scale ?? 4, undefined, opts);
+      const r = sceneControl.exportPNG(C.export?.scale ?? 6, undefined, opts);
       btn.textContent = `Saved ${r.width}×${r.height}`;
       setTimeout(() => { btn.textContent = idleLabel; }, 2000);
     });
   };
-  exportPngBtn.addEventListener('click', () => exportPng(exportPngBtn, 'Export PNG (4x) (E)'));
+  exportPngBtn.addEventListener('click', () => exportPng(exportPngBtn, 'Export PNG (6x) (E)'));
   panel.appendChild(exportPngBtn);
 
   // ---- on-scene tools (index.html #tools): stay visible when the page UI is hidden.
@@ -760,9 +760,9 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
       if (e.shiftKey) {
         // Shift+E: transparent background (no gradient, no shadow sheet, no bloom / DoF).
         if (toolsOn && toolExportAlpha) exportPng(toolExportAlpha, 'Export PNG (no bg)', { transparent: true });
-        else exportPng(exportPngBtn, 'Export PNG (4x) (E)', { transparent: true });
+        else exportPng(exportPngBtn, 'Export PNG (6x) (E)', { transparent: true });
       } else if (toolsOn && toolExport) exportPng(toolExport, 'Export PNG');
-      else exportPng(exportPngBtn, 'Export PNG (4x) (E)');
+      else exportPng(exportPngBtn, 'Export PNG (6x) (E)');
       return;
     }
   });

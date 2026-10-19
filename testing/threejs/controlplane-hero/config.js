@@ -126,7 +126,7 @@ window.CONFIG = {
   // the frame's css size. 4 = double the original 2x export; a full-screen
   // MacBook frame comes out around 6750 x 4300 px.
   export: {
-    scale: 4,         // output = frame css size x this (a full-screen MacBook frame -> ~6750 x 4300 px)
+    scale: 6,         // output = frame css size x this (a MacBook browser window -> ~9900 x 5500 px)
     supersample: 2,   // each tile is rendered at this x the output resolution and box-filtered down
     marginPx: 160,    // overlap between tiles, in render pixels, so bloom / DoF / FXAA never see a tile edge
   },
