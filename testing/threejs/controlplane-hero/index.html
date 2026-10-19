@@ -140,6 +140,19 @@
 
     /* Diagnostics overlay (D / ?diag) is built and styled by src/diag.js; it sits under the tools. */
 
+    /* ---- light mode (panel "Light mode" / T): the scene is restyled by
+       presets.js PRESET_LIGHT; these rules flip the overlay to dark-on-light. */
+    body.light #frame { background: #EEEFEE; }
+    body.light .ui { color: #141529; }
+    body.light { --nav-glass: rgba(255, 255, 255, 0.55); --glass: rgba(255, 255, 255, 0.6); }
+    body.light .icon-btn { background: rgba(20, 21, 41, 0.06); }
+    body.light .icon-btn:hover { background: rgba(20, 21, 41, 0.12); }
+    body.light .nav .logo img, body.light .icon-btn img { filter: invert(0.92); }
+    body.light .cta .divider { background: rgba(20, 21, 41, 0.22); }
+    body.light .pub .tag { border-color: rgba(20, 21, 41, 0.22); }
+    body.light #tools button { background: rgba(255, 255, 255, 0.6); color: #141529; border-color: rgba(20, 21, 41, 0.14); }
+    body.light #tools button:hover { background: rgba(255, 255, 255, 0.85); }
+
     /* Headline: vertically centred, left aligned */
     .hero {
       position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
@@ -212,7 +225,8 @@
 
     <div id="tools" hidden>
       <button id="tool-randomize" type="button" title="R">Randomize</button>
-      <button id="tool-export" type="button" title="Save the scene at 2x">Export PNG</button>
+      <button id="tool-export" type="button" title="E · save the scene at 4x">Export PNG</button>
+      <button id="tool-export-alpha" type="button" title="Shift+E · save the scene at 4x with a transparent background">Export PNG (no bg)</button>
       <button id="tool-reset" type="button" title="Reload the page">Reset</button>
     </div>
 

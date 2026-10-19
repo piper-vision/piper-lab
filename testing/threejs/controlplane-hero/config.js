@@ -88,6 +88,76 @@ window.CONFIG = {
 
   motion: { paused: false },
 
+  // Shadow underlay: a dark sheet that rides just beneath the glass so the gaps
+  // and bevels read as shadowed grooves (light mode wants this; the approved
+  // dark look keeps it off). Presets set colour / opacity via the panel.
+  // Per-triangle variation (panel: Triangles > Facet tilt / Facet tint). Breaks
+  // the coplanar sameness of neighbouring triangles so the surface has more
+  // contrast. The approved dark look keeps both at 0.
+  facets: {
+    jitter: 0,          // max random tilt per triangle, degrees
+    tint: 0,            // 0..1 how far each triangle's body colour may lean toward tintColor
+    tintColor: '6f9fff',
+  },
+
+  // Light pulses: glowing streaks that travel along the grooves between the
+  // triangles, near the camera only. Drawn on the shadow underlay, so they
+  // need light mode's shadow sheet (or at least pulses.enabled) to be drawn.
+  pulses: {
+    enabled: false,
+    count: 10,          // concurrent pulses (max 12)
+    speed: 4,           // lattice units per second (a unit is ~0.28 world units)
+    length: 10,         // tail length, lattice units
+    width: 0.12,        // glow half-width across the groove, lattice units (~the groove + bevels; larger bleeds into the glass)
+    intensity: 8,       // HDR brightness (values above the bloom threshold glow)
+    color: 'dfeeff',
+    near: [3, 10],      // camera distance where pulses are full / gone
+    rowBand: 0.6,       // fraction of the band's width (centred) the along-flow pulses use
+    diagonalShare: 0.5, // fraction of pulses that run across the band on the diagonals
+  },
+
+  underlay: {
+    color: '3a4e78',
+    opacity: 0,        // 0 = off (the sheet is not even drawn)
+    offset: 0.004,     // distance below the prisms' top face, world units (kept tiny so the gaps line up with the sheet)
+  },
+
+  // PNG export (E / Shift+E / the export buttons): output size as a multiple of
+  // the frame's css size. 4 = double the original 2x export; a full-screen
+  // MacBook frame comes out around 6750 x 4300 px.
+  export: {
+    scale: 4,         // output = frame css size x this (a full-screen MacBook frame -> ~6750 x 4300 px)
+    supersample: 2,   // each tile is rendered at this x the output resolution and box-filtered down
+    marginPx: 160,    // overlap between tiles, in render pixels, so bloom / DoF / FXAA never see a tile edge
+  },
+
+  // Single-triangle studio (key 1): one prism at the origin, drag to rotate,
+  // wheel to zoom, E to export. It copies the centre row's material when
+  // entered; `opacity` scales that body opacity (1 = same as the band).
+  single: {
+    opacity: 0.6,
+    apex: 1.2,   // height of the middle point relative to the band's triangle (1 = identical)
+  },
+
+  // Cluster scene (key 2; R re-rolls while it is on): a random connected patch
+  // of triangles assembles on the right of the frame, each one sliding in from
+  // outside the frame with a random tilt.
+  cluster: {
+    shape: 'triangle',  // 'triangle' = one big triangle built from the small ones; 'blob' = random connected patch
+    size: 6,            // rows in the big triangle (6 rows = 36 triangles)
+    cells: 46,          // triangles in the blob shape
+    columns: 16, rows: 9, // lattice the patch may grow inside (columns are half a segment wide)
+    fill: 0.65,         // chance a frontier cell joins when picked (lower = more ragged outline)
+    dist: 3.4,          // camera distance
+    offsetX: 1.05, offsetY: 0.05, // composition centre in world units (camera looks at the origin)
+    tiltX: 0.28, tiltY: -0.42, tiltZ: 0,  // radians: lean the patch toward the camera / turn it a little (drag to rotate in the scene, C copies the values)
+    scale: 0.82,
+    // Motion, all periodic in loop.period (15 s) so any 15 s window loops exactly:
+    turns: { x: 0, y: 1, z: 0 },       // full rotations per loop about each axis (y: 1 = one slow spin every 15 s)
+    wobble: { x: 0.25, y: 0, z: 0.15, cyclesX: 1, cyclesZ: 2 }, // extra rocking, radians, whole cycles per loop
+    bob: { amp: 0.08, cycles: 2 },     // small triangles rise / fall along the normal: amplitude (world units), max cycles per loop
+  },
+
   // "15 Second Loop" (panel button / L): the scene becomes exactly periodic so
   // the frame at `period` seconds matches the frame the loop started on.
   //  - flow: the triangle travel speed snaps to a whole number of triangle

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // same registry drives "Copy settings as JSON" (export) and presets (import):
 // a preset is simply a JSON object in that exported shape, applied with
 // applySettings(). Keys 1/2/3 apply window.PRESETS[0..2] (see presets.js).
-export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, sceneControl, requestRender, getPixelRatio, setPixelRatio }) {
+export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMaterials, realGlass, camera, applyCamera, sunLights, sceneControl, glossUniforms, fadeDepthUniform, facetsApi, pulsesApi, requestRender, getPixelRatio, setPixelRatio }) {
   const css = `
     #attr-panel { position: fixed; top: 120px; right: 32px; width: 300px; max-height: calc(100vh - 140px);
       overflow-y: auto; background: rgba(0, 22, 20, 0.88); color: #d6efec; font: 12px/1.4 system-ui, sans-serif;
@@ -46,7 +46,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   const panel = document.createElement('div');
   panel.id = 'attr-panel';
   panel.hidden = true;
-  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · H hover · R random · L loop · D diag · Ctrl+Z</span></h1>';
+  panel.innerHTML = '<h1>Attributes <span>A panel · U ui · T theme · H hover · R random · E png · ⇧E no-bg · L loop · 1 triangle · 2 cluster · D diag · Ctrl+Z</span></h1>';
   document.body.appendChild(panel);
   // While motion is frozen the scene only re-renders on demand; any edit here is a demand.
   panel.addEventListener('input', () => requestRender());
@@ -181,6 +181,40 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   loopBtn.addEventListener('click', () => setLoop(!sceneControl.loop.active));
   panel.appendChild(loopBtn);
 
+  // ---- light mode (T). Applies the colour keys of PRESET_LIGHT (or the same
+  // keys of the dark preset) and flips the overlay via body.light. The state
+  // lives in the registry ('theme.light') so undo and exports carry it.
+  const LOOK_KEYS = ['fade', 'buttons', 'wash', 'lights', 'sun', 'background', 'triangles', 'reflections', 'shadow', 'facets', 'pulses'];
+  // ribbon.fadeNear / fadeFar are part of the look too, but live under 'ribbon'
+  // next to motion values a theme must not touch; lookFor() copies just those two.
+  let lightMode = false;
+  const themeBtn = document.createElement('button');
+  themeBtn.className = 'export';
+  themeBtn.style.marginTop = '0';
+  themeBtn.style.marginBottom = '6px';
+  const refreshThemeBtn = () => { themeBtn.textContent = lightMode ? 'Light mode: on (T)' : 'Light mode: off (T)'; themeBtn.classList.toggle('active', lightMode); };
+  reg('theme.light', {
+    get: () => (lightMode ? 1 : 0),
+    set: (v) => { lightMode = !!(v > 0.5 || v === true); document.body.classList.toggle('light', lightMode); },
+    refresh: refreshThemeBtn,
+  });
+  const lookFor = (light) => {
+    const src = light ? window.PRESET_LIGHT : (window.PRESETS || [])[0];
+    const out = { theme: { light } };
+    if (src) for (const k of LOOK_KEYS) if (src[k] !== undefined) out[k] = src[k];
+    if (src && src.ribbon && (src.ribbon.fadeNear !== undefined || src.ribbon.fadeFar !== undefined)) {
+      out.ribbon = { fadeNear: src.ribbon.fadeNear, fadeFar: src.ribbon.fadeFar };
+    }
+    return out;
+  };
+  const setLightMode = (on) => {
+    record('theme:' + performance.now());   // one undo step per switch
+    applySettings(lookFor(on));
+  };
+  themeBtn.addEventListener('click', () => setLightMode(!lightMode));
+  refreshThemeBtn();
+  panel.appendChild(themeBtn);
+
   // ---- randomize scene (R). Freezes motion, drops the legibility fade and
   // picks the best-composed of several random camera / band / light / phase
   // combinations (see config.randomize and randomize() below).
@@ -197,18 +231,18 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   exportPngBtn.className = 'export';
   exportPngBtn.style.marginTop = '0';
   exportPngBtn.style.marginBottom = '6px';
-  exportPngBtn.textContent = 'Export PNG (2x)';
+  exportPngBtn.textContent = 'Export PNG (4x) (E)';
   // Shared by the panel button and the small on-scene "Export PNG" button.
-  const exportPng = (btn, idleLabel) => {
+  const exportPng = (btn, idleLabel, opts) => {
     if (!sceneControl || !sceneControl.exportPNG) return;
     btn.textContent = 'Rendering…';
     requestAnimationFrame(() => {
-      const r = sceneControl.exportPNG(2);
+      const r = sceneControl.exportPNG(C.export?.scale ?? 4, undefined, opts);
       btn.textContent = `Saved ${r.width}×${r.height}`;
       setTimeout(() => { btn.textContent = idleLabel; }, 2000);
     });
   };
-  exportPngBtn.addEventListener('click', () => exportPng(exportPngBtn, 'Export PNG (2x)'));
+  exportPngBtn.addEventListener('click', () => exportPng(exportPngBtn, 'Export PNG (4x) (E)'));
   panel.appendChild(exportPngBtn);
 
   // ---- on-scene tools (index.html #tools): stay visible when the page UI is hidden.
@@ -217,6 +251,8 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   const toolExport = document.getElementById('tool-export');
   if (toolRandom) toolRandom.addEventListener('click', () => randomize());
   if (toolExport) toolExport.addEventListener('click', () => exportPng(toolExport, 'Export PNG'));
+  const toolExportAlpha = document.getElementById('tool-export-alpha');
+  if (toolExportAlpha) toolExportAlpha.addEventListener('click', () => exportPng(toolExportAlpha, 'Export PNG (no bg)', { transparent: true }));
   // Reset: a plain reload is the surest way out of a randomized / frozen state
   // (the approved look, motion and overlay all come back).
   const toolReset = document.getElementById('tool-reset');
@@ -266,6 +302,12 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     slider(s, 'ribbon.waveDwell', 'Crest dwell', 1, 5, 0.1, () => R.waveDwell ?? 1, (v) => { R.waveDwell = v; }, (v) => v.toFixed(1));
     slider(s, 'ribbon.wave2Amp', 'Ripple', 0, 1, 0.01, () => R.wave2Amp, (v) => { R.wave2Amp = v; });
     slider(s, 'ribbon.twistAmp', 'Twist', 0, 1.5, 0.01, () => R.twistAmp, (v) => { R.twistAmp = v; });
+    // Distance fade: camera distance where the band starts / finishes dissolving into the background.
+    if (fadeDepthUniform) {
+      const fd = fadeDepthUniform.value;
+      slider(s, 'ribbon.fadeNear', 'Fade start', 1, 30, 0.5, () => fd.x, (v) => { fd.x = Math.min(v, fd.y - 0.5); }, (v) => v.toFixed(1));
+      slider(s, 'ribbon.fadeFar', 'Fade end', 2, 40, 0.5, () => fd.y, (v) => { fd.y = Math.max(v, fd.x + 0.5); }, (v) => v.toFixed(1));
+    }
   }
 
   // ---- hover ripple
@@ -405,6 +447,39 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     slider(s, 'triangles.opacity', 'Opacity', 0, 1, 0.01, () => tri.opacity, (v) => {
       tri.opacity = v; for (const m of rowMaterials) m.opacity = m.userData.rowAlpha * v;
     });
+    // Edge tint: a sheen layer that only shows at grazing angles, so the bevels
+    // and steep inner edges pick up a colour while the flat faces stay clean.
+    const tint = { hex: '4d8cff', amount: 0 };
+    const applyTint = () => {
+      for (const m of rowMaterials) {
+        m.sheen = tint.amount * m.userData.rowAlpha;
+        m.sheenColor.set('#' + tint.hex);
+        m.sheenRoughness = 0.45;
+      }
+    };
+    // Shadow underlay (main.js): dark sheet under the glass -> shadowed grooves.
+    const under = ribbonGroup.children.find((o) => o.isMesh && !o.isInstancedMesh && o.material && o.material.vertexColors);
+    if (under) {
+      const U = C.underlay || (C.underlay = { color: '3a4e78', opacity: 0, offset: 0.03 });
+      color(s, 'shadow.color', 'Shadow colour', () => String(U.color), (hex) => { U.color = hex; under.material.color.set('#' + hex); });
+      slider(s, 'shadow.opacity', 'Shadow amount', 0, 1, 0.01, () => U.opacity, (v) => {
+        U.opacity = v; under.material.opacity = v; under.visible = v > 0;
+      });
+    }
+    // Per-triangle variation (main.js facets): random tilt + body tint lean.
+    if (facetsApi) {
+      const F = C.facets || (C.facets = { jitter: 0, tint: 0, tintColor: '6f9fff' });
+      slider(s, 'facets.jitter', 'Facet tilt', 0, 6, 0.1, () => F.jitter, (v) => { F.jitter = v; }, (v) => v.toFixed(1) + '°');
+      slider(s, 'facets.tint', 'Facet tint', 0, 1, 0.01, () => F.tint, (v) => { F.tint = v; facetsApi.refresh(); });
+      color(s, 'facets.tintColor', 'Facet tint col', () => String(F.tintColor), (hex) => { F.tintColor = hex; facetsApi.refresh(); });
+    }
+    // Face vs bevel reflection strength (shader uniforms, see injectDepthFade in main.js).
+    if (glossUniforms) {
+      slider(s, 'triangles.faceGloss', 'Face gloss', 0, 1, 0.01, () => glossUniforms.face.value, (v) => { glossUniforms.face.value = v; });
+      slider(s, 'triangles.bevelBoost', 'Bevel boost', 0, 8, 0.05, () => glossUniforms.bevel.value, (v) => { glossUniforms.bevel.value = v; });
+    }
+    color(s, 'triangles.edgeTint', 'Edge tint', () => tint.hex, (hex) => { tint.hex = hex; applyTint(); });
+    slider(s, 'triangles.edgeTintAmount', 'Edge tint amt', 0, 1.5, 0.01, () => tint.amount, (v) => { tint.amount = v; applyTint(); });
     slider(s, 'triangles.glintSharpness', 'Glint softness', 0.02, 0.6, 0.01, () => C.glass.clearcoatRoughness, (v) => {
       C.glass.clearcoatRoughness = v;
       for (const m of rowMaterials) m.clearcoatRoughness = v;
@@ -420,6 +495,22 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   if (sceneControl) {
     reg('phase.time', { get: () => sceneControl.time, set: (v) => { sceneControl.time = v; }, refresh() {} });
     reg('phase.flow', { get: () => sceneControl.flow, set: (v) => { sceneControl.flow = v; }, refresh() {} });
+  }
+
+  // ---- light pulses (glowing streaks along the grooves, near the camera)
+  if (pulsesApi && C.pulses) {
+    const s = section('Light pulses', false);
+    const P = C.pulses;
+    slider(s, 'pulses.enabled', 'Enabled', 0, 1, 1, () => (P.enabled ? 1 : 0), (v) => { P.enabled = !!(v > 0.5 || v === true); pulsesApi.refresh(); }, (v) => (v > 0.5 ? 'on' : 'off'));
+    slider(s, 'pulses.count', 'Count', 1, 12, 1, () => P.count, (v) => { P.count = v; }, (v) => v.toFixed(0));
+    slider(s, 'pulses.speed', 'Speed', 1, 30, 0.5, () => P.speed, (v) => { P.speed = v; }, (v) => v.toFixed(1));
+    slider(s, 'pulses.length', 'Length', 1, 30, 0.5, () => P.length, (v) => { P.length = v; }, (v) => v.toFixed(1));
+    slider(s, 'pulses.width', 'Width', 0.05, 0.6, 0.01, () => P.width, (v) => { P.width = v; });
+    slider(s, 'pulses.intensity', 'Brightness', 0.5, 12, 0.1, () => P.intensity, (v) => { P.intensity = v; }, (v) => v.toFixed(1));
+    color(s, 'pulses.color', 'Colour', () => String(P.color), (hex) => { P.color = hex; });
+    slider(s, 'pulses.nearStart', 'Full until', 0.5, 20, 0.5, () => P.near[0], (v) => { P.near[0] = Math.min(v, P.near[1] - 0.5); }, (v) => v.toFixed(1));
+    slider(s, 'pulses.nearEnd', 'Gone by', 1, 30, 0.5, () => P.near[1], (v) => { P.near[1] = Math.max(v, P.near[0] + 0.5); }, (v) => v.toFixed(1));
+    slider(s, 'pulses.diagonalShare', 'Diagonals', 0, 1, 0.05, () => P.diagonalShare ?? 0.5, (v) => { P.diagonalShare = v; });
   }
 
   // ---- undo / redo (Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y)
@@ -467,7 +558,7 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
       if (path.startsWith('render.')) continue;   // device-specific, not part of a look
       if (path.startsWith('phase.') && !includeHidden) continue;   // animation clock: undo only, never part of a preset
       let v = h.get();
-      if (path === 'motion.paused' || path === 'dof.enabled' || path === 'fade.enabled' || path === 'hover.enabled') v = v > 0.5;   // booleans read nicer in JSON
+      if (path === 'motion.paused' || path === 'dof.enabled' || path === 'fade.enabled' || path === 'hover.enabled' || path === 'theme.light' || path === 'pulses.enabled') v = v > 0.5;   // booleans read nicer in JSON
       setPath(out, path, v);
     }
     return out;
@@ -661,10 +752,24 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
     }
     if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); return; }
     if (e.key === 'l' || e.key === 'L') { e.preventDefault(); setLoop(!sceneControl.loop.active); return; }
+    if (e.key === 't' || e.key === 'T') { e.preventDefault(); setLightMode(!lightMode); return; }
+    // E saves a PNG; feedback goes to whichever export button is on screen.
+    if (e.key === 'e' || e.key === 'E') {
+      e.preventDefault();
+      const toolsOn = toolsEl && !toolsEl.hidden;
+      if (e.shiftKey) {
+        // Shift+E: transparent background (no gradient, no shadow sheet, no bloom / DoF).
+        if (toolsOn && toolExportAlpha) exportPng(toolExportAlpha, 'Export PNG (no bg)', { transparent: true });
+        else exportPng(exportPngBtn, 'Export PNG (4x) (E)', { transparent: true });
+      } else if (toolsOn && toolExport) exportPng(toolExport, 'Export PNG');
+      else exportPng(exportPngBtn, 'Export PNG (4x) (E)');
+      return;
+    }
   });
 
   return {
-    panel, exportSettings, applySettings, applyPreset, undo, redo, randomize, setLoop,
+    panel, exportSettings, applySettings, applyPreset, undo, redo, randomize, setLoop, setLightMode,
+    get lightMode() { return lightMode; },
     get lastRoll() { return lastRoll; },
     clearHistory() { history.length = 0; future.length = 0; lastRecordPath = null; },
     get activePreset() { return activePreset; },

@@ -217,12 +217,14 @@ const R = C.ribbon;
 // Isosceles prism: base along local +x, apex at +y, centroid at the origin,
 // extrusion centred on z so the pose can flip without changing which side
 // the thickness sits on.
-function buildTriangleGeometry() {
+// apexScale stretches the top point only (1 = the band's triangle); the studio
+// prism uses a slightly taller one.
+function buildTriangleGeometry(apexScale = 1) {
   const L = R.segment, W = R.width;
   const pts = [
     new THREE.Vector2(-L / 2, -W / 3),
     new THREE.Vector2( L / 2, -W / 3),
-    new THREE.Vector2( 0,  2 * W / 3),
+    new THREE.Vector2( 0,  2 * W / 3 * apexScale),
   ];
   const inset = R.gap * 0.5 + R.bevel;
   const shrunk = pts.map((p) => {
@@ -257,14 +259,48 @@ function newBreakawayState() {
 // reads as continuing to infinity. Alpha is scaled by camera distance inside
 // the physical shader (the background is already drawn underneath).
 const fadeDepthUniform = { value: new THREE.Vector2(R.fadeDepth[0], R.fadeDepth[1]) };
+
+// Light pulses: shared uniforms (see the underlay material) and the JS-side
+// state that moves them. Each pulse is (family, line constant, head, length).
+const PULSE_MAX = 12;
+const pulseUniforms = {
+  uPulse: { value: Array.from({ length: PULSE_MAX }, () => new THREE.Vector4(0, 0, -1e3, 1)) },
+  uPulseI: { value: new Float32Array(PULSE_MAX) },
+  uPulseN: { value: 0 },
+  uPulseW: { value: 0.18 },
+  uPulseColor: { value: new THREE.Color(1, 1, 1) },
+  uPulseNear: { value: new THREE.Vector2(2.5, 9) },
+};
+const pulseState = [];   // { fam, c, head, len, speed, dir, end }
+// Bevel vs face gloss (panel: Face gloss / Bevel boost). The prism is an
+// extrusion along local z, so |normal.z| ~ 1 on the flat faces and lower on
+// the bevels; the environment reflection is scaled separately for each, which
+// is how light mode gets bright edge highlights without whiting out the faces.
+const glossUniforms = { face: { value: 1 }, bevel: { value: 0 } };
 function injectDepthFade(shader) {
   shader.uniforms.uFadeDepth = fadeDepthUniform;
+  shader.uniforms.uFaceGloss = glossUniforms.face;
+  shader.uniforms.uBevelBoost = glossUniforms.bevel;
   shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nvarying float vDepthFade;\nuniform vec2 uFadeDepth;')
+    .replace('#include <common>', '#include <common>\nvarying float vDepthFade;\nvarying float vBevel;\nuniform vec2 uFadeDepth;')
+    .replace('#include <beginnormal_vertex>',
+      '#include <beginnormal_vertex>\nvBevel = 1.0 - smoothstep(0.9, 0.995, abs(normal.z));')
     .replace('#include <project_vertex>',
       '#include <project_vertex>\nvDepthFade = 1.0 - smoothstep(uFadeDepth.x, uFadeDepth.y, -mvPosition.z);');
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nvarying float vDepthFade;')
+    .replace('#include <common>', '#include <common>\nvarying float vDepthFade;\nvarying float vBevel;\nuniform float uFaceGloss, uBevelBoost;')
+    // The include is still unexpanded at this point, so splice the chunk in
+    // ourselves with the two IBL radiance lines scaled.
+    .replace('#include <lights_fragment_maps>', THREE.ShaderChunk.lights_fragment_maps
+      .replace('radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness );',
+        'radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * mix(uFaceGloss, 1.0 + uBevelBoost, vBevel);')
+      .replace('clearcoatRadiance += getIBLRadiance( geometryViewDir, geometryClearcoatNormal, material.clearcoatRoughness );',
+        'clearcoatRadiance += getIBLRadiance( geometryViewDir, geometryClearcoatNormal, material.clearcoatRoughness ) * mix(uFaceGloss, 1.0 + uBevelBoost, vBevel);'))
+    // The edge tint (sheen) is a grazing-angle effect, so the far end of the
+    // band - seen almost edge-on - would be the bluest part. Fade it with depth
+    // so distant triangles dissolve into the background colour instead.
+    .replace('#include <lights_physical_fragment>', THREE.ShaderChunk.lights_physical_fragment
+      .replace('material.sheenColor = sheenColor;', 'material.sheenColor = sheenColor * (vDepthFade * vDepthFade);'))
     .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= vDepthFade;');
 }
 
@@ -313,8 +349,86 @@ function makeRibbon() {
     const states = [];
     for (let k = 0; k < count; k++) states.push(newBreakawayState());
     triangles.push(inst);
-    rows.push({ inst, count, states, lift: new Float32Array(count) });   // lift = current hover ripple height per triangle
+    // lift = current hover ripple height per triangle; rand / jit = fixed per-triangle
+    // randoms (0..1 and -1..1 pairs) for the facet tint variation and tilt jitter.
+    const rand = new Float32Array(count), jit = new Float32Array(count * 2);
+    for (let k = 0; k < count; k++) { rand[k] = Math.random(); jit[k * 2] = Math.random() * 2 - 1; jit[k * 2 + 1] = Math.random() * 2 - 1; }
+    rows.push({ inst, count, states, lift: new Float32Array(count), rand, jit });
   }
+  // Shadow underlay: one continuous dark sheet that follows the lattice just
+  // beneath the prisms, so it only shows through the gaps and bevels (the
+  // "shadow between the triangles"). Per-vertex alpha carries the same edge
+  // fade as the rows; the depth fade is injected like the glass.
+  const lines = R.rows + 1;
+  const uGeo = new THREE.BufferGeometry();
+  const uPos = new Float32Array(columns * lines * 3);
+  const uCol = new Float32Array(columns * lines * 4);
+  const lineAlpha = (l) => Math.max(l > 0 ? rowMaterials[l - 1].userData.rowAlpha : 0, l < R.rows ? rowMaterials[l].userData.rowAlpha : 0);
+  for (let k = 0; k < columns; k++) for (let l = 0; l < lines; l++) {
+    const i = (k * lines + l) * 4;
+    uCol[i] = uCol[i + 1] = uCol[i + 2] = 1; uCol[i + 3] = lineAlpha(l);
+  }
+  const uIdx = [];
+  for (let k = 0; k < columns - 1; k++) for (let l = 0; l < lines - 1; l++) {
+    const a = k * lines + l, b = a + lines;
+    uIdx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  uGeo.setAttribute('position', new THREE.BufferAttribute(uPos, 3).setUsage(THREE.DynamicDrawUsage));
+  uGeo.setAttribute('color', new THREE.BufferAttribute(uCol, 4));
+  // Lattice coordinates (column k, line l) so the light pulses can be drawn
+  // along the groove lines in the fragment shader.
+  const uLat = new Float32Array(columns * lines * 2);
+  for (let k = 0; k < columns; k++) for (let l = 0; l < lines; l++) { uLat[(k * lines + l) * 2] = k; uLat[(k * lines + l) * 2 + 1] = l; }
+  uGeo.setAttribute('lattice', new THREE.BufferAttribute(uLat, 2));
+  uGeo.setIndex(uIdx);
+  const uMat = new THREE.MeshBasicMaterial({
+    color: '#' + (C.underlay?.color || '3a4e78'), transparent: true, opacity: C.underlay?.opacity ?? 0,
+    vertexColors: true, side: THREE.DoubleSide, depthWrite: false,
+  });
+  // Light pulses (config.pulses): glowing streaks travelling along the groove
+  // lines, drawn on this sheet so they only show between the triangles. The
+  // three groove families in lattice space (u = column, v = line) are v = c
+  // (along the flow) and u -/+ v = c (the two diagonals).
+  uMat.onBeforeCompile = (shader) => {
+    injectDepthFade(shader);
+    Object.assign(shader.uniforms, pulseUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec2 lattice;\nvarying vec2 vLattice;\nvarying float vViewZ;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvLattice = lattice;\nvViewZ = -mvPosition.z;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        varying vec2 vLattice; varying float vViewZ;
+        uniform vec4 uPulse[${PULSE_MAX}]; uniform float uPulseI[${PULSE_MAX}];
+        uniform int uPulseN; uniform float uPulseW; uniform vec3 uPulseColor; uniform vec2 uPulseNear;`)
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+        {
+          float glow = 0.0;
+          float u = vLattice.x, v = vLattice.y;
+          for (int i = 0; i < ${PULSE_MAX}; i++) {
+            if (i >= uPulseN) break;
+            vec4 P = uPulse[i];                 // (family, c, head, length); family >= 3 travels the other way
+            float fam = mod(P.x, 3.0), dir = P.x >= 3.0 ? -1.0 : 1.0;
+            float dist, along;
+            if (fam < 0.5)      { dist = abs(v - P.y);            along = u; }
+            else if (fam < 1.5) { dist = abs(u - v - P.y) * 0.7071; along = v; }
+            else                { dist = abs(u + v - P.y) * 0.7071; along = v; }
+            along *= dir; float head = P.z * dir;
+            float tail = smoothstep(head - P.w, head, along) * (1.0 - smoothstep(head, head + 0.4, along));
+            glow += exp(-dist * dist / (uPulseW * uPulseW)) * tail * uPulseI[i];
+          }
+          glow *= 1.0 - smoothstep(uPulseNear.x, uPulseNear.y, vViewZ);   // near the camera only
+          float g = clamp(glow, 0.0, 1.0);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, uPulseColor * max(glow, 1.0), g);
+          gl_FragColor.a = max(gl_FragColor.a, g * vColor.a * vDepthFade);
+        }`);
+  };
+  uMat.customProgramCacheKey = () => 'underlay-depth-fade-pulses';
+  const underlay = new THREE.Mesh(uGeo, uMat);
+  underlay.renderOrder = -0.5;   // after the background sphere, before the glass
+  underlay.frustumCulled = false;
+  underlay.visible = uMat.opacity > 0 || !!(C.pulses && C.pulses.enabled);
+  group.add(underlay);
+
   scene.add(group);
   ribbons.push({
     group,
@@ -323,6 +437,7 @@ function makeRibbon() {
     grid: Array.from({ length: columns }, () =>
       Array.from({ length: R.rows + 1 }, () => new THREE.Vector3())),
     lastWrap: 0,
+    underlay,
   });
 }
 makeRibbon();
@@ -348,6 +463,7 @@ const _pa = new THREE.Vector3(), _pb = new THREE.Vector3(), _tan = new THREE.Vec
 const _up = new THREE.Vector3(), _side = new THREE.Vector3(), _n = new THREE.Vector3();
 const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3();
 const _mid = new THREE.Vector3(), _g = new THREE.Vector3(), _one = new THREE.Vector3(1, 1, 1);
+const _uN = new THREE.Vector3();   // surface normal for the shadow underlay
 
 // ---------------------------------------------------------------- hover ripple
 // The cursor lifts the triangle under it and its neighbours along the band's
@@ -447,6 +563,94 @@ const _hoverCand = [];
 const _hoverTarget = new THREE.Vector3();
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _qt = new THREE.Quaternion(), _e = new THREE.Euler();
 
+// Facet tint variation: each triangle's body colour is multiplied by a
+// per-instance colour between white (unchanged) and C.facets.tintColor,
+// by its own random amount scaled by C.facets.tint. Re-applied on strip wrap
+// (the randoms move with their triangles) and whenever the panel changes it.
+const _fc = new THREE.Color(), _ft = new THREE.Color();
+function applyFacetTint(rb) {
+  const F = C.facets || {};
+  const amt = F.tint || 0;
+  _ft.set('#' + (F.tintColor || '6f9fff'));
+  for (const row of rb.rows) {
+    for (let k = 0; k < row.count; k++) {
+      const a = amt * row.rand[k];
+      _fc.setRGB(1 + (_ft.r - 1) * a, 1 + (_ft.g - 1) * a, 1 + (_ft.b - 1) * a);
+      row.inst.setColorAt(k, _fc);
+    }
+    row.inst.instanceColor.needsUpdate = true;
+  }
+}
+const facetsApi = {
+  refresh() { for (const rb of ribbons) applyFacetTint(rb); requestRender(); },
+};
+
+// ---------------------------------------------------------------- light pulses
+// Runs once per posed frame (after the lattice is up to date). Finds which
+// columns are near the camera, advances every pulse, respawns the ones that
+// have run their course, and pushes the lot into the shader uniforms.
+const _pw = new THREE.Vector3();
+let pulseDt = 0;   // set from tick: 0 while frozen so pulses hold still
+function updatePulses(rb) {
+  const P = C.pulses;
+  const n = Math.min(PULSE_MAX, Math.max(0, Math.round(P.count || 0)));
+  // Column distances along the centre line -> the near / far lattice columns.
+  rb.group.updateMatrixWorld(true);
+  const mid = Math.floor(R.rows / 2);
+  // Columns count up toward (and past) the camera, so the visible far edge of
+  // the near zone is the lowest column within reach.
+  let uNear = 0, uFar = -1, dNear = Infinity;
+  for (let k = 0; k < rb.columns; k++) {
+    const d = _pw.copy(rb.grid[k][mid]).applyMatrix4(rb.group.matrixWorld).distanceTo(camera.position);
+    if (d < dNear) { dNear = d; uNear = k; }
+    if (d <= P.near[1] && uFar < 0) uFar = k;
+  }
+  if (uFar < 0) uFar = Math.max(0, uNear - 40);
+  if (uFar > uNear) [uFar, uNear] = [uNear, uFar];
+  const band = R.rows * (P.rowBand ?? 0.6) / 2;
+  const spawn = (s) => {
+    const diagonal = Math.random() < (P.diagonalShare ?? 0.5);
+    s.len = P.length * (0.7 + Math.random() * 0.6);
+    s.speed = P.speed * (0.8 + Math.random() * 0.4);
+    if (!diagonal) {
+      // Along the flow, toward the camera: from the far edge of the near zone to past the near end.
+      s.fam = 0; s.dir = 1;
+      s.c = Math.round(R.rows / 2 + (Math.random() * 2 - 1) * band);
+      s.head = uFar - Math.random() * s.len;
+      s.end = uNear + s.len + 6;
+    } else {
+      // Across the band on a diagonal, either direction, through the near zone.
+      s.fam = Math.random() < 0.5 ? 1 : 2;
+      s.dir = Math.random() < 0.5 ? 1 : -1;
+      const v0 = R.rows / 2, uMid = uFar + (uNear - uFar) * (0.35 + Math.random() * 0.5);
+      s.c = Math.round(s.fam === 1 ? uMid - v0 : uMid + v0);
+      s.c += (s.c + 0) % 2;   // groove lines sit on even constants
+      s.head = s.dir > 0 ? -s.len : R.rows + s.len;
+      s.end = s.dir > 0 ? R.rows + s.len : -s.len;
+    }
+  };
+  while (pulseState.length < n) { const s = {}; spawn(s); s.head += (Math.random() - 0.5) * 20; pulseState.push(s); }
+  pulseState.length = n;
+  const U = pulseUniforms;
+  for (let i = 0; i < n; i++) {
+    const s = pulseState[i];
+    s.head += s.dir * s.speed * pulseDt;
+    if ((s.dir > 0 && s.head > s.end) || (s.dir < 0 && s.head < s.end)) spawn(s);
+    U.uPulse.value[i].set(s.fam + (s.dir < 0 ? 3 : 0), s.c, s.head, s.len);
+    U.uPulseI.value[i] = P.intensity;
+  }
+  U.uPulseN.value = n;
+  U.uPulseW.value = P.width;
+  U.uPulseColor.value.set('#' + P.color);
+  U.uPulseNear.value.set(P.near[0], P.near[1]);
+}
+const pulsesApi = {
+  refresh() {
+    for (const rb of ribbons) rb.underlay.visible = rb.underlay.material.opacity > 0 || !!(C.pulses && C.pulses.enabled);
+    requestRender();
+  },
+};
+
 function updateRibbon(rb, t, flow) {
   const half = R.segment / 2;
   const total = R.segment;
@@ -466,8 +670,19 @@ function updateRibbon(rb, t, flow) {
         // jumps two columns every time the strip wraps.
         row.lift.copyWithin(2, 0, row.count - 2);
         row.lift[0] = 0; row.lift[1] = 0;
+        // Facet randoms ride with their triangles too; the two new ones get fresh values.
+        row.rand.copyWithin(2, 0, row.count - 2);
+        row.rand[0] = Math.random(); row.rand[1] = Math.random();
+        row.jit.copyWithin(4, 0, (row.count - 2) * 2);
+        for (let j = 0; j < 4; j++) row.jit[j] = Math.random() * 2 - 1;
       }
     }
+    if ((C.facets?.tint || 0) > 0) applyFacetTint(rb);
+    // A wrap re-labels the lattice: the same world position is now two columns
+    // higher in u. Shift the pulses with it so they hold still in the world
+    // (row pulses by head, diagonal pulses by their line constant).
+    const du = 2 * (wrap - rb.lastWrap);
+    for (const s of pulseState) { if (s.fam === 0) s.head += du; else s.c += du; }
     rb.lastWrap = wrap;
   }
 
@@ -493,7 +708,26 @@ function updateRibbon(rb, t, flow) {
     for (let l = 0; l <= R.rows; l++) {
       col[l].copy(_pa).addScaledVector(_n, (l - mid) * R.width);
     }
+    // Underlay vertices: the lattice pushed down the surface normal by the
+    // prism thickness plus a little, so it sits just under the glass.
+    if (rb.underlay.visible) {
+      const pos = rb.underlay.geometry.attributes.position.array;
+      _uN.crossVectors(_tan, _n).normalize();   // = -(surface up): points away from the camera side
+      // Just under the TOP face (offset = distance below it), so what shows
+      // through the gaps - shadow and light pulses - lines up with the grooves
+      // instead of being displaced by perspective.
+      const off = -R.extrude * 0.5 + (C.underlay?.offset ?? 0.004);
+      const lines = R.rows + 1;
+      for (let l = 0; l < lines; l++) {
+        const i = (k * lines + l) * 3;
+        pos[i] = col[l].x + _uN.x * off; pos[i + 1] = col[l].y + _uN.y * off; pos[i + 2] = col[l].z + _uN.z * off;
+      }
+    }
   }
+  if (rb.underlay.visible) rb.underlay.geometry.attributes.position.needsUpdate = true;
+  if (rb.underlay.visible && C.pulses && C.pulses.enabled) updatePulses(rb);
+
+  const jitAmt = THREE.MathUtils.degToRad(C.facets?.jitter || 0);
 
   // Hover ripple: pick the centre once per frame, then ease every triangle's
   // lift toward a gaussian of its distance from it (0 when nothing is hovered).
@@ -520,6 +754,12 @@ function updateRibbon(rb, t, flow) {
       _z.crossVectors(_x, _y);
       _m4.makeBasis(_x, _y, _z);
       _q.setFromRotationMatrix(_m4);
+      // Facet jitter: a small fixed random tilt per triangle so neighbours
+      // reflect slightly different parts of the environment.
+      if (jitAmt > 0) {
+        _qt.setFromEuler(_e.set(row.jit[k * 2] * jitAmt, row.jit[k * 2 + 1] * jitAmt, 0));
+        _q.multiply(_qt);
+      }
 
       // hover lift (eased toward the target so the wave trails the cursor)
       let target = 0;
@@ -564,6 +804,15 @@ const sunLights = { key, rim };
 // Minimal post chain: scene -> HDR target, bright-pass to half res, separable
 // blur, then composite + tone map. Tone mapping is deliberately deferred to
 // the composite so the threshold works on linear HDR values.
+// Single-triangle studio (key 1): hides the band and shows one prism at the
+// origin that the mouse rotates (drag) and zooms (wheel). Fade and DoF are
+// suppressed while it is on; E exports as usual. State lives here so the post
+// chain can read it; the mesh and handlers are set up further down.
+const single = { active: false, mesh: null, dist: 1.4, rotX: -0.55, rotY: 0.45, dragging: false, lastX: 0, lastY: 0, uiWasHidden: false };
+// Cluster scene (key 2): triangles slide in and assemble into a random joined
+// composition on the right of the frame. State here for the same reason.
+const cluster = { active: false, group: null, inst: null, t: 0, items: [] };
+
 const post = (() => {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   const hdr = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: C.quality.msaa });
@@ -644,6 +893,7 @@ const post = (() => {
       uFadeColor: { value: new THREE.Vector3() },   // display-space (sRGB) colour, mixed after tone mapping
       uFadeOpacity: { value: 0 },
       uAspect: { value: 1 },
+      uTile: { value: new THREE.Vector4(0, 0, 1, 1) },   // this render's rectangle in full-frame uv (tiled exports); x, y, w, h
     },
     vertexShader: vs,
     fragmentShader: /* glsl */`
@@ -659,6 +909,7 @@ const post = (() => {
       }
       #include <tonemapping_pars_fragment>
       uniform vec4 uFade; uniform vec3 uFadeColor; uniform float uFadeOpacity, uAspect;
+      uniform vec4 uTile;   // this render's rectangle in full-frame uv (x, y, w, h); (0,0,1,1) except for tiled exports
       // Blurred-disc coverage at this pixel, measured in frame-width units.
       float fadeCoverage(vec2 uv) {
         vec2 p = vec2(uv.x, (1.0 - uv.y) / uAspect);
@@ -678,7 +929,10 @@ const post = (() => {
       }
       void main() {
         vec3 c = texture2D(tScene, vUv).rgb;
-        float b = blurAmount(vUv);
+        // Frame-relative effects (tilt-shift line, legibility fade) use the
+        // full-frame uv, so a tiled export matches a single-pass one.
+        vec2 fuv = uTile.xy + vUv * uTile.zw;
+        float b = blurAmount(fuv);
         if (b > 0.0) {
           // 0..0.5 blends sharp -> soft, 0.5..1 blends soft -> softer
           vec3 soft = texture2D(tBlur1, vUv).rgb;
@@ -690,7 +944,7 @@ const post = (() => {
         c = ACESFilmicToneMapping(c);
         vec3 srgb = toSRGB(clamp(c, 0.0, 1.0));
         // Fade is a UI-space overlay, so it blends in display space like the CSS layer did.
-        if (uFadeOpacity > 0.0) srgb = mix(srgb, uFadeColor, fadeCoverage(vUv) * uFadeOpacity);
+        if (uFadeOpacity > 0.0) srgb = mix(srgb, uFadeColor, fadeCoverage(fuv) * uFadeOpacity);
         // Dither the 8-bit quantisation so the soft dark falloff does not band.
         srgb += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
         gl_FragColor = vec4(srgb, 1.0);
@@ -742,16 +996,16 @@ const post = (() => {
     fragmentShader: /* glsl */`
       varying vec2 vUv; uniform sampler2D tSrc; uniform vec2 uTexel; uniform float uRatio; uniform float uTaps;
       void main() {
-        vec3 sum = vec3(0.0); float n = 0.0;
+        vec4 sum = vec4(0.0); float n = 0.0;
         for (int i = 0; i < 4; i++) {
           if (float(i) >= uTaps) break;
           for (int j = 0; j < 4; j++) {
             if (float(j) >= uTaps) break;
             vec2 off = ((vec2(float(i), float(j)) + 0.5) / uTaps - 0.5) * uRatio * uTexel;
-            sum += texture2D(tSrc, vUv + off).rgb; n += 1.0;
+            sum += texture2D(tSrc, vUv + off); n += 1.0;
           }
         }
-        gl_FragColor = vec4(sum / n, 1.0);
+        gl_FragColor = sum / n;   // alpha rides along (1 for normal frames, coverage for transparent exports)
       }
     `,
     depthTest: false, depthWrite: false, toneMapped: false,
@@ -795,6 +1049,53 @@ const post = (() => {
 
   // Draw the frame to the canvas (target = null) or into a render target of
   // any size (exports); the final pass downsamples when the sizes differ.
+  // Tone map + sRGB with alpha preserved, for transparent exports. The scene
+  // target holds premultiplied colour (blended onto clear alpha 0), so it is
+  // un-premultiplied before tone mapping and written back as straight alpha.
+  const alphaToneMat = new THREE.ShaderMaterial({
+    uniforms: { tSrc: { value: null }, toneMappingExposure: { value: C.exposure } },
+    vertexShader: vs,
+    fragmentShader: /* glsl */`
+      varying vec2 vUv; uniform sampler2D tSrc;
+      #include <tonemapping_pars_fragment>
+      vec3 toSRGB(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+      void main() {
+        vec4 s = texture2D(tSrc, vUv);
+        vec3 c = s.a > 1e-4 ? s.rgb / s.a : vec3(0.0);
+        c = ACESFilmicToneMapping(c);
+        gl_FragColor = vec4(toSRGB(clamp(c, 0.0, 1.0)), clamp(s.a, 0.0, 1.0));
+      }
+    `,
+    depthTest: false, depthWrite: false, toneMapped: false,
+  });
+
+  // Transparent render: no background sphere, no shadow sheet, no bloom / DoF /
+  // FXAA (none of them carry alpha); MSAA + the supersample handle the edges.
+  function renderTransparent(target) {
+    const prevColor = renderer.getClearColor(new THREE.Color()), prevAlpha = renderer.getClearAlpha();
+    const bgWas = background.visible;
+    const underWas = ribbons.map((rb) => rb.underlay.visible);
+    background.visible = false;
+    for (const rb of ribbons) rb.underlay.visible = false;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(hdr);
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.setClearColor(prevColor, prevAlpha);
+    background.visible = bgWas;
+    ribbons.forEach((rb, i) => { rb.underlay.visible = underWas[i]; });
+
+    alphaToneMat.uniforms.tSrc.value = hdr.texture;
+    alphaToneMat.uniforms.toneMappingExposure.value = C.exposure;
+    blit(alphaToneMat, aa);
+    const ratio = size.x / target.width;
+    downMat.uniforms.tSrc.value = aa.texture;
+    downMat.uniforms.uTexel.value.set(1 / size.x, 1 / size.y);
+    downMat.uniforms.uRatio.value = ratio;
+    downMat.uniforms.uTaps.value = ratio <= 1.01 ? 1 : Math.min(4, Math.ceil(ratio) + 1);
+    blit(downMat, target);
+  }
+
   function render(target = null) {
     renderer.setRenderTarget(hdr);
     renderer.render(scene, camera);
@@ -812,7 +1113,8 @@ const post = (() => {
 
     // Depth of field copies: the first horizontal pass reads the full-res
     // frame with half-res offsets, which downsamples for free.
-    if (C.dof.enabled) {
+    const dofOn = C.dof.enabled && !single.active && !cluster.active;
+    if (dofOn) {
       blurInto(hdr.texture, dofA, dofB, halfTexel, C.dof.clampHighlights);   // only the first pass sees raw HDR
       blurInto(dofB.texture, dofA, dofB, halfTexel);
       blurInto(dofB.texture, dofC, dofD, quarterTexel);
@@ -823,7 +1125,7 @@ const post = (() => {
     compositeMat.uniforms.tBloom.value = pingA.texture;
     compositeMat.uniforms.tBlur1.value = dofB.texture;
     compositeMat.uniforms.tBlur2.value = dofD.texture;
-    compositeMat.uniforms.uDof.value.set(C.dof.focus, C.dof.width, C.dof.feather, C.dof.enabled ? 1 : 0);
+    compositeMat.uniforms.uDof.value.set(C.dof.focus, C.dof.width, C.dof.feather, dofOn ? 1 : 0);
     compositeMat.uniforms.uDofAmount.value.set(C.dof.near, C.dof.far);
     {
       const F = C.fade;
@@ -831,8 +1133,10 @@ const post = (() => {
       const ch = (i) => parseInt(hex.slice(i, i + 2), 16) / 255;
       compositeMat.uniforms.uFade.value.set(F.x / 100, F.y / 100, F.size / 200, F.blur / 100);
       compositeMat.uniforms.uFadeColor.value.set(ch(0), ch(2), ch(4));
-      compositeMat.uniforms.uFadeOpacity.value = F.enabled ? F.opacity : 0;
-      compositeMat.uniforms.uAspect.value = size.x / size.y;
+      compositeMat.uniforms.uFadeOpacity.value = F.enabled && !single.active ? F.opacity : 0;
+      // Aspect of the whole frame (a tile is a sub-rectangle of it).
+      const tile = compositeMat.uniforms.uTile.value;
+      compositeMat.uniforms.uAspect.value = (size.x / tile.z) / (size.y / tile.w);
     }
     blit(compositeMat, ldr);
 
@@ -849,7 +1153,8 @@ const post = (() => {
   }
 
   return {
-    render, resize, ldr,
+    render, renderTransparent, resize, ldr,
+    setTile(x, y, w, h) { compositeMat.uniforms.uTile.value.set(x, y, w, h); },
     get scale() { return scale; },
     setScale(s) { scale = Math.max(1, s || 1); resize(); },
   };
@@ -973,6 +1278,7 @@ function tick() {
     applySize();                   // switch between the still and live budgets
   }
 
+  pulseDt = paused ? 0 : dt;
   if (!paused) {
     if (loop.active) {
       // Exact loop (see config.loop): the flow advances a whole number of
@@ -994,18 +1300,29 @@ function tick() {
 
   fpsTick(now);
 
+  if (single.active) {
+    // Studio camera: straight at the origin; the mouse rotates the prism, not the camera.
+    camera.position.set(0, 0, single.dist);
+    camera.lookAt(0, 0, 0);
+    single.mesh.rotation.set(single.rotX, single.rotY, 0);
+  }
+  if (cluster.active) {
+    camera.position.set(0, 0, C.cluster.dist);
+    camera.lookAt(0, 0, 0);
+    if (!paused) { cluster.t += dt; updateCluster(); needsRender = true; }
+  }
   if (needsRender) renderFrame();
   requestAnimationFrame(tick);
 }
 // Pose the band for the current clock and draw one frame (also used by the
 // randomizer to render candidates synchronously).
-function renderFrame(target = null) {
+function renderFrame(target = null, transparent = false) {
   renderer.info.reset();   // per-frame draw call / triangle totals for the diagnostics overlay
   const t = sceneTime;
   bgUniforms.uTime.value = t;
   updateBreakaway(t);
   for (const rb of ribbons) updateRibbon(rb, t, flowDist);
-  post.render(target);
+  if (transparent) post.renderTransparent(target); else post.render(target);
   needsRender = false;
 }
 
@@ -1036,30 +1353,54 @@ const sceneControl = {
   // Export the current scene (canvas only, no page UI) as a PNG at `scale` x
   // the frame's css size. Rendered at the still ratio (at least `scale`) and
   // downsampled, so bevel lines stay clean. Returns the output size.
-  exportPNG(scale = 2, filename) {
+  // Tiled export: the output (css size x `scale`) is rendered as a grid of
+  // tiles, each supersampled `ss` times and kept under the pixel budget, with
+  // an overlap margin so the screen-space blurs (bloom, DoF, FXAA) never see a
+  // tile edge. camera.setViewOffset carves the sub-frustum; the composite gets
+  // the tile's full-frame rectangle so the tilt-shift line and the fade land
+  // where they would in a single render. Tiles are stitched into one canvas.
+  exportPNG(scale = 2, filename, { transparent = false } = {}) {
     const cssW = container.clientWidth, cssH = container.clientHeight;
     const outW = Math.round(cssW * scale), outH = Math.round(cssH * scale);
-    // Render as large as the budget allows (at least the output size, up to
-    // 2x it) and let the post chain box-filter down into the export target.
-    const renderRatio = Math.max(scale, Math.min(scale * 2, Math.sqrt(Q.stillMaxPixels / (cssW * cssH))));
-    renderer.setPixelRatio(renderRatio);
-    renderer.setSize(cssW, cssH);
-    post.setScale(1);
-    const out = new THREE.WebGLRenderTarget(outW, outH);
-    renderFrame(out);
-    const buf = new Uint8Array(outW * outH * 4);
-    renderer.readRenderTargetPixels(out, 0, 0, outW, outH, buf);
-    out.dispose();
-    applySize();   // back to the live / still setup
-    // GL rows run bottom-up; flip into an ImageData.
-    const img = new ImageData(outW, outH);
-    const row = outW * 4;
-    for (let y = 0; y < outH; y++) img.data.set(buf.subarray((outH - 1 - y) * row, (outH - y) * row), y * row);
-    for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+    const ss = C.export?.supersample ?? 2;
+    const margin = Math.ceil((C.export?.marginPx ?? 160) / ss);           // output px of overlap on every side
+    const budget = Q.stillMaxPixels;
+    // Grid: the smallest n x n (then trimmed per axis) whose tiles fit the budget at ss.
+    let nx = 1, ny = 1;
+    const fits = (nx, ny) => (Math.ceil(outW / nx) + 2 * margin) * (Math.ceil(outH / ny) + 2 * margin) * ss * ss <= budget;
+    while (!fits(nx, ny) && nx * ny < 64) { if (outW / nx >= outH / ny) nx++; else ny++; }
     const cv = document.createElement('canvas');
     cv.width = outW; cv.height = outH;
-    cv.getContext('2d').putImageData(img, 0, 0);
-    const name = filename || ('controlplane-scene-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.png');
+    const ctx = cv.getContext('2d');
+    post.setScale(1);
+    renderer.setPixelRatio(ss);
+    camera.aspect = outW / outH;
+    let target = null;
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      const x0 = Math.floor(outW * i / nx), x1 = Math.floor(outW * (i + 1) / nx);
+      const y0 = Math.floor(outH * j / ny), y1 = Math.floor(outH * (j + 1) / ny);
+      const rx = x0 - margin, ry = y0 - margin, rw = x1 - x0 + 2 * margin, rh = y1 - y0 + 2 * margin;
+      camera.setViewOffset(outW, outH, rx, ry, rw, rh);     // sub-frustum (offset y is from the top)
+      renderer.setSize(rw, rh, false);                      // drawing buffer rw*ss x rh*ss
+      post.resize();
+      post.setTile(rx / outW, 1 - (ry + rh) / outH, rw / outW, rh / outH);
+      if (!target || target.width !== rw || target.height !== rh) { if (target) target.dispose(); target = new THREE.WebGLRenderTarget(rw, rh); }
+      renderFrame(target, transparent);
+      const buf = new Uint8Array(rw * rh * 4);
+      renderer.readRenderTargetPixels(target, 0, 0, rw, rh, buf);
+      // GL rows run bottom-up; flip, then paste only the un-margined core.
+      const img = new ImageData(rw, rh);
+      const row = rw * 4;
+      for (let y = 0; y < rh; y++) img.data.set(buf.subarray((rh - 1 - y) * row, (rh - y) * row), y * row);
+      if (!transparent) for (let k = 3; k < img.data.length; k += 4) img.data[k] = 255;
+      ctx.putImageData(img, rx, ry, margin, margin, x1 - x0, y1 - y0);
+    }
+    if (target) target.dispose();
+    camera.clearViewOffset();
+    post.setTile(0, 0, 1, 1);
+    applySize();   // back to the live / still setup (restores aspect, size, scale)
+    const renderRatio = ss * scale;
+    const name = filename || ('controlplane-scene-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + (transparent ? '-transparent' : '') + '.png');
     cv.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1067,7 +1408,7 @@ const sceneControl = {
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     }, 'image/png');
-    return { width: outW, height: outH, renderedAt: [Math.round(cssW * renderRatio), Math.round(cssH * renderRatio)], name };
+    return { width: outW, height: outH, renderedAt: [Math.round(cssW * renderRatio), Math.round(cssH * renderRatio)], tiles: [nx, ny], name };
   },
   // Smallest distance from the camera to any lattice point of the posed band.
   clearance() {
@@ -1138,6 +1479,253 @@ window.glassDebug = {
   requestRender,
 };
 
+// ---------------------------------------------------------------- single triangle studio (1)
+// One prism sharing the centre row's material, so every Triangles / lighting
+// edit in the panel applies to it. Drag to rotate, wheel to zoom, E to export.
+const singleBase = rowMaterials[Math.floor(R.rows / 2)];
+// Two passes so the prism reads as a solid piece of glass: the back faces
+// (far bevels and underside) are drawn first, then the front faces blend over
+// them, so the far edges show through the body. Neither writes depth.
+const singleGeo = buildTriangleGeometry(C.single?.apex ?? 1.2);   // taller middle point than the band's triangles
+const singleBack = new THREE.Mesh(singleGeo, singleBase), singleFront = new THREE.Mesh(singleGeo, singleBase);
+singleBack.renderOrder = 0; singleFront.renderOrder = 1;
+singleBack.frustumCulled = singleFront.frustumCulled = false;
+single.mesh = new THREE.Group();
+single.mesh.add(singleBack, singleFront);
+single.mesh.visible = false;
+scene.add(single.mesh);
+const uiOverlay = document.querySelector('.ui');
+function setSingle(on) {
+  if (on === single.active) return;
+  if (on && cluster.active) setCluster(false);
+  single.active = on;
+  for (const rb of ribbons) rb.group.visible = !on;
+  single.mesh.visible = on;
+  if (on) {
+    // Fresh copies of the current centre-row look, more see-through than the
+    // band (config.single.opacity scales the body opacity).
+    for (const [mesh, side] of [[singleBack, THREE.BackSide], [singleFront, THREE.FrontSide]]) {
+      if (mesh.material !== singleBase) mesh.material.dispose();
+      const m = singleBase.clone();
+      m.onBeforeCompile = singleBase.onBeforeCompile;
+      m.customProgramCacheKey = () => singleBase.customProgramCacheKey() + '-side' + side;
+      m.userData = singleBase.userData;
+      m.side = side;
+      m.depthWrite = false;
+      m.opacity = singleBase.opacity * (C.single?.opacity ?? 0.75);
+      mesh.material = m;
+    }
+    single.uiWasHidden = !!(uiOverlay && uiOverlay.hidden);
+    if (uiOverlay) uiOverlay.hidden = true;
+  } else {
+    if (uiOverlay) uiOverlay.hidden = single.uiWasHidden;
+    applyCamera();
+  }
+  requestRender();
+}
+frameEl.addEventListener('pointerdown', (e) => {
+  if (!single.active || e.button !== 0) return;
+  single.dragging = true; single.lastX = e.clientX; single.lastY = e.clientY;
+});
+window.addEventListener('pointermove', (e) => {
+  if (!single.active || !single.dragging) return;
+  single.rotY += (e.clientX - single.lastX) * 0.01;
+  single.rotX += (e.clientY - single.lastY) * 0.01;
+  single.lastX = e.clientX; single.lastY = e.clientY;
+  requestRender();
+});
+window.addEventListener('pointerup', () => { single.dragging = false; });
+frameEl.addEventListener('wheel', (e) => {
+  if (!single.active) return;
+  e.preventDefault();
+  single.dist = Math.min(5, Math.max(0.5, single.dist * (e.deltaY > 0 ? 1.1 : 0.9)));
+  requestRender();
+}, { passive: false });
+window.addEventListener('keydown', (e) => {
+  if (e.key !== '1' || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !['range', 'color', 'checkbox', 'button'].includes(t.type)))) return;
+  e.preventDefault();
+  setSingle(!single.active);
+});
+
+// ---------------------------------------------------------------- cluster scene (2)
+// A connected random patch of the same triangular lattice as the band, laid
+// flat, tilted toward the camera and parked on the right of the frame. Each
+// triangle starts well outside the frame with a random tilt and slides into
+// its slot with an ease-out, staggered so the composition grows from the middle.
+cluster.group = new THREE.Group();
+cluster.group.visible = false;
+scene.add(cluster.group);
+const _cq = new THREE.Quaternion(), _cq2 = new THREE.Quaternion(), _cp = new THREE.Vector3(), _cs = new THREE.Vector3(1, 1, 1);
+
+function buildCluster() {
+  const K = C.cluster;
+  const half = R.segment / 2, W = R.width;
+  // Lattice cell (k, r) -> its three corner points (same parity rule as the band).
+  const point = (k, l) => new THREE.Vector3(k * half, l * W, 0);
+  const corners = (k, r) => [
+    point(k,     r + ((k     + r) % 2)),
+    point(k + 1, r + ((k + 1 + r) % 2)),
+    point(k + 2, r + ((k + 2 + r) % 2)),
+  ];
+  // Grow a connected blob from the centre cell: frontier cells join with
+  // probability `fill`, so the outline stays organic rather than a hexagon.
+  const cols = K.columns, rows = K.rows;
+  const key = (k, r) => k + ',' + r;
+  const chosen = new Map();
+  const frontier = [];
+  const start = [Math.floor(cols / 2) - 1, Math.floor(rows / 2)];
+  const push = (k, r) => { if (k >= 0 && k < cols && r >= 0 && r < rows && !chosen.has(key(k, r))) frontier.push([k, r]); };
+  chosen.set(key(...start), start);
+  const neighbours = (k, r) => [[k - 1, r], [k + 1, r], (k + r) % 2 === 0 ? [k, r - 1] : [k, r + 1]];
+  for (const [nk, nr] of neighbours(...start)) push(nk, nr);
+  let guard = 0;
+  while (chosen.size < K.cells && frontier.length && guard++ < 5000) {
+    const i = Math.floor(Math.random() * frontier.length);
+    const [k, r] = frontier.splice(i, 1)[0];
+    if (chosen.has(key(k, r))) continue;
+    if (Math.random() > K.fill) { frontier.push([k, r]); if (frontier.length > 400) frontier.shift(); continue; }
+    chosen.set(key(k, r), [k, r]);
+    for (const [nk, nr] of neighbours(k, r)) push(nk, nr);
+  }
+
+  // Shape override: one big upward triangle of `size` rows built from the small
+  // ones (row r holds 2(size-1-r)+1 cells, alternating up / down, so the big
+  // outline is a clean equilateral triangle).
+  let cells = [...chosen.values()];
+  if (K.shape === 'triangle') {
+    cells = [];
+    const n = Math.max(1, Math.round(K.size || 6));
+    for (let r = 0; r < n; r++) for (let k = r; k <= 2 * n - 2 - r; k++) cells.push([k, r]);
+  }
+
+  // Poses. Centre the patch on the group origin.
+  const centre = new THREE.Vector3();
+  const poses = cells.map(([k, r]) => {
+    const [A, B, Cc] = corners(k, r);
+    const g = A.clone().add(B).add(Cc).multiplyScalar(1 / 3);
+    centre.add(g);
+    const x = Cc.clone().sub(A).normalize();
+    const mid = A.clone().add(Cc).multiplyScalar(0.5);
+    const y = B.clone().sub(mid); y.addScaledVector(x, -y.dot(x)).normalize();
+    const z = new THREE.Vector3().crossVectors(x, y);
+    const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+    return { g, q };
+  });
+  centre.multiplyScalar(1 / Math.max(1, poses.length));
+  let maxD = 1e-6;
+  for (const p of poses) { p.g.sub(centre); maxD = Math.max(maxD, p.g.length()); }
+
+  // The shape is present from the first frame. Each triangle bobs up and down
+  // along the group normal with its own phase and a whole number of cycles per
+  // loop period, so the motion repeats exactly every C.loop.period seconds
+  // while the big outline stays intact.
+  const maxCycles = Math.max(1, Math.round(K.bob?.cycles ?? 2));
+  cluster.items = poses.map((p) => ({
+    g: p.g, q: p.q,
+    phase: Math.random() * Math.PI * 2,
+    cycles: 1 + Math.floor(Math.random() * maxCycles),
+    amp: (K.bob?.amp ?? 0.08) * (0.6 + Math.random() * 0.8),
+  }));
+
+  // One instanced mesh sharing the centre row's material.
+  if (cluster.inst) { cluster.group.remove(cluster.inst); cluster.inst.dispose(); }
+  const inst = new THREE.InstancedMesh(triGeo, rowMaterials[Math.floor(R.rows / 2)], cluster.items.length);
+  inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  inst.frustumCulled = false;
+  cluster.inst = inst;
+  cluster.group.add(inst);
+  cluster.group.position.set(K.offsetX, K.offsetY, 0);
+  cluster.group.rotation.set(K.tiltX, K.tiltY, K.tiltZ || 0);
+  cluster.group.scale.setScalar(K.scale);
+  cluster.t = 0;
+  updateCluster();
+}
+
+// Pose every triangle and turn the whole shape for the current clock. Both
+// are periodic in C.loop.period: the group makes whole turns / whole wobble
+// cycles per period, each triangle a whole number of bob cycles. Returns true
+// (always animating).
+function updateCluster() {
+  if (!cluster.inst) return false;
+  const K = C.cluster, P = C.loop.period;
+  const t = cluster.t;
+  const w = (2 * Math.PI * t) / P;
+  cluster.items.forEach((it, i) => {
+    _cp.copy(it.g);
+    _cp.z += it.amp * Math.sin(w * it.cycles + it.phase);
+    _m4.compose(_cp, it.q, _cs);
+    cluster.inst.setMatrixAt(i, _m4);
+  });
+  cluster.inst.instanceMatrix.needsUpdate = true;
+  // Whole-shape rotation: base tilt (drag-adjustable) + full turns + wobble.
+  const turns = K.turns || {}, wob = K.wobble || {};
+  cluster.group.rotation.set(
+    K.tiltX + (turns.x || 0) * w + (wob.x || 0) * Math.sin(w * (wob.cyclesX || 1)),
+    K.tiltY + (turns.y || 0) * w + (wob.y || 0) * Math.sin(w * (wob.cyclesY || 1) + 1.7),
+    (K.tiltZ || 0) + (turns.z || 0) * w + (wob.z || 0) * Math.sin(w * (wob.cyclesZ || 1) + 0.9));
+  return true;
+}
+
+// Drag to rotate the composition (writes straight into config.cluster.tiltX /
+// tiltY so the readout shows values that can be pasted back as the default).
+const clusterRot = document.createElement('div');
+clusterRot.id = 'cluster-rot';
+clusterRot.hidden = true;
+clusterRot.style.cssText = 'position:absolute;left:var(--pad);top:calc(clamp(18px, 2vw, 36px) + 56px + 10px + 38px);z-index:3;' +
+  'padding:6px 10px;border-radius:6px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);color:#fff;' +
+  'font:300 12px/1.4 ui-monospace,Consolas,monospace;pointer-events:none;';
+frameEl.appendChild(clusterRot);
+function updateClusterReadout() {
+  const K = C.cluster;
+  clusterRot.textContent = `cluster tiltX ${K.tiltX.toFixed(3)} · tiltY ${K.tiltY.toFixed(3)} · tiltZ ${(K.tiltZ || 0).toFixed(3)} · drag to rotate · C to copy`;
+}
+function applyClusterRotation() {
+  updateCluster();          // rotation is composed from the base tilt each frame
+  updateClusterReadout();
+}
+frameEl.addEventListener('pointerdown', (e) => {
+  if (!cluster.active || e.button !== 0) return;
+  cluster.dragging = true; cluster.lastX = e.clientX; cluster.lastY = e.clientY;
+});
+window.addEventListener('pointermove', (e) => {
+  if (!cluster.active || !cluster.dragging) return;
+  C.cluster.tiltY += (e.clientX - cluster.lastX) * 0.006;
+  C.cluster.tiltX += (e.clientY - cluster.lastY) * 0.006;
+  cluster.lastX = e.clientX; cluster.lastY = e.clientY;
+  applyClusterRotation();
+  requestRender();
+});
+window.addEventListener('pointerup', () => { cluster.dragging = false; });
+
+function setCluster(on) {
+  if (on === cluster.active) return;
+  if (on && single.active) setSingle(false);
+  cluster.active = on;
+  for (const rb of ribbons) rb.group.visible = !on;
+  cluster.group.visible = on;
+  clusterRot.hidden = !on;
+  if (on) { buildCluster(); applyClusterRotation(); } else applyCamera();
+  requestRender();
+}
+window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.isContentEditable || (t.tagName === 'INPUT' && !['range', 'color', 'checkbox', 'button'].includes(t.type)))) return;
+  if (e.key === '2') { e.preventDefault(); setCluster(!cluster.active); return; }
+  // In the cluster scene R builds a new composition instead of rolling the band.
+  if ((e.key === 'r' || e.key === 'R') && cluster.active) { e.preventDefault(); e.stopImmediatePropagation(); buildCluster(); requestRender(); return; }
+  // C copies the current rotation as JSON for pasting back into config.cluster.
+  if ((e.key === 'c' || e.key === 'C') && cluster.active) {
+    e.preventDefault();
+    const K = C.cluster;
+    const json = JSON.stringify({ tiltX: +K.tiltX.toFixed(3), tiltY: +K.tiltY.toFixed(3), tiltZ: +((K.tiltZ || 0).toFixed(3)) });
+    navigator.clipboard?.writeText(json).then(() => { clusterRot.textContent = 'copied ' + json; }, () => { clusterRot.textContent = json; });
+    console.log('cluster rotation', json);
+  }
+}, true);
+
 // Attributes panel: press A to toggle.
 const panelApi = initPanel({
   C, R,
@@ -1150,6 +1738,10 @@ const panelApi = initPanel({
   applyCamera,
   sunLights,
   sceneControl,
+  glossUniforms,
+  fadeDepthUniform,
+  facetsApi,
+  pulsesApi,
   requestRender,
   getPixelRatio: () => livePixelRatio,
   setPixelRatio: (r) => { livePixelRatio = r; applySize(); },
@@ -1157,6 +1749,13 @@ const panelApi = initPanel({
 window.glassDebug.panel = panelApi;   // panel.applySettings(json) / applyPreset(i) / exportSettings()
 window.glassDebug.sceneControl = sceneControl;   // clocks, loop, renderFrame, exportPNG
 window.glassDebug.diag = diag;                   // diag.reportText() / diag.setVisible(true)
+window.glassDebug.pulses = { uniforms: pulseUniforms, state: pulseState };
+window.glassDebug.single = single;               // single-triangle studio state (key 1)
+window.glassDebug.setSingle = setSingle;
+window.glassDebug.cluster = cluster;             // cluster scene state (key 2)
+window.glassDebug.setCluster = setCluster;
+window.glassDebug.buildCluster = buildCluster;
+window.glassDebug.updateCluster = updateCluster;
 
 // The site loads with preset 1 (presets.js) applied over the config.js
 // defaults, before the first frame is rendered so there is no flash.
