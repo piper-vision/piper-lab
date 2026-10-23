@@ -150,36 +150,48 @@ export function initPanel({ C, R, ribbonGroup, envStudio, bgUniforms, rowMateria
   // ---- 15 second loop (L). Toggles the exact-period mode in main.js (see
   // config.loop); the label shows where in the loop the scene is, so a manual
   // recording can be trimmed to whole loops.
-  const loopBtn = document.createElement('button');
-  loopBtn.className = 'export';
-  loopBtn.style.marginTop = '0';
-  loopBtn.style.marginBottom = '6px';
-  const loopLabel = () => `${C.loop ? C.loop.period : 15} Second Loop`;
-  loopBtn.textContent = loopLabel();
+  // One button per loop length; the active one shows the loop clock. L toggles
+  // the loop at whichever length was used last (config.loop.period).
+  const LOOP_PERIODS = [8, 10, 15];
+  const loopRow = document.createElement('div');
+  loopRow.className = 'presets';
+  loopRow.style.marginTop = '0';
+  const loopButtons = new Map();
+  for (const s of LOOP_PERIODS) {
+    const b = document.createElement('button');
+    b.textContent = `${s}s Loop`;
+    b.addEventListener('click', () => setLoop(!(sceneControl.loop.active && C.loop.period === s), s));
+    loopRow.appendChild(b);
+    loopButtons.set(s, b);
+  }
+  panel.appendChild(loopRow);
+  const refreshLoopButtons = () => {
+    for (const [s, b] of loopButtons) {
+      const active = sceneControl.loop.active && C.loop.period === s;
+      b.classList.toggle('active', active);
+      if (!active) b.textContent = `${s}s Loop`;
+    }
+  };
   let loopTimer = 0;
-  const setLoop = (on) => {
+  const setLoop = (on, period = C.loop.period) => {
     if (!sceneControl || !sceneControl.startLoop) return;
     // Recording aid: the on-scene Randomize / Export PNG buttons go away while
     // looping and come back when it stops (U also restores them).
     if (toolsEl) toolsEl.hidden = on;
+    clearInterval(loopTimer);
     if (on) {
+      C.loop.period = period;
       sceneControl.startLoop();
-      loopBtn.classList.add('active');
-      clearInterval(loopTimer);
       loopTimer = setInterval(() => {
-        const P = C.loop.period, t = sceneControl.loop.t;
-        loopBtn.textContent = `${loopLabel()} · ${(t % P).toFixed(1)} s · loop ${Math.floor(t / P) + 1}`;
+        const P = C.loop.period, t = sceneControl.loop.t, b = loopButtons.get(P);
+        if (b) b.textContent = `${P}s · ${(t % P).toFixed(1)} s · loop ${Math.floor(t / P) + 1}`;
       }, 100);
     } else {
       sceneControl.stopLoop();
-      loopBtn.classList.remove('active');
-      clearInterval(loopTimer);
-      loopBtn.textContent = loopLabel();
     }
+    refreshLoopButtons();
     requestRender();
   };
-  loopBtn.addEventListener('click', () => setLoop(!sceneControl.loop.active));
-  panel.appendChild(loopBtn);
 
   // ---- light mode (T). Applies the colour keys of PRESET_LIGHT (or the same
   // keys of the dark preset) and flips the overlay via body.light. The state

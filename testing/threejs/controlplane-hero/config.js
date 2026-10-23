@@ -158,7 +158,7 @@ window.CONFIG = {
     bob: { amp: 0.08, cycles: 2 },     // small triangles rise / fall along the normal: amplitude (world units), max cycles per loop
   },
 
-  // "15 Second Loop" (panel button / L): the scene becomes exactly periodic so
+  // Loop buttons (8 / 10 / 15 s in the panel, L toggles): the scene becomes exactly periodic so
   // the frame at `period` seconds matches the frame the loop started on.
   //  - flow: the triangle travel speed snaps to a whole number of triangle
   //    lengths per period (0.56 -> 0.55 units/s at 15 s), so the strip lands
@@ -167,7 +167,7 @@ window.CONFIG = {
   //    cycle in 15 s, so instead their clock swings sinusoidally around the
   //    start time (forward, then back, seamlessly). `swing` scales how far it
   //    wanders: 1 = the same speed as normal at the loop point.
-  loop: { period: 15, swing: 1.0 },
+  loop: { period: 15, swing: 1.0 },   // period is set by the panel loop buttons (8 / 10 / 15 s); the cluster scene loops on it too
 
   // Hover ripple: the triangle under the cursor and its neighbours lift along
   // the band's normal with a gaussian falloff, easing in and out so the wave
