@@ -46,6 +46,7 @@ export const CONFIG = {
   introLockScroll: true,     // no scrolling until the H has landed
 
   // ---- hover tumble (active once the H has settled)
+  hoverKick: false,          // true = sweeping the cursor through a block knocks it about (the settings below)
   tumbleFree: 0.5,           // seconds a kicked bar moves freely before being pulled back
   tumbleCooldown: 0.25,      // min seconds between kicks on the same bar
   kickUp: 3.0,               // upward velocity at full strength

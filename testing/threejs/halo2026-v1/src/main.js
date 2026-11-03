@@ -441,6 +441,7 @@ function pointerOnPlane(out) {
 function hoverKick(t) {
   if (!pointerMoved) return;
   pointerMoved = false;
+  if (!C.hoverKick) return;   // interaction switched off
   // no knocking bars about once the scroll transition has started
   if (!settled || sp > 0.001) { haveLastFloor = false; return; }
   const cur = pointerOnPlane(new THREE.Vector3());
