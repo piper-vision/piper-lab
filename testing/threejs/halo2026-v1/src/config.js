@@ -23,7 +23,7 @@ export const CONFIG = {
   // ---- bars (the H is the gap between them: two full-length outer bars and a
   // middle bar split in two, all lying on the floor along Z)
   barWidth: 1,
-  barHeight: 1.2,            // extrusion height
+  barHeight: 1,              // extrusion height; = barWidth so the ends are square and blocks sit flush when stood on end
   barLength: 6.62,           // outer bars (1125 / 170)
   barSpacing: 2.78,          // centre-to-centre distance between neighbouring bars (472 / 170)
   middleGap: 1.22,           // the H's crossbar: gap between the two middle pieces (208 / 170)
@@ -34,14 +34,17 @@ export const CONFIG = {
   gridDrawStagger: 0.14,     // seconds between successive lines of one family
   gridFamilyDelay: 0.25,     // second family starts this long after the first
 
-  // ---- intro (seconds from page load): frame -> stack -> H, ~5 s; scrolling unlocks when the H lands
-  // jump flight times / heights per block are in JUMPS in main.js
+  // ---- intro (seconds from page load): frame -> staggered deck -> upright window -> H, ~5.9 s;
+  // scrolling unlocks when the H lands. Formations and per-block flight times /
+  // heights are FORMATIONS and JUMPS in main.js
   introPopAt: 0.7,           // first block starts rising out of the floor (as the floor lines draw)
   introPopStagger: 0.1,      // between blocks popping up
   introPopDur: 0.55,         // seconds to rise (overshoots a touch, then settles)
-  introJump1At: 1.9,         // frame -> stack
-  introJump2At: 3.35,        // stack -> H
-  introStack: [1.6, 0.85],   // stack: short blocks stand at x = +/- this[0], long ones rest across them at z = +/- this[1]
+  introJump1At: 1.7,         // frame -> deck
+  introJump2At: 3.05,        // deck -> window
+  introJump3At: 4.55,    // window -> H
+  introBJumps: [1.7, 2.95, 4.2],   // Option B (spells HALO): H -> A, A -> L, L -> O start times
+  introWindowLift: 1.4,     // how far the camera rises to keep the tall window on screen
   introBounce: [0.12, 0.3],  // landing hop: height, seconds
   introLockScroll: true,     // no scrolling until the H has landed
 

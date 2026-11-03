@@ -54,6 +54,7 @@ let sp = 0, spTarget = 0;   // scroll progress 0..1 (smoothed / raw)
 let face = 0;               // 0 = iso view, 1 = flat face-on view
 let camDist = 1;            // virtual camera distance from the H's plane (see above)
 let showH = true;           // false once the camera is inside the crossbar
+let introLift = 0;          // camera rise while the intro's tall window formation stands
 let throughDist = 0.1;      // camDist at which the camera is through the H (set by placeCamera)
 
 // Cursor: -1..1 across the window (y up), eased so the scene drifts after it.
@@ -95,15 +96,17 @@ function placeCamera(azDeg = curAz) {
   const az = THREE.MathUtils.degToRad(lerp(azDeg, azTop, face) + mouseX * C.mouseOrbit[0] * iso);
   camShiftX = mouseX * C.mouseShift[0] * face;
   camShiftY = mouseY * C.mouseShift[1] * face;
-  // visible height: iso framing -> bars just touching top and bottom -> inside the crossbar
+  // visible height: iso framing -> resting formation filling the screen -> inside its opening
   const isoH = (aspect >= 1 ? C.viewWidth : C.viewWidthPortrait) / aspect;
-  const flatH = Math.max(L, ((2 * S + W) * 1.08) / aspect);
-  // inside the crossbar the view is all cream: stop zooming the H there and hide it
-  const minDist = (C.flyEndFill * Math.min(C.middleGap, (2 * S - W) / aspect)) / flatH;
+  const flatH = flatFrameH(aspect);
+  // inside the opening (the H's crossbar / the O's hole) the view is all cream:
+  // stop zooming the blocks there and hide them
+  const [holeX, holeZ] = HOLES[FINAL];
+  const minDist = (C.flyEndFill * Math.min(holeZ, holeX / aspect)) / flatH;
   showH = camDist > minDist;
   throughDist = minDist;
   const frameH = lerp(isoH, flatH, face) * Math.max(camDist, minDist);
-  target.set(0, lerp(H / 2, H, face), 0);   // flat view frames the bar tops
+  target.set(0, lerp(H / 2, H, face) + introLift, 0);   // flat view frames the bar tops
 
   camera.position
     .set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az))
@@ -244,73 +247,128 @@ const bodies = [
 const START_Y = -H - 0.02;   // fully under the floor
 
 // ---------------------------------------------------------------------------
-// Intro: the blocks show off how configurable they are before settling in the
-// H (where scrolling unlocks). Keyframed rather than simulated, so every
-// landing is exact:
-//   pop    they rise out of the floor as a closed rectangular frame
-//   jump 1 leap, barrel-roll and land as a stack: the short blocks standing on
-//          the floor, the long blocks resting across them (a #)
-//   jump 2 leap and roll again into the final H, with a small landing bounce
+// Intro: the blocks show off how configurable they are before settling into
+// the formation the scroll story starts from (scrolling unlocks there).
+// Keyframed rather than simulated, so every landing is exact. Two versions,
+// picked with the Option A / Option B buttons (?option=b in the URL):
+//   A  frame -> staggered deck -> upright window -> H
+//        (the window: the bottom long block lands first, the short blocks tip
+//        up and stand on its ends, the top long block lands across them)
+//   B  spells HALO: H -> A -> L -> O, and the scroll story starts from the O
 // A pose is { x, z: centre on the floor, y: underside height, yaw: turn about
-// the vertical (0 = long axis along Z) }. Bodies are [long, short, short, long].
+// the vertical (0 = long axis along Z), pitch: tip about X (PI/2 = standing on
+// end) }. Bodies are [long, short, short, long]. Letters read from above with
+// their top towards -Z.
 // ---------------------------------------------------------------------------
 // Quarter turns are -90deg (same resting pose, the blocks are symmetric): turning
 // that way sweeps them across the view, whereas +90deg passes through the camera's
 // own direction (azimuth ~43deg) and a long block seen end-on reads as a tall column.
-const QT = -Math.PI / 2;
+const QT = -Math.PI / 2, UP = Math.PI / 2;
 const frameX = ML / 2 + W / 2;   // long sides just outside the short ends
 const frameZ = L / 2 - W / 2;    // short ends tucked inside the long sides' ends
-const [stackX, stackZ] = C.introStack;
+const deckZ = L / 2 - ML / 2;    // deck: short blocks flush with opposite ends of the long ones
+const winX = L / 2 - W / 2;      // window: short blocks stand on the bottom block's ends
+const pose = (x, z, y = 0, yaw = 0, pitch = 0) => ({ x, z, y, yaw, pitch });
 const FORMATIONS = {
-  frame: [
-    { x: -frameX, z: 0, y: 0, yaw: 0 }, { x: 0, z: -frameZ, y: 0, yaw: QT },
-    { x: 0, z: frameZ, y: 0, yaw: QT }, { x: frameX, z: 0, y: 0, yaw: 0 },
-  ],
-  stack: [
-    { x: 0, z: -stackZ, y: H, yaw: QT }, { x: -stackX, z: 0, y: 0, yaw: 0 },
-    { x: stackX, z: 0, y: 0, yaw: 0 }, { x: 0, z: stackZ, y: H, yaw: QT },
-  ],
-  h: bodies.map(b => ({ x: b.x, z: b.z, y: 0, yaw: 0 })),
+  frame: [pose(-frameX, 0), pose(0, -frameZ, 0, QT), pose(0, frameZ, 0, QT), pose(frameX, 0)],   // also the O
+  deck: [pose(-1.5, 0), pose(0.5, -deckZ), pose(-0.5, deckZ), pose(1.5, 0)],
+  window: [pose(0, 0, 0, QT), pose(winX, 0, H, 0, UP), pose(-winX, 0, H, 0, UP), pose(0, 0, H + ML, QT)],
+  h: bodies.map(b => pose(b.x, b.z)),
+  // square A: two long legs, a short bar closing the top and a short crossbar
+  A1: [pose(-frameX, 0), pose(0, -frameZ, 0, QT), pose(0, 0.3, 0, QT), pose(frameX, 0)],
+  // bold L: a two-block stem and a two-block foot
+  L1: [pose(-2, 0), pose(0.85, 1.81, 0, QT), pose(0.85, 2.81, 0, QT), pose(-1, 0)],
 };
-// Each jump: per body [takeoff delay, flight time, apex height above the straight
-// line]. Jump 1: the long blocks leave first and fly longer/higher so they are
-// still in the air when the short ones land, then settle on top of them.
-// Jump 2: the long blocks (on top) leave first, the short ones follow.
-const isLong = i => i === 0 || i === 3;
-const JUMPS = [
-  { from: 'frame', to: 'stack', at: C.introJump1At,
-    timing: i => (isLong(i) ? [0, 1.1, 1.7] : [0.08, 0.8, 1.1]) },
-  { from: 'stack', to: 'h', at: C.introJump2At,
-    timing: i => (isLong(i) ? [0, 1.0, 1.5] : [0.1, 0.9, 1.2]) },
-];
-const introEnd = Math.max(...JUMPS.map(j => j.at + Math.max(...[0, 1, 2, 3].map(i => j.timing(i)[0] + j.timing(i)[1]))))
-  + C.introBounce[1];
 
-// Floor-line footprint of a formation: half-size in x and z of everything in it
-// (a block at yaw 0 runs along Z; at a quarter turn it runs along X).
+// Each jump: per body [takeoff delay, flight time, apex height above the straight
+// line, barrel rolls]. All four fly together in smooth arcs, travelling, turning
+// and rolling across the whole flight (James preferred this fluid feel to
+// collision-free choreography, so blocks may brush past each other mid-air).
+const isLong = i => i === 0 || i === 3;
+const OPTIONS = {
+  a: {
+    pop: 'frame',
+    jumps: [
+      { from: 'frame', to: 'deck', at: C.introJump1At,
+        timing: i => (isLong(i) ? [0, 1.0, 1.5, 1] : [0.08, 0.85, 1.2, 1]) },
+      // landing order for the window: bottom block, short blocks on its ends, top block
+      { from: 'deck', to: 'window', at: C.introJump2At,
+        timing: i => (i === 0 ? [0, 0.75, 1.0, 1] : i === 3 ? [0.04, 1.15, 2.0, 1] : [0.08, 0.9, 1.6, 1]) },
+      { from: 'window', to: 'h', at: C.introJump3At,
+        timing: i => (i === 3 ? [0, 1.0, 1.6, 1] : i === 0 ? [0.15, 0.85, 1.1, 1] : [0.08, 0.9, 1.3, 1]) },
+    ],
+  },
+  b: {
+    pop: 'h',
+    // every letter lies flat on the floor, so one shared rhythm suits all jumps
+    jumps: ['A1', 'L1', 'frame'].map((to, k, list) => ({
+      from: k ? list[k - 1] : 'h', to, at: C.introBJumps[k],
+      timing: i => (isLong(i) ? [0, 1.0, 1.5, 1] : [0.06, 0.9, 1.25, 1]),
+    })),
+  },
+};
+const OPTION = new URLSearchParams(location.search).get('option') === 'b' ? 'b' : 'a';
+const JUMPS = OPTIONS[OPTION].jumps;
+const POP = OPTIONS[OPTION].pop;
+const FINAL = JUMPS[JUMPS.length - 1].to;   // where the blocks rest and the scroll story starts
+const REST = FORMATIONS[FINAL];
+for (const [i, b] of bodies.entries()) { b.x = REST[i].x; b.z = REST[i].z; }
+
+const jumpSpan = j => Math.max(...[0, 1, 2, 3].map(i => j.timing(i)[0] + j.timing(i)[1]));
+const introEnd = Math.max(...JUMPS.map(j => j.at + jumpSpan(j))) + C.introBounce[1];
+
+// half-extents of block i in a pose: [x, z, vertical]
+function extents(i, p) {
+  const along = bodies[i].len / 2, sp = Math.abs(Math.sin(p.pitch)), cp = Math.abs(Math.cos(p.pitch));
+  const horiz = along * cp + (H / 2) * sp;   // along the block's (tipped) long axis, on the floor
+  const sy = Math.abs(Math.sin(p.yaw)), cy = Math.abs(Math.cos(p.yaw));
+  return [horiz * sy + (W / 2) * cy, horiz * cy + (W / 2) * sy, (H / 2) * cp + along * sp];
+}
+// Floor-line footprint of a formation: half-size in x and z of everything in it.
 function footprint(name) {
   let fx = 0, fz = 0;
   FORMATIONS[name].forEach((p, i) => {
-    const along = bodies[i].len / 2, across = W / 2;
-    const alongX = Math.abs(Math.sin(p.yaw)) > 0.5;
-    fx = Math.max(fx, Math.abs(p.x) + (alongX ? along : across));
-    fz = Math.max(fz, Math.abs(p.z) + (alongX ? across : along));
+    const [ex, ez] = extents(i, p);
+    fx = Math.max(fx, Math.abs(p.x) + ex);
+    fz = Math.max(fz, Math.abs(p.z) + ez);
   });
   return [fx, fz];
 }
 const FOOTPRINTS = Object.fromEntries(Object.keys(FORMATIONS).map(n => [n, footprint(n)]));
-// The floor lines hug the frame, then glide to each new footprint over a jump
-// (from take-off to the last landing), so they arrive as the blocks do.
+// The opening in the middle of the resting formation (x width, z height) that the
+// fly-through zooms into: the H's crossbar, or the hole of the O.
+const HOLES = { h: [2 * S - W, C.middleGap], frame: [ML, L - 2 * W] };
+// Visible height (world units) at the flat face-on framing: the resting formation
+// fills the screen top to bottom (or its width if the screen is narrow). The H runs
+// edge to edge like the artwork; the O gets room around it, or its top and bottom
+// bars sit on the screen edge and it stops reading as an O.
+const FLAT_MARGIN = { h: 1, frame: 1.45 };
+function flatFrameH(aspect) {
+  const [fx, fz] = FOOTPRINTS[FINAL];
+  return Math.max(2 * fz, (2 * fx * 1.08) / aspect) * FLAT_MARGIN[FINAL];
+}
+// The floor lines hug the first formation, then glide to each new footprint over a
+// jump (from take-off to the last landing), so they arrive as the blocks do.
 function gridHug(t) {
-  if (settled) return FOOTPRINTS.h;
-  let [fx, fz] = FOOTPRINTS.frame;
+  if (settled) return FOOTPRINTS[FINAL];
+  let [fx, fz] = FOOTPRINTS[POP];
   for (const j of JUMPS) {
-    const span = Math.max(...[0, 1, 2, 3].map(i => j.timing(i)[0] + j.timing(i)[1]));
-    const u = smooth(clamp01((t - j.at) / span));
+    const u = smooth(clamp01((t - j.at) / jumpSpan(j)));
     const [tx, tz] = FOOTPRINTS[j.to];
     fx = lerp(fx, tx, u); fz = lerp(fz, tz, u);
   }
   return [fx, fz];
+}
+// A tall formation (Option A's window) lifts the camera a little while it stands,
+// settling back for the next one.
+function introCameraLift(t) {
+  if (settled) return 0;
+  let lift = 0;
+  JUMPS.forEach(j => {
+    const dy = (FORMATIONS[j.to].some(p => p.pitch) ? C.introWindowLift : 0) - (FORMATIONS[j.from].some(p => p.pitch) ? C.introWindowLift : 0);
+    lift += dy * smooth(clamp01((t - j.at) / jumpSpan(j)));
+  });
+  return lift;
 }
 
 const easeOutBack = u => { const c = 1.9; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
@@ -319,37 +377,37 @@ const lerpYaw = (a, b, u) => a + (Math.atan2(Math.sin(b - a), Math.cos(b - a))) 
 // little hop after a landing (v: 0..1 through the bounce)
 const bounce = v => (v > 0 && v < 1 ? C.introBounce[0] * Math.sin(Math.PI * v) * (1 - v) : 0);
 
-// Pose of body i at intro time t (seconds): { x, y, z, yaw, roll, visible }
+// Pose of body i at intro time t (seconds): { x, y, z, yaw, pitch, roll }, or null before it pops up
 function introPose(i, t) {
   const popAt = C.introPopAt + i * C.introPopStagger;
   if (t < popAt) return null;   // not out of the floor yet
-  const f = FORMATIONS.frame[i];
-  let pose = { x: f.x, z: f.z, yaw: f.yaw, roll: 0,
-    y: lerp(START_Y, 0, easeOutBack(clamp01((t - popAt) / C.introPopDur))) };
+  const f = FORMATIONS[POP][i];
+  let p = { ...f, roll: 0, y: lerp(START_Y, 0, easeOutBack(clamp01((t - popAt) / C.introPopDur))) };
   JUMPS.forEach((j, k) => {
-    const [delay, dur, apex] = j.timing(i);
+    const [delay, dur, apex, rolls] = j.timing(i);
     const t0 = j.at + delay, u = (t - t0) / dur;
     if (u <= 0) return;
     const a = FORMATIONS[j.from][i], b = FORMATIONS[j.to][i];
     if (u >= 1) {
-      pose = { x: b.x, z: b.z, yaw: b.yaw, roll: 0, y: b.y + bounce((t - t0 - dur) / C.introBounce[1]) };
+      p = { ...b, roll: 0, y: b.y + bounce((t - t0 - dur) / C.introBounce[1]) };   // small landing hop
       return;
     }
-    const s = smooth(u);
-    pose = {
-      x: lerp(a.x, b.x, s), z: lerp(a.z, b.z, s), yaw: lerpYaw(a.yaw, b.yaw, s),
+    // travel, turn and roll smoothly across the whole flight
+    const s = smooth(u), r = s;
+    p = {
+      x: lerp(a.x, b.x, s), z: lerp(a.z, b.z, s), yaw: lerpYaw(a.yaw, b.yaw, r), pitch: lerp(a.pitch, b.pitch, r),
       y: lerp(a.y, b.y, u) + 4 * apex * u * (1 - u),   // parabolic flight
-      // one barrel roll about the block's own long axis, alternating direction
-      roll: (i % 2 ? -1 : 1) * (k % 2 ? -1 : 1) * 2 * Math.PI * s,
+      // barrel rolls about the block's own long axis, alternating direction
+      roll: (i % 2 ? -1 : 1) * (k % 2 ? -1 : 1) * 2 * Math.PI * rolls * r,
     };
   });
-  return pose;
+  return p;
 }
 
-let settled = false;   // the H has landed: scrolling and hover-kicks are on
+let settled = false;   // the final formation has landed: scrolling (and hover-kicks, if on) unlock
 const smooth = t => t * t * (3 - 2 * t);
-const _qYaw = new THREE.Quaternion(), _qRoll = new THREE.Quaternion();
-const _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);
+const _qYaw = new THREE.Quaternion(), _qPitch = new THREE.Quaternion(), _qRoll = new THREE.Quaternion();
+const _X = new THREE.Vector3(1, 0, 0), _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);
 
 function syncMeshes(t) {
   for (const [i, b] of bodies.entries()) {
@@ -357,17 +415,33 @@ function syncMeshes(t) {
       const p = introPose(i, t);
       b.mesh.visible = !!p;
       if (!p) continue;
-      b.mesh.position.set(p.x, p.y + H / 2, p.z);
-      b.mesh.quaternion.multiplyQuaternions(_qYaw.setFromAxisAngle(_Y, p.yaw), _qRoll.setFromAxisAngle(_Z, p.roll));
+      b.mesh.position.set(p.x, p.y + extents(i, p)[2], p.z);   // y is the underside
+      b.mesh.quaternion.setFromAxisAngle(_Y, p.yaw)
+        .multiply(_qPitch.setFromAxisAngle(_X, p.pitch))
+        .multiply(_qRoll.setFromAxisAngle(_Z, p.roll));
       continue;
     }
-    // rest in the H, plus any hover-tumble offset
+    // rest in the final formation, plus any hover-tumble offset
+    const r = REST[i];
     b.mesh.visible = true;
-    b.mesh.position.set(b.x + b.off.x, H / 2 + b.off.y, b.z + b.off.z);
+    b.mesh.position.set(r.x + b.off.x, r.y + extents(i, r)[2] + b.off.y, r.z + b.off.z);
     const ang = b.rot.length();
     if (ang > 1e-6) b.mesh.quaternion.setFromAxisAngle(_axis.copy(b.rot).divideScalar(ang), ang);
     else b.mesh.quaternion.identity();
+    b.mesh.quaternion.multiply(_qYaw.setFromAxisAngle(_Y, r.yaw));
   }
+}
+
+// Option A / Option B buttons (bottom left): show which intro is playing; picking
+// the other reloads the page with ?option= so the whole sequence plays from the top.
+for (const btn of document.querySelectorAll('#options button')) {
+  btn.setAttribute('aria-pressed', String(btn.dataset.option === OPTION));
+  btn.addEventListener('click', () => {
+    if (btn.dataset.option === OPTION) return;
+    const url = new URL(location.href);
+    url.searchParams.set('option', btn.dataset.option);
+    location.href = url.toString();
+  });
 }
 
 // Scrolling stays locked until the H has landed (it's where the scroll story starts).
@@ -725,9 +799,11 @@ function layoutGallery() {
     const dy = Math.abs(a.Y0 - b.Y0);
     return Math.min(dy, galleryLoop - dy) < minDy;   // the loop wraps, so check across the seam too
   };
-  // the H's three bars in hold space (screen widths), to keep photos out from behind them
-  const flatW = Math.max(L, ((2 * S + W) * 1.08) / aspect) * aspect;   // world width at the flat framing
-  const bars = [-S, 0, S].map(c => [(c - W / 2) / flatW, (c + W / 2) / flatW]);
+  // the resting formation's upright (screen-vertical) bars in hold space (screen
+  // widths), to keep photos out from behind them
+  const flatW = flatFrameH(aspect) * aspect;   // world width at the flat framing
+  const bars = REST.filter(p => Math.abs(Math.sin(p.yaw)) < 0.5)
+    .map(p => [(p.x - W / 2) / flatW, (p.x + W / 2) / flatW]);
   const hiddenShare = g => {
     let hidden = 0;
     for (const [a, b] of bars) hidden += Math.max(0, Math.min(b, g.X + g.holdW / 2) - Math.max(a, g.X - g.holdW / 2));
@@ -964,6 +1040,7 @@ function frame() {
   if (frozen != null) orbitT = t;
   else if (sp < 0.001) orbitT += dt;
   easeMouse(dt);
+  introLift = introCameraLift(t);
   placeCamera(C.azimuth + C.orbitSpeed * orbitT);
   applyFade();
   updateGrid(t);
@@ -1022,6 +1099,30 @@ window.hDebug = {
     if (settled) lockScroll(false);
   },
   introEnd: () => introEnd,
+  // pairs of blocks whose (rotated) boxes intersect right now, by more than `slack`
+  blockOverlaps(slack = 0.02) {
+    const ax = bodies.map(b => {
+      b.mesh.updateMatrixWorld();
+      const e = b.mesh.matrixWorld.elements;
+      const axes = [new THREE.Vector3(e[0], e[1], e[2]).normalize(), new THREE.Vector3(e[4], e[5], e[6]).normalize(), new THREE.Vector3(e[8], e[9], e[10]).normalize()];
+      return { c: b.mesh.position.clone(), axes, half: [W / 2, H / 2, b.len / 2], vis: b.mesh.visible };
+    });
+    const hits = [];
+    for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+      const A = ax[i], B = ax[j];
+      if (!A.vis || !B.vis) continue;
+      const d = B.c.clone().sub(A.c);
+      const tests = [...A.axes, ...B.axes];
+      for (const a of A.axes) for (const b of B.axes) { const c = a.clone().cross(b); if (c.lengthSq() > 1e-6) tests.push(c.normalize()); }
+      let minOverlap = Infinity;
+      for (const L of tests) {
+        const r = A.axes.reduce((s, v, k) => s + Math.abs(v.dot(L)) * A.half[k], 0) + B.axes.reduce((s, v, k) => s + Math.abs(v.dot(L)) * B.half[k], 0);
+        minOverlap = Math.min(minOverlap, r - Math.abs(d.dot(L)));
+      }
+      if (minOverlap > slack) hits.push(`${i}-${j}:${minOverlap.toFixed(2)}`);
+    }
+    return hits;
+  },
   state: () => ({
     settled, gridDone, sp: +sp.toFixed(3), face: +face.toFixed(3),
     frameH: +(camera.top * 2).toFixed(3), camDist: +camDist.toFixed(3), showH,

@@ -93,6 +93,27 @@
     .burger span { display: block; height: 2px; background: currentColor; transition: transform 0.25s ease; }
     .burger:hover span:first-child { transform: translateY(-1px); }
     .burger:hover span:last-child { transform: translateY(1px); }
+    /* Option A / Option B: switch between intro versions (reloads with ?option=). */
+    #options {
+      position: fixed;
+      left: max(18px, 2.65vw);
+      bottom: max(18px, 2.2vw);
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+    #options button {
+      font-family: 'FK Display', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1;
+      padding: 9px 14px 8px;
+      border: 1px solid #0b0b0b;
+      border-radius: 999px;
+      background: transparent;
+      color: #0b0b0b;
+      cursor: pointer;
+    }
+    #options button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
     /* First homepage section. The hero ends on the yellow circle filling the
        screen, so this starts the same yellow and scrolls up over the fixed
        canvas seamlessly. Placeholder until the real layout/content lands. */
@@ -121,6 +142,10 @@
       <span></span><span></span>
     </button>
   </header>
+  <div id="options" role="group" aria-label="Intro version">
+    <button type="button" data-option="a" aria-pressed="true">Option A</button>
+    <button type="button" data-option="b" aria-pressed="false">Option B</button>
+  </div>
   <div id="scene"></div>
   <h1 id="tagline">
     <span class="line">Raising the bar</span>
