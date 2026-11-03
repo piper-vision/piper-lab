@@ -16,7 +16,7 @@ export const CONFIG = {
   // ---- camera (orthographic, "isometric" style)
   elevation: 41,             // degrees above the floor plane
   azimuth: 43,               // degrees around Y at the start; 45 = true diagonal
-  orbitSpeed: 3,             // degrees per second the camera drifts around the H; 0 = static
+  orbitSpeed: 0,            // degrees per second the camera drifts around the H; 0 = static
   viewWidth: 13,             // visible world width on landscape screens (smaller = closer; the H is ~9.3 wide on the diagonal)
   viewWidthPortrait: 10.5,   // visible world width when the screen is taller than wide
 
@@ -110,6 +110,13 @@ export const CONFIG = {
   galleryFlightDepthWeight: 1,    // how much depth counts when spreading them out (vs. sideways / vertical)
   galleryFlightReveal: [3, 1.3],  // camera distance where a flight photo starts fading in (faint, far off) .. is fully in
   galleryFlightGate: 0.3,         // camera travel after passing through the H over which flight photos are allowed in
+  // ---- cursor movement (mouse only; eases back to centre when the cursor leaves)
+  mouseSmooth: 3,                 // how quickly the scene follows the cursor (1/s); lower = lazier drift
+  mouseOrbit: [7, 4],             // iso view: degrees the camera orbits / tilts toward the cursor at the window edge
+  mouseShift: [0.07, 0.05],       // face-on and fly-through: camera slide at the window edge (screen widths at distance 1); near things shift more
+  mouseShiftNear: 0.9,            // anything closer than this shifts no more than at this distance (keeps photos rushing past steady)
+  mouseTilt: [6, 4],              // tagline: degrees each line turns / tips toward the cursor at the window edge
+
   // ---- tagline ("Raising the bar for temporary structures."; text and type live in index.html)
   taglineStartDist: 0.68,        // camera distance where the first line starts (1 = flat H, ~0.12 = through it)
   taglineRevealTravel: 0.5,       // camera travel each line takes to tip into place

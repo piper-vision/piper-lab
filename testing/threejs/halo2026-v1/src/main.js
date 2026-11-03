@@ -56,6 +56,25 @@ let camDist = 1;            // virtual camera distance from the H's plane (see a
 let showH = true;           // false once the camera is inside the crossbar
 let throughDist = 0.1;      // camDist at which the camera is through the H (set by placeCamera)
 
+// Cursor: -1..1 across the window (y up), eased so the scene drifts after it.
+// Returns to centre when the cursor leaves; touch screens never set it.
+let mouseX = 0, mouseY = 0, mouseTX = 0, mouseTY = 0;
+window.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  mouseTX = (e.clientX / window.innerWidth) * 2 - 1;
+  mouseTY = -((e.clientY / window.innerHeight) * 2 - 1);
+});
+document.documentElement.addEventListener('pointerleave', () => { mouseTX = mouseTY = 0; });
+function easeMouse(dt) {
+  const k = 1 - Math.exp(-C.mouseSmooth * dt);
+  mouseX += (mouseTX - mouseX) * k;
+  mouseY += (mouseTY - mouseY) * k;
+}
+// Virtual camera slide toward the cursor once face-on, in the gallery's units
+// (screen widths at camera distance 1): something at distance d shifts by
+// this / d on screen, so near photos move more than deep ones (parallax).
+let camShiftX = 0, camShiftY = 0;
+
 let curAz = C.azimuth;   // degrees; drifts with C.orbitSpeed while the page is at the top
 function placeCamera(azDeg = curAz) {
   curAz = azDeg;
@@ -69,8 +88,13 @@ function placeCamera(azDeg = curAz) {
 
   // nearest azimuth that stands the H upright on screen (it is symmetric under 180deg)
   const azTop = Math.round(azDeg / 180) * 180;
-  const el = THREE.MathUtils.degToRad(lerp(C.elevation, 89.9, face));
-  const az = THREE.MathUtils.degToRad(lerp(azDeg, azTop, face));
+  // in the iso view the cursor orbits / tilts the camera a little; this hands over
+  // to the parallax slide (camShift) as the camera swings face-on
+  const iso = 1 - face;
+  const el = THREE.MathUtils.degToRad(Math.min(89.9, lerp(C.elevation, 89.9, face) + mouseY * C.mouseOrbit[1] * iso));
+  const az = THREE.MathUtils.degToRad(lerp(azDeg, azTop, face) + mouseX * C.mouseOrbit[0] * iso);
+  camShiftX = mouseX * C.mouseShift[0] * face;
+  camShiftY = mouseY * C.mouseShift[1] * face;
   // visible height: iso framing -> bars just touching top and bottom -> inside the crossbar
   const isoH = (aspect >= 1 ? C.viewWidth : C.viewWidthPortrait) / aspect;
   const flatH = Math.max(L, ((2 * S + W) * 1.08) / aspect);
@@ -86,8 +110,13 @@ function placeCamera(azDeg = curAz) {
     .multiplyScalar(120)
     .add(target);
   camera.lookAt(target);
-  camera.top = frameH / 2; camera.bottom = -frameH / 2;
-  camera.left = -frameH * aspect / 2; camera.right = frameH * aspect / 2;
+  // the H sits at distance camDist, so the slide moves it by camShift / camDist
+  // screen widths (capped like the photos, see mouseShiftNear): shift the
+  // (orthographic) frame by that much
+  const frameW = frameH * aspect, hDist = Math.max(camDist, C.mouseShiftNear);
+  const offX = (camShiftX / hDist) * frameW, offY = (camShiftY / hDist) * frameW;
+  camera.top = frameH / 2 + offY; camera.bottom = -frameH / 2 + offY;
+  camera.left = -frameW / 2 + offX; camera.right = frameW / 2 + offX;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 }
@@ -713,7 +742,10 @@ function updateGallery(now) {
     }
     g.mesh.visible = galleryReady && g.placed && dist > C.galleryNear && alpha * edge > 0.002;
     if (!g.mesh.visible) continue;
-    g.mesh.position.set(w / 2 + x * w * k, h / 2 + y * w * k, 0);
+    // the cursor slide shifts nearer photos more (parallax), capped at mouseShiftNear
+    // so photos rushing past don't swing across the screen
+    const sk = 1 / Math.max(dist, C.mouseShiftNear);
+    g.mesh.position.set(w / 2 + (x * k - camShiftX * sk) * w, h / 2 + (y * k - camShiftY * sk) * w, 0);
     g.mesh.scale.set(g.size * w * k, (g.size / g.aspect) * w * k, 1);
     g.mesh.material.opacity = galleryAlpha * edge * alpha;
     // the backing fades in with the photo's reveal (not its fog), so overlaps stay clean
@@ -752,8 +784,13 @@ function updateCircle() {
   // circleFullAt; past that it only grows, so it keeps covering (distance clamped
   // so it never flips behind the camera)
   const halfDiag = 0.5 * Math.hypot(1, h / w);
-  const r = halfDiag * C.circleEndDist * C.circleOverfill / Math.max(dist, C.circleEndDist * 0.5);
-  circle.position.set(w / 2, h / 2, 0);
+  const cd = Math.max(dist, C.circleEndDist * 0.5);
+  // the cursor slide shifts it by its depth like everything else (same cap as the
+  // photos); padded by that shift so it still covers the corners once full
+  const sd = Math.max(dist, C.mouseShiftNear);
+  const shift = Math.hypot(camShiftX, camShiftY) / sd;
+  const r = halfDiag * C.circleEndDist * C.circleOverfill / cd + shift;
+  circle.position.set(w / 2 - (camShiftX / sd) * w, h / 2 - (camShiftY / sd) * w, 0);
   circle.scale.set(r * w, r * w, 1);
   circle.material.opacity = alpha;
 }
@@ -779,17 +816,23 @@ function updateTagline() {
 
   const into = C.taglineStartDist - camDist;   // camera travel since the reveal point (negative before)
   const [tiltX, tiltY] = C.taglineTilt;
+  // the lines also lean a few degrees toward the cursor (in 3D, like the scene)
+  const mx = mouseX * C.mouseTilt[0], my = -mouseY * C.mouseTilt[1];
+  const mouseChanged = Math.abs(mx - taglineMouse[0]) > 0.01 || Math.abs(my - taglineMouse[1]) > 0.01;
+  if (mouseChanged) taglineMouse = [mx, my];
   taglineLines.forEach((line, i) => {
     const p = smooth(clamp01((into - i * C.taglineStagger) / C.taglineRevealTravel));
-    if (Math.abs(p - line.p) < 1e-4) return;   // only touch the DOM when it changes
+    if (Math.abs(p - line.p) < 1e-4 && !mouseChanged) return;   // only touch the DOM when it changes
     line.p = p;
     const q = 1 - p;
     // tips up from below the baseline, with a slight sideways turn alternating per line
     line.el.style.opacity = p.toFixed(3);
     line.el.style.transform =
-      `translateY(${(q * 0.3).toFixed(3)}em) rotateX(${(q * tiltX).toFixed(2)}deg) rotateY(${(q * tiltY * (i % 2 ? -1 : 1)).toFixed(2)}deg)`;
+      `translateY(${(q * 0.3).toFixed(3)}em) rotateX(${(q * tiltX + taglineMouse[1]).toFixed(2)}deg) ` +
+      `rotateY(${(q * tiltY * (i % 2 ? -1 : 1) + taglineMouse[0]).toFixed(2)}deg)`;
   });
 }
+let taglineMouse = [0, 0];
 
 // ---------------------------------------------------------------------------
 // Scroll: the hero's scroll space (#scroll) is `scrollLength` screens tall;
@@ -832,6 +875,7 @@ function frame() {
   if (window.scrollY > scrollMax()) sp = spTarget;
   if (frozen != null) orbitT = t;
   else if (sp < 0.001) orbitT += dt;
+  easeMouse(dt);
   placeCamera(C.azimuth + C.orbitSpeed * orbitT);
   applyFade();
   updateGrid(t);
@@ -876,6 +920,8 @@ window.hDebug = {
     b.vel.set(vx, vy, vz);
     b.hitT = performance.now() / 1000 - startTime;
   },
+  // put the (eased) cursor straight at x, y in -1..1, no easing
+  mouse(x, y) { mouseX = mouseTX = x; mouseY = mouseTY = y; },
   scroll(p) {
     window.scrollTo(0, p * scrollMax());
     spTarget = sp = p;
@@ -891,6 +937,9 @@ window.hDebug = {
     galleryVisible: gallery.filter(g => g.mesh.visible).length,
     galleryPlaced: gallery.filter(g => g.placed).length,
     galleryOpacity: gallery.map(g => (g.mesh.visible ? +g.mesh.material.opacity.toFixed(3) : 0)),
+    galleryPos: gallery.map(g => [Math.round(g.mesh.position.x), Math.round(g.mesh.position.y), +(camDist + g.z).toFixed(2)]),
+    mouse: [+mouseX.toFixed(3), +mouseY.toFixed(3)],
+    cameraFrame: [camera.left, camera.right].map(v => +v.toFixed(3)),
     // pairs of on-screen photos whose rectangles overlap right now
     galleryOverlaps: (() => {
       const w = window.innerWidth, h = window.innerHeight;
