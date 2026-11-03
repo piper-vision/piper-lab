@@ -153,8 +153,10 @@ function buildGrid() {
   // once drawn, lines extend to this radius so they reach the screen edge at any orbit angle
   const R = Math.max(...corners.map(c => c.length())) + m;
 
-  // Exactly four lines framing the H: the pair along Z runs flush along the
-  // outer faces of the outer bars, the pair along X along their end faces.
+  // Exactly four lines framing the blocks: the pair along Z runs flush along the
+  // formation's outer faces in x, the pair along X along its ends in z. Built at
+  // the H's footprint; updateGrid slides them to hug whichever formation the
+  // intro is in (gridHug).
   const xLines = [-(S + W / 2), S + W / 2];   // lines parallel to Z, at these x
   const zLines = [-L / 2, L / 2];             // lines parallel to X, at these z
   const family = (isX, t0) => {
@@ -172,7 +174,7 @@ function buildGrid() {
       obj.frustumCulled = false;
       gridGroup.add(obj);
       const delay = t0 + i * C.gridDrawStagger;
-      gridLines.push({ obj, a, b, fa, fb, delay });
+      gridLines.push({ obj, a, b, fa, fb, delay, isX, sign: Math.sign(c) });
       gridDone = Math.max(gridDone, delay + C.gridDrawDuration);
     });
   };
@@ -184,6 +186,7 @@ function buildGrid() {
 const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 function updateGrid(t) {
+  const [hugX, hugZ] = gridHug(t);
   for (const l of gridLines) {
     const p = THREE.MathUtils.clamp((t - l.delay) / C.gridDrawDuration, 0, 1);
     const e = easeInOut(p);
@@ -197,6 +200,9 @@ function updateGrid(t) {
       arr[0] = l.fa.x; arr[2] = l.fa.z;
       arr[3] = l.fb.x; arr[5] = l.fb.z;
     }
+    // slide the line out / in to hug the current formation
+    if (l.isX) arr[2] = arr[5] = l.sign * hugZ;
+    else arr[0] = arr[3] = l.sign * hugX;
     l.obj.geometry.attributes.position.needsUpdate = true;
     l.obj.visible = p > 0;
   }
@@ -218,82 +224,164 @@ const shortGeo = new THREE.BoxGeometry(W, H, ML);
 const longEdges = new THREE.EdgesGeometry(longGeo);
 const shortEdges = new THREE.EdgesGeometry(shortGeo);
 
-function makeBar(long, x, z, spawnAt) {
+// x, z = the block's resting place in the H
+function makeBar(long, x, z) {
   const mesh = new THREE.Mesh(long ? longGeo : shortGeo, yellowMat);
   mesh.add(new THREE.LineSegments(long ? longEdges : shortEdges, edgeMat));
   mesh.visible = false;
   scene.add(mesh);
-  return { len: long ? L : ML, x, z, spawnAt, mesh, y: 0, vy: 0, active: false, emerged: false };
+  return { len: long ? L : ML, x, z, mesh };
 }
 
-const s = C.barsStart, st = C.barStagger, mz = (C.middleGap + ML) / 2;
+const mz = (C.middleGap + ML) / 2;
 const bodies = [
-  makeBar(true, -S, 0, s),                   // left outer bar first
-  makeBar(false, 0, -mz, s + st),            // far middle piece
-  makeBar(false, 0, +mz, s + 2 * st),        // near middle piece
-  makeBar(true, +S, 0, s + 3 * st),          // right outer bar
+  makeBar(true, -S, 0),       // left outer bar
+  makeBar(false, 0, -mz),     // far middle piece
+  makeBar(false, 0, +mz),     // near middle piece
+  makeBar(true, +S, 0),       // right outer bar
 ];
 
 const START_Y = -H - 0.02;   // fully under the floor
-const v0 = apex => Math.sqrt(2 * C.gravity * (apex - START_Y));
 
 // ---------------------------------------------------------------------------
-// Physics: 1-D vertical. Each bar pops up out of the floor, falls back and
-// lands on a stiff spring floor (it can sink a little, hidden by the clip plane).
+// Intro: the blocks show off how configurable they are before settling in the
+// H (where scrolling unlocks). Keyframed rather than simulated, so every
+// landing is exact:
+//   pop    they rise out of the floor as a closed rectangular frame
+//   jump 1 leap, barrel-roll and land as a stack: the short blocks standing on
+//          the floor, the long blocks resting across them (a #)
+//   jump 2 leap and roll again into the final H, with a small landing bounce
+// A pose is { x, z: centre on the floor, y: underside height, yaw: turn about
+// the vertical (0 = long axis along Z) }. Bodies are [long, short, short, long].
 // ---------------------------------------------------------------------------
-let settled = false, settleTimer = 0;
+// Quarter turns are -90deg (same resting pose, the blocks are symmetric): turning
+// that way sweeps them across the view, whereas +90deg passes through the camera's
+// own direction (azimuth ~43deg) and a long block seen end-on reads as a tall column.
+const QT = -Math.PI / 2;
+const frameX = ML / 2 + W / 2;   // long sides just outside the short ends
+const frameZ = L / 2 - W / 2;    // short ends tucked inside the long sides' ends
+const [stackX, stackZ] = C.introStack;
+const FORMATIONS = {
+  frame: [
+    { x: -frameX, z: 0, y: 0, yaw: 0 }, { x: 0, z: -frameZ, y: 0, yaw: QT },
+    { x: 0, z: frameZ, y: 0, yaw: QT }, { x: frameX, z: 0, y: 0, yaw: 0 },
+  ],
+  stack: [
+    { x: 0, z: -stackZ, y: H, yaw: QT }, { x: -stackX, z: 0, y: 0, yaw: 0 },
+    { x: stackX, z: 0, y: 0, yaw: 0 }, { x: 0, z: stackZ, y: H, yaw: QT },
+  ],
+  h: bodies.map(b => ({ x: b.x, z: b.z, y: 0, yaw: 0 })),
+};
+// Each jump: per body [takeoff delay, flight time, apex height above the straight
+// line]. Jump 1: the long blocks leave first and fly longer/higher so they are
+// still in the air when the short ones land, then settle on top of them.
+// Jump 2: the long blocks (on top) leave first, the short ones follow.
+const isLong = i => i === 0 || i === 3;
+const JUMPS = [
+  { from: 'frame', to: 'stack', at: C.introJump1At,
+    timing: i => (isLong(i) ? [0, 1.1, 1.7] : [0.08, 0.8, 1.1]) },
+  { from: 'stack', to: 'h', at: C.introJump2At,
+    timing: i => (isLong(i) ? [0, 1.0, 1.5] : [0.1, 0.9, 1.2]) },
+];
+const introEnd = Math.max(...JUMPS.map(j => j.at + Math.max(...[0, 1, 2, 3].map(i => j.timing(i)[0] + j.timing(i)[1]))))
+  + C.introBounce[1];
 
-function step(dt, t) {
-  for (const b of bodies) {
-    if (!b.active && t >= b.spawnAt) {
-      b.active = true; b.emerged = false; b.y = START_Y;
-      b.vy = v0(C.popApex);
-    }
-    if (!b.active) continue;
-    b.vy -= C.gravity * dt;
-    b.vy *= Math.max(0, 1 - C.airDrag * dt);
-    if (!b.emerged && b.y >= 0) b.emerged = true;
-    if (b.emerged && b.y < 0) {
-      // spring floor; +gravity so the equilibrium is exactly y = 0
-      b.vy += (-C.floorStiffness * b.y - C.floorDamping * b.vy + C.gravity) * dt;
-    }
-    b.y += b.vy * dt;
+// Floor-line footprint of a formation: half-size in x and z of everything in it
+// (a block at yaw 0 runs along Z; at a quarter turn it runs along X).
+function footprint(name) {
+  let fx = 0, fz = 0;
+  FORMATIONS[name].forEach((p, i) => {
+    const along = bodies[i].len / 2, across = W / 2;
+    const alongX = Math.abs(Math.sin(p.yaw)) > 0.5;
+    fx = Math.max(fx, Math.abs(p.x) + (alongX ? along : across));
+    fz = Math.max(fz, Math.abs(p.z) + (alongX ? across : along));
+  });
+  return [fx, fz];
+}
+const FOOTPRINTS = Object.fromEntries(Object.keys(FORMATIONS).map(n => [n, footprint(n)]));
+// The floor lines hug the frame, then glide to each new footprint over a jump
+// (from take-off to the last landing), so they arrive as the blocks do.
+function gridHug(t) {
+  if (settled) return FOOTPRINTS.h;
+  let [fx, fz] = FOOTPRINTS.frame;
+  for (const j of JUMPS) {
+    const span = Math.max(...[0, 1, 2, 3].map(i => j.timing(i)[0] + j.timing(i)[1]));
+    const u = smooth(clamp01((t - j.at) / span));
+    const [tx, tz] = FOOTPRINTS[j.to];
+    fx = lerp(fx, tx, u); fz = lerp(fz, tz, u);
   }
-
-  // Settle detection: everything landed, slow, and near the floor for a
-  // short while -> snap to exact rest positions.
-  let calm = bodies.every(b => b.active && b.emerged);
-  for (const b of bodies) {
-    if (Math.abs(b.vy) > C.settleSpeed || Math.abs(b.y) > 0.1) calm = false;
-  }
-  settleTimer = calm ? settleTimer + dt : 0;
-  if (settleTimer > 0.25) {
-    // freeze the sim; the meshes ease the last few hundredths onto exact rest
-    settled = true;
-    settleSimTime = t;
-    for (const b of bodies) { b.snapFrom = b.y; b.vy = 0; }
-  }
+  return [fx, fz];
 }
 
-let settleSimTime = 0;
-const SNAP_SECONDS = 0.25;
+const easeOutBack = u => { const c = 1.9; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
+// short-way yaw blend
+const lerpYaw = (a, b, u) => a + (Math.atan2(Math.sin(b - a), Math.cos(b - a))) * u;
+// little hop after a landing (v: 0..1 through the bounce)
+const bounce = v => (v > 0 && v < 1 ? C.introBounce[0] * Math.sin(Math.PI * v) * (1 - v) : 0);
+
+// Pose of body i at intro time t (seconds): { x, y, z, yaw, roll, visible }
+function introPose(i, t) {
+  const popAt = C.introPopAt + i * C.introPopStagger;
+  if (t < popAt) return null;   // not out of the floor yet
+  const f = FORMATIONS.frame[i];
+  let pose = { x: f.x, z: f.z, yaw: f.yaw, roll: 0,
+    y: lerp(START_Y, 0, easeOutBack(clamp01((t - popAt) / C.introPopDur))) };
+  JUMPS.forEach((j, k) => {
+    const [delay, dur, apex] = j.timing(i);
+    const t0 = j.at + delay, u = (t - t0) / dur;
+    if (u <= 0) return;
+    const a = FORMATIONS[j.from][i], b = FORMATIONS[j.to][i];
+    if (u >= 1) {
+      pose = { x: b.x, z: b.z, yaw: b.yaw, roll: 0, y: b.y + bounce((t - t0 - dur) / C.introBounce[1]) };
+      return;
+    }
+    const s = smooth(u);
+    pose = {
+      x: lerp(a.x, b.x, s), z: lerp(a.z, b.z, s), yaw: lerpYaw(a.yaw, b.yaw, s),
+      y: lerp(a.y, b.y, u) + 4 * apex * u * (1 - u),   // parabolic flight
+      // one barrel roll about the block's own long axis, alternating direction
+      roll: (i % 2 ? -1 : 1) * (k % 2 ? -1 : 1) * 2 * Math.PI * s,
+    };
+  });
+  return pose;
+}
+
+let settled = false;   // the H has landed: scrolling and hover-kicks are on
 const smooth = t => t * t * (3 - 2 * t);
+const _qYaw = new THREE.Quaternion(), _qRoll = new THREE.Quaternion();
+const _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);
 
 function syncMeshes(t) {
-  for (const b of bodies) {
-    b.mesh.visible = b.active;
-    let y = b.y;
-    if (settled) {
-      const rest = 0;
-      const k = smooth(THREE.MathUtils.clamp((t - settleSimTime) / SNAP_SECONDS, 0, 1));
-      y = b.snapFrom + (rest - b.snapFrom) * k;
+  for (const [i, b] of bodies.entries()) {
+    if (!settled) {
+      const p = introPose(i, t);
+      b.mesh.visible = !!p;
+      if (!p) continue;
+      b.mesh.position.set(p.x, p.y + H / 2, p.z);
+      b.mesh.quaternion.multiplyQuaternions(_qYaw.setFromAxisAngle(_Y, p.yaw), _qRoll.setFromAxisAngle(_Z, p.roll));
+      continue;
     }
-    b.mesh.position.set(b.x + b.off.x, y + H / 2 + b.off.y, b.z + b.off.z);
+    // rest in the H, plus any hover-tumble offset
+    b.mesh.visible = true;
+    b.mesh.position.set(b.x + b.off.x, H / 2 + b.off.y, b.z + b.off.z);
     const ang = b.rot.length();
     if (ang > 1e-6) b.mesh.quaternion.setFromAxisAngle(_axis.copy(b.rot).divideScalar(ang), ang);
     else b.mesh.quaternion.identity();
   }
 }
+
+// Scrolling stays locked until the H has landed (it's where the scroll story starts).
+// overflow:hidden stops the wheel, and anything that still scrolls the page (touch
+// on some phones, keys, scripts) is snapped back to the top by readScroll.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+let scrollLocked = false;
+function lockScroll(on) {
+  scrollLocked = on;
+  document.documentElement.style.overflow = on ? 'hidden' : '';
+  document.body.style.overflow = on ? 'hidden' : '';
+  if (on) window.scrollTo(0, 0);
+}
+lockScroll(C.introLockScroll);
 
 // ---------------------------------------------------------------------------
 // Hover tumble: once the H has settled, sweeping the cursor through a bar
@@ -486,9 +574,7 @@ function tumbleSubstep(t, dt) {
 // ---------------------------------------------------------------------------
 // Timeline / loop
 // ---------------------------------------------------------------------------
-const FIXED = 1 / 240;
 let startTime = performance.now() / 1000;
-let simTime = 0;          // physics time already integrated
 let settledAt = null;
 let frozen = null;        // debug: hold the scene at a fixed time
 
@@ -496,12 +582,12 @@ function restart() {
   startTime = performance.now() / 1000;
   placeCamera(C.azimuth);
   buildGrid();
-  simTime = 0; settled = false; settleTimer = 0; settledAt = null; frozen = null;
+  settled = false; settledAt = null; frozen = null;
   for (const b of bodies) {
-    b.active = false; b.y = START_Y; b.vy = 0; b.snapFrom = START_Y;
     b.off.set(0, 0, 0); b.vel.set(0, 0, 0); b.rot.set(0, 0, 0); b.angVel.set(0, 0, 0); b.hitT = -1e9;
   }
   haveLastFloor = false;
+  lockScroll(C.introLockScroll);
   syncMeshes(0);
 }
 
@@ -843,6 +929,7 @@ const scrollEl = document.getElementById('scroll');
 scrollEl.style.height = `${C.scrollLength * 100}vh`;
 const scrollMax = () => scrollEl.offsetHeight - window.innerHeight;
 function readScroll() {
+  if (scrollLocked && window.scrollY !== 0) window.scrollTo(0, 0);   // intro still playing
   const max = scrollMax();
   spTarget = max > 0 ? clamp01(window.scrollY / max) : 0;
   liftTagline();
@@ -883,11 +970,11 @@ function frame() {
   tumbleStep(t, dt);
   setFloorClip(!settled || C.clipAfterIntro);
 
-  if (frozen == null && !settled) {
-    // fixed-step integration, capped so a background tab can't spiral
-    let steps = 0;
-    while (simTime + FIXED <= t && steps < 60) { simTime += FIXED; step(FIXED, simTime); steps++; }
-    if (settled) settledAt = now;
+  if (frozen == null && !settled && t >= introEnd) {
+    // the H has landed: hand over to scrolling and hover-kicks
+    settled = true;
+    settledAt = now;
+    lockScroll(false);
   } else if (frozen == null && C.loop && settledAt != null && now - settledAt > C.holdSeconds) {
     restart();
   }
@@ -926,11 +1013,14 @@ window.hDebug = {
     window.scrollTo(0, p * scrollMax());
     spTarget = sp = p;
   },
+  // hold the intro at `sec` seconds (the pose is a pure function of time)
   freeze(sec) {
     restart();
     frozen = sec;
-    while (simTime + FIXED <= sec) { simTime += FIXED; step(FIXED, simTime); }
+    settled = sec >= introEnd;
+    if (settled) lockScroll(false);
   },
+  introEnd: () => introEnd,
   state: () => ({
     settled, gridDone, sp: +sp.toFixed(3), face: +face.toFixed(3),
     frameH: +(camera.top * 2).toFixed(3), camDist: +camDist.toFixed(3), showH,
@@ -961,7 +1051,8 @@ window.hDebug = {
     galleryOnScreen: gallery.filter(g => g.mesh.visible &&
       Math.abs(g.mesh.position.x - window.innerWidth / 2) < (window.innerWidth + g.mesh.scale.x) / 2 &&
       Math.abs(g.mesh.position.y - window.innerHeight / 2) < (window.innerHeight + g.mesh.scale.y) / 2).length,
-    bodies: bodies.map(b => ({ x: b.x, z: b.z, y: +b.y.toFixed(3), vy: +b.vy.toFixed(3), active: b.active,
+    bodies: bodies.map(b => ({ visible: b.mesh.visible,
+      pos: b.mesh.position.toArray().map(v => +v.toFixed(3)),
       low: +new THREE.Box3().setFromObject(b.mesh, true).min.y.toFixed(3),   // lowest point, never < 0 once settled
       off: b.off.toArray().map(v => +v.toFixed(3)), rot: b.rot.toArray().map(v => +v.toFixed(3)) })),
   }),

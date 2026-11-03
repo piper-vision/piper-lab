@@ -34,17 +34,16 @@ export const CONFIG = {
   gridDrawStagger: 0.14,     // seconds between successive lines of one family
   gridFamilyDelay: 0.25,     // second family starts this long after the first
 
-  // ---- timeline (seconds from start)
-  barsStart: 1.0,            // first bar launches; can overlap the tail of the grid draw
-  barStagger: 0.12,          // between successive bars (left, middle far, middle near, right)
-
-  // ---- physics (1-D vertical, gravity + a stiff spring floor)
-  gravity: 40,
-  popApex: 1.6,              // how far the bars overshoot above the floor
-  floorStiffness: 3000,      // spring floor the bars can sink into (hidden by the clip plane)
-  floorDamping: 40,
-  airDrag: 0.12,             // per-second velocity loss, helps settle
-  settleSpeed: 0.35,         // below this speed, near the floor, a bar is considered at rest
+  // ---- intro (seconds from page load): frame -> stack -> H, ~5 s; scrolling unlocks when the H lands
+  // jump flight times / heights per block are in JUMPS in main.js
+  introPopAt: 0.7,           // first block starts rising out of the floor (as the floor lines draw)
+  introPopStagger: 0.1,      // between blocks popping up
+  introPopDur: 0.55,         // seconds to rise (overshoots a touch, then settles)
+  introJump1At: 1.9,         // frame -> stack
+  introJump2At: 3.35,        // stack -> H
+  introStack: [1.6, 0.85],   // stack: short blocks stand at x = +/- this[0], long ones rest across them at z = +/- this[1]
+  introBounce: [0.12, 0.3],  // landing hop: height, seconds
+  introLockScroll: true,     // no scrolling until the H has landed
 
   // ---- hover tumble (active once the H has settled)
   tumbleFree: 0.5,           // seconds a kicked bar moves freely before being pulled back
