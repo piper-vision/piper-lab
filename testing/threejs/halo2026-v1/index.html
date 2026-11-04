@@ -114,7 +114,8 @@
       cursor: pointer;
     }
     #options button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
-    /* Option C headline: left side, beside the structure (structure.js shows it). */
+    /* Structure Hero headline: left side, vertically centred beside the
+       structure (structure.js shows it). */
     #structure-title {
       position: fixed;
       left: max(18px, 2.65vw);
@@ -124,17 +125,78 @@
       display: none;
       font-family: 'FK Display', system-ui, sans-serif;
       font-weight: 400;
-      font-size: min(8vw, 15vh);
+      font-size: min(10.5vw, 19vh);   /* same as Culture's headline */
       line-height: 0.95;
       letter-spacing: -0.02em;
       color: #0b0b0b;
       pointer-events: none;
       transform: translateY(-50%);
     }
-    #structure-title .line { display: block; white-space: nowrap; opacity: 0; animation: title-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-    #structure-title .line:nth-child(1) { animation-delay: 0.5s; }
-    #structure-title .line:nth-child(2) { animation-delay: 0.65s; }
+    #structure-title .line, #culture-hero .line { display: block; white-space: nowrap; opacity: 0; animation: title-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+    #structure-title .line:nth-child(1), #culture-hero h1 .line:nth-child(1) { animation-delay: 0.5s; }
+    #structure-title .line:nth-child(2), #culture-hero h1 .line:nth-child(2) { animation-delay: 0.65s; }
     @keyframes title-in { from { opacity: 0; transform: translateY(0.4em); } to { opacity: 1; transform: none; } }
+    /* Culture: big "Built Together" headline with the "Our culture" subtitle and
+       a short paragraph side by side underneath, the whole block vertically
+       centred on the left (culture.js shows it). */
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url('./assets/fonts/SpaceGrotesk-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url('./assets/fonts/SpaceGrotesk-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-display: swap;
+    }
+    #culture-hero {
+      position: fixed;
+      left: max(18px, 2.65vw);
+      top: 50%;
+      z-index: 2;
+      display: none;
+      color: #0b0b0b;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+    #culture-hero h1 {
+      margin: 0;
+      font-family: 'FK Display', system-ui, sans-serif;
+      font-weight: 400;
+      font-size: min(10.5vw, 19vh);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+    }
+    #culture-hero .copy {
+      display: flex;
+      align-items: baseline;
+      gap: max(16px, 2.5vw);
+      margin-top: min(4.5vw, 8vh);
+      padding-left: 0.2vw;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+    }
+    #culture-hero h2 {
+      margin: 0;
+      flex: none;
+      font-weight: 700;
+      font-size: clamp(16px, 1.65vw, 34px);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #culture-hero p {
+      margin: 0;
+      width: 15em;
+      font-weight: 400;
+      font-size: clamp(14px, 1.4vw, 28px);
+      line-height: 1.24;
+    }
+    #culture-hero .copy .line { white-space: normal; animation-delay: 0.85s; }
+    #culture-hero .copy p.line { animation-delay: 0.95s; }
+    @media (max-aspect-ratio: 1/1) {
+      #culture-hero .copy { flex-direction: column; gap: 10px; }
+    }
     /* First homepage section. The hero ends on the yellow circle filling the
        screen, so this starts the same yellow and scrolls up over the fixed
        canvas seamlessly. Placeholder until the real layout/content lands. */
@@ -166,7 +228,8 @@
   <div id="options" role="group" aria-label="Intro version">
     <button type="button" data-option="a" aria-pressed="true">HP Hero A</button>
     <button type="button" data-option="b" aria-pressed="false">HP Hero B</button>
-    <button type="button" data-option="c" aria-pressed="false">Structure Hero A</button>
+    <button type="button" data-option="c" aria-pressed="false">Structure Hero</button>
+    <button type="button" data-option="d" aria-pressed="false">Culture</button>
   </div>
   <div id="scene"></div>
   <h1 id="tagline">
@@ -178,15 +241,26 @@
     <span class="line">The Halo</span>
     <span class="line">Structure</span>
   </h1>
+  <div id="culture-hero">
+    <h1>
+      <span class="line">Built</span>
+      <span class="line">Together</span>
+    </h1>
+    <div class="copy">
+      <h2 class="line">Our culture</h2>
+      <p class="line">At Halo, we believe the best work happens when talented people trust one another, share ideas openly and take pride in what they create.</p>
+    </div>
+  </div>
   <div id="scroll"></div>
   <section id="intro"></section>
   <!-- inline import (not a static src) so the preload scanner can't fetch it
        before the <base> fix above takes effect -->
   <script type="module">
     // ?option= picks the hero: a / b = the H scroll story (two intros, main.js),
-    // c = the orbiting line-drawing structure (structure.js). The buttons show
+    // c = the orbiting line-drawing structure (structure.js), d = Culture, the
+    // original isometric "#" scene (culture.js). The buttons show
     // which is playing; picking another reloads with it so it plays from the top.
-    const option = ['a', 'b', 'c'].includes(new URLSearchParams(location.search).get('option'))
+    const option = ['a', 'b', 'c', 'd'].includes(new URLSearchParams(location.search).get('option'))
       ? new URLSearchParams(location.search).get('option') : 'a';
     for (const btn of document.querySelectorAll('#options button')) {
       btn.setAttribute('aria-pressed', String(btn.dataset.option === option));
@@ -197,7 +271,7 @@
         location.href = url.toString();
       });
     }
-    import(option === 'c' ? './src/structure.js' : './src/main.js');
+    import({ c: './src/structure.js', d: './src/culture.js' }[option] ?? './src/main.js');
   </script>
 </body>
 </html>

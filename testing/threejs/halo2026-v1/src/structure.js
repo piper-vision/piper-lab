@@ -52,8 +52,11 @@ container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(C.bg);
 
-// This hero is one screen tall; the next section follows straight after.
+// one screen, no scrolling: the yellow intro section below is for the HP Hero
+// scroll story only
 document.getElementById('scroll').style.height = '100vh';
+document.getElementById('intro').style.display = 'none';
+document.documentElement.style.overflow = document.body.style.overflow = 'hidden';
 document.getElementById('tagline').style.display = 'none';
 document.getElementById('structure-title').style.display = 'block';
 document.documentElement.style.background = '#' + C.bg.toString(16).padStart(6, '0');
