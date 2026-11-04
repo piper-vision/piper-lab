@@ -21,6 +21,10 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M9%204%20L9%2028%20M23%204%20L23%2028%20M9%2016%20L23%2016'%20fill='none'%20stroke='%23222'%20stroke-width='3'/%3E%3C/svg%3E" />
   <style>
     html, body { margin: 0; background: #fff8e6; overflow-x: hidden; }
+    /* no visible scrollbar on any scene (HP Hero still scrolls): it would
+       otherwise come and go between scenes and shift the page sideways */
+    html { scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
     #scene { position: fixed; inset: 0; }
     /* empty spacer that gives the page its scroll distance (height set from config) */
     #scroll { position: relative; height: 500vh; pointer-events: none; }
@@ -93,6 +97,111 @@
     .burger span { display: block; height: 2px; background: currentColor; transition: transform 0.25s ease; }
     .burger:hover span:first-child { transform: translateY(-1px); }
     .burger:hover span:last-child { transform: translateY(1px); }
+    /* Full-screen menu (burger): lime, links big on the left, contact bottom
+       right, outlined bars tumbling in behind (src/menu.js draws them). */
+    #menu {
+      position: fixed;
+      inset: 0;
+      z-index: 25;
+      display: none;
+      background: #e5ff00;
+      color: #0b0b0b;
+      overflow: hidden;
+    }
+    #menu.open { display: block; }
+    html.menu-open, html.menu-open body { overflow: hidden; }   /* no scrolling the page behind */
+    #menu-bars { position: absolute; inset: 0; }
+    #menu-bars canvas { display: block; }
+    .menu-nav {
+      position: absolute;
+      left: 6.6vw;
+      top: 50%;
+      transform: translateY(-52%);
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;   /* only the links take the pointer; the bars can be grabbed elsewhere */
+    }
+    .menu-nav a {
+      font-family: 'FK Display', system-ui, sans-serif;
+      font-size: min(4.6vw, 8.4vh);
+      line-height: 1.36;
+      letter-spacing: -0.02em;
+      color: inherit;
+      text-decoration: none;
+      white-space: nowrap;
+      pointer-events: auto;
+      align-self: flex-start;
+      opacity: 0;
+      position: relative;
+    }
+    /* hover: an arrow draws in from the left and the words slide over to make
+       room for it (the arrow and wrapper are added by the menu script) */
+    .menu-nav .label { display: inline-block; transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .menu-nav .arrow {
+      position: absolute;
+      left: 0;
+      top: 52%;
+      width: 0.86em;
+      height: 0.74em;   /* the brand arrow is 144 x 124 */
+      transform: translateY(-50%);
+      fill: currentColor;
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .menu-nav a:hover .label, .menu-nav a:focus-visible .label { transform: translateX(1.12em); }
+    .menu-nav a:hover .arrow, .menu-nav a:focus-visible .arrow { clip-path: inset(0 0 0 0); transition-delay: 0.06s; }
+    .menu-nav a:focus-visible { outline: none; }
+    #menu.play .menu-nav a { animation: menu-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+    #menu.play .menu-nav a:nth-child(1) { animation-delay: 0.10s; }
+    #menu.play .menu-nav a:nth-child(2) { animation-delay: 0.16s; }
+    #menu.play .menu-nav a:nth-child(3) { animation-delay: 0.22s; }
+    #menu.play .menu-nav a:nth-child(4) { animation-delay: 0.28s; }
+    #menu.play .menu-nav a:nth-child(5) { animation-delay: 0.34s; }
+    #menu.play .menu-nav a:nth-child(6) { animation-delay: 0.40s; }
+    #menu.play .menu-nav a:nth-child(7) { animation-delay: 0.46s; }
+    @keyframes menu-in { from { opacity: 0; transform: translateY(0.45em); } to { opacity: 1; transform: none; } }
+    .menu-contact {
+      position: absolute;
+      right: 5.4vw;
+      bottom: 6vw;
+      display: flex;
+      align-items: center;
+      gap: 2.8vw;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: clamp(13px, 1.3vw, 26px);
+      line-height: 1.75;
+      pointer-events: none;
+      opacity: 0;
+    }
+    #menu.play .menu-contact { animation: menu-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.55s forwards; }
+    .menu-contact svg { width: 10vw; height: auto; flex: none; }
+    .menu-contact a { color: inherit; text-decoration: none; pointer-events: auto; display: block; }
+    .menu-contact address { font-style: normal; margin-top: 0.75em; }
+    .menu-close {
+      position: absolute;
+      top: max(18px, 2.4vw);
+      right: max(18px, 2.4vw);
+      width: clamp(28px, 2.3vw, 48px);
+      aspect-ratio: 1;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      color: inherit;
+    }
+    .menu-close span {
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 2px;
+      margin-top: -1px;
+      background: currentColor;
+      transform: rotate(45deg);
+      transition: transform 0.25s ease;
+    }
+    .menu-close span + span { transform: rotate(-45deg); }
+    .menu-close:hover span { transform: rotate(135deg); }
+    .menu-close:hover span + span { transform: rotate(45deg); }
     /* Option A / Option B: switch between intro versions (reloads with ?option=). */
     #options {
       position: fixed;
@@ -102,6 +211,8 @@
       display: flex;
       gap: 8px;
     }
+    /* scene-change pixel transition (drawn by the script at the top of <body>) */
+    #pixels { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 30; pointer-events: none; }
     #options button {
       font-family: 'FK Display', system-ui, sans-serif;
       font-size: 14px;
@@ -212,6 +323,183 @@
   </script>
 </head>
 <body>
+  <!-- Pixel transition between scenes: clicking a scene button fills the screen
+       with pixels in random order, then loads the scene; the new page starts
+       covered and the pixels clear away in random order. A nod to the modular
+       structure: some pixels are modules two or three long (or 2 x 2); every
+       pixel scales in from nothing along one axis (a module along its length,
+       a square either way) as it appears, and scales back out as it goes. -->
+  <canvas id="pixels" aria-hidden="true"></canvas>
+  <script>
+    (function () {
+      // pixel shades, by the scene being opened: Structure Hero (and its Flythrough)
+      // in shades of its lilac background, Culture in shades of its blue, the HP
+      // Hero scenes in shades of their cream, the menu in shades of the bars' neon
+      // lime; one picked at random per pixel
+      var PALETTES = {
+        lime: ['#e5ff00', '#dcf600', '#d3ed00', '#ebff2e', '#e1fa00', '#efff52'],
+        c: ['#e2baf6', '#e6c3f7', '#eacbf9', '#ddb1f3', '#d8a9f1', '#e4bff7'],
+        d: ['#c7d9e5', '#cddde8', '#d3e1eb', '#c1d4e1', '#bbcfdd', '#cadbe7'],
+      };
+      PALETTES.e = PALETTES.c;
+      PALETTES.a = PALETTES.b = ['#fff8e6', '#fbf3de', '#fffbee', '#f7efd7', '#fdf5e0', '#f3ead0'];
+      var SHADES = PALETTES.lime;
+      var ACROSS = 6, COVER_MS = 345, REVEAL_MS = 500, REVEAL_DELAY = 115, STRETCH_MS = 155;
+      // module shapes [w, h] in cells, and how often each is tried
+      var SHAPES = [[1, 1, 6], [2, 1, 2], [1, 2, 2], [3, 1, 1], [1, 3, 1], [2, 2, 1]];
+      var cv = document.getElementById('pixels'), cx = cv.getContext('2d');
+      var cell = 0, tiles = [];
+      function pickShape() {
+        var total = 0, i;
+        for (i = 0; i < SHAPES.length; i++) total += SHAPES[i][2];
+        var r = Math.random() * total;
+        for (i = 0; i < SHAPES.length; i++) { r -= SHAPES[i][2]; if (r < 0) return SHAPES[i]; }
+        return SHAPES[0];
+      }
+      // A flat square grid in device pixels (whole numbers, so neighbouring
+      // pixels meet with no seams). Tiles are kept in grid units; the canvas
+      // transform scales them up to the screen.
+      function useGrid() { cx.setTransform(cell, 0, 0, cell, 0, 0); }
+      // split the grid into modules (only those touching the screen), in a shuffled order
+      function setup() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var w = Math.ceil(innerWidth * dpr), h = Math.ceil(innerHeight * dpr);
+        cv.width = w; cv.height = h;
+        cell = Math.max(96, Math.round(Math.max(w, h) / ACROSS));   // ACROSS pixels along the long side
+        // the grid range that covers the screen: each corner's grid coordinates
+        var toGrid = function (x, y) { return [x / cell, y / cell]; };
+        var corners = [toGrid(0, 0), toGrid(w, 0), toGrid(0, h), toGrid(w, h)];
+        var u0 = Math.floor(Math.min.apply(null, corners.map(function (p) { return p[0]; }))) - 1;
+        var v0 = Math.floor(Math.min.apply(null, corners.map(function (p) { return p[1]; }))) - 1;
+        var cols = Math.ceil(Math.max.apply(null, corners.map(function (p) { return p[0]; }))) + 1 - u0;
+        var rows = Math.ceil(Math.max.apply(null, corners.map(function (p) { return p[1]; }))) + 1 - v0;
+        var used = new Uint8Array(cols * rows);
+        var free = function (c, r, sw, sh) {
+          if (c + sw > cols || r + sh > rows) return false;
+          for (var y = r; y < r + sh; y++) for (var x = c; x < c + sw; x++) if (used[y * cols + x]) return false;
+          return true;
+        };
+        // does a grid rectangle land on the screen? (its corners' bounding box)
+        var onScreen = function (u, v, sw, sh) {
+          var xs = [], ys = [];
+          [[u, v], [u + sw, v], [u, v + sh], [u + sw, v + sh]].forEach(function (p) {
+            xs.push(p[0] * cell); ys.push(p[1] * cell);
+          });
+          return Math.max.apply(null, xs) > 0 && Math.min.apply(null, xs) < w && Math.max.apply(null, ys) > 0 && Math.min.apply(null, ys) < h;
+        };
+        tiles = [];
+        for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+          if (used[r * cols + c]) continue;
+          var s = pickShape();
+          if (!free(c, r, s[0], s[1])) s = SHAPES[0];
+          for (var y = r; y < r + s[1]; y++) for (var x = c; x < c + s[0]; x++) used[y * cols + x] = 1;
+          if (!onScreen(u0 + c, v0 + r, s[0], s[1])) continue;
+          tiles.push({
+            x: u0 + c, y: v0 + r, w: s[0], h: s[1],
+            shade: SHADES[Math.floor(Math.random() * SHADES.length)],
+            // the axis it scales along (a module's length; a square or 2 x 2 either way) and which end it grows from
+            axisX: s[0] > s[1] || (s[0] === s[1] && Math.random() < 0.5), flip: Math.random() < 0.5,
+          });
+        }
+        for (var i = tiles.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1)), t = tiles[i];
+          tiles[i] = tiles[j]; tiles[j] = t;
+        }
+        useGrid();
+      }
+      // a pixel at f (0 = nothing, 1 = full size), scaled along its axis from
+      // its start end; drawn a hair oversize so neighbours always meet
+      // without hairline gaps while they scale
+      function draw(t, f) {
+        var w = t.axisX ? t.w * f : t.w, h = t.axisX ? t.h : t.h * f;
+        if (w <= 0 || h <= 0) return;
+        var e = 1 / cell;
+        cx.fillStyle = t.shade;
+        cx.fillRect((t.flip && t.axisX ? t.x + t.w - w : t.x) - e, (t.flip && !t.axisX ? t.y + t.h - h : t.y) - e, w + 2 * e, h + 2 * e);
+      }
+      function clearTile(t) { var e = 1 / cell; cx.clearRect(t.x - e, t.y - e, t.w + 2 * e, t.h + 2 * e); }
+      var easeOut = function (u) { return 1 - Math.pow(1 - u, 3); };
+      // bring every module in (or take it away) in the shuffled order over `ms`;
+      // each one stretches out (or shrinks back) over STRETCH_MS
+      function run(on, ms, done) {
+        var n = tiles.length, start = performance.now();
+        (function step(now) {
+          var finished = 0;
+          for (var i = 0; i < n; i++) {
+            var t = tiles[i], g = (now - start - (i / n) * ms) / STRETCH_MS;
+            if (g < 0 || t.done) { if (t.done) finished++; continue; }
+            if (g >= 1) g = 1;
+            var f = easeOut(g);
+            clearTile(t);
+            if (on) draw(t, f);
+            else if (g < 1) draw(t, 1 - f);
+            if (g >= 1) { t.done = true; finished++; }
+          }
+          if (finished < n) requestAnimationFrame(step);
+          else {
+            for (i = 0; i < n; i++) tiles[i].done = false;
+            // fully cleared: wipe any oversize slivers left along the edges
+            if (!on) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); useGrid(); }
+            if (done) done();
+          }
+        })(start);
+      }
+      var busy = false;
+      window.pixelTransition = {
+        // cover the screen in the shades for scene `option`, then call done (e.g. to load it)
+        cover: function (done, option) {
+          SHADES = PALETTES[option] || PALETTES.lime;
+          if (busy) return;
+          busy = true;
+          setup();
+          // hand the exact layout (modules, shades) to the next page, so it
+          // starts covered by the same pixels rather than a new random set
+          try {
+            sessionStorage.setItem('pixelIn', JSON.stringify({ w: cv.width, h: cv.height, cell: cell,
+              tiles: tiles.map(function (t) { return [t.x, t.y, t.w, t.h, t.shade, t.axisX ? 1 : 0, t.flip ? 1 : 0]; }) }));
+          } catch (e) {}
+          run(true, COVER_MS, done);
+        },
+        // within the page (the menu): cover in the shades for `option`, call
+        // change() behind the pixels, then clear them in a fresh order
+        swap: function (change, option) {
+          if (busy) return false;
+          busy = true;
+          SHADES = PALETTES[option] || PALETTES.lime;
+          setup();
+          run(true, COVER_MS, function () {
+            change();
+            for (var k = tiles.length - 1; k > 0; k--) {
+              var j = Math.floor(Math.random() * (k + 1)), t = tiles[k];
+              tiles[k] = tiles[j]; tiles[j] = t;
+            }
+            setTimeout(function () { run(false, REVEAL_MS, function () { busy = false; }); }, REVEAL_DELAY);
+          });
+          return true;
+        },
+      };
+      // arriving from a transition: start covered (by the same layout, if the
+      // window is the same size), then clear once the scene is going
+      var saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem('pixelIn') || 'null'); sessionStorage.removeItem('pixelIn'); } catch (e) {}
+      if (saved) {
+        setup();
+        if (saved.w === cv.width && saved.h === cv.height && saved.tiles) {
+          cell = saved.cell;
+          useGrid();
+          tiles = saved.tiles.map(function (a) { return { x: a[0], y: a[1], w: a[2], h: a[3], shade: a[4], axisX: !!a[5], flip: !!a[6] }; });
+          for (var k = tiles.length - 1; k > 0; k--) {   // a fresh order for the reveal
+            var j = Math.floor(Math.random() * (k + 1)), t = tiles[k];
+            tiles[k] = tiles[j]; tiles[j] = t;
+          }
+        }
+        for (var i = 0; i < tiles.length; i++) draw(tiles[i], 1);
+        window.addEventListener('load', function () {
+          setTimeout(function () { run(false, REVEAL_MS); }, REVEAL_DELAY);
+        });
+      }
+    })();
+  </script>
   <header id="site-header">
     <a class="logo" href="./" aria-label="Halo home">
       <svg viewBox="0 0 80 34" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -225,9 +513,33 @@
       <span></span><span></span>
     </button>
   </header>
+  <div id="menu" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
+    <div id="menu-bars"></div>
+    <nav class="menu-nav" aria-label="Main">
+      <a href="#">The Halo Structure</a>
+      <a href="#">The Design Lab</a>
+      <a href="#">Who are we</a>
+      <a href="#">Projects</a>
+      <a href="#">News</a>
+      <a href="#">Sustainability</a>
+      <a href="#">Careers</a>
+    </nav>
+    <div class="menu-contact">
+      <!-- the brand arrow (Client Files/Brand/Logo/arrow.svg) -->
+      <svg viewBox="0 0 144 124" fill="currentColor" aria-hidden="true">
+        <path d="M2.08626 68.4661L0 66.4673V57.5568L1.99034 55.5339H94.769C103.306 55.5339 111.579 56.1359 119.948 56.8343C120.955 56.9307 121.962 56.3527 122.25 55.6302C122.538 54.9077 122.37 53.5832 121.483 52.9089C115.296 48.1165 109.421 43.0833 103.809 37.4721L75.3932 8.98271L75.3452 5.82793L81.1244 0H84.3137C84.3137 0.0240823 144 59.965 144 59.965V63.9627C144.024 63.9627 84.3617 123.904 84.3617 123.904L81.1724 124L75.3932 118.22V115.09C75.3692 115.09 104.001 86.3593 104.001 86.3593C109.565 80.7963 115.416 75.8353 121.555 71.0429C122.37 70.4168 122.586 69.2367 122.298 68.442C122.01 67.6473 121.027 67.0934 119.972 67.1657C111.603 67.864 103.354 68.4661 94.6731 68.4661H2.08626Z"/>
+      </svg>
+      <div>
+        <a href="mailto:info@thehalogroup.com">info@thehalogroup.com</a>
+        <a href="tel:+4402078703210">+44 (0)40 2078 703210</a>
+        <address>Foundry, 4 New Acres Lane,<br>Wandsworth SW18 1HT</address>
+      </div>
+    </div>
+    <button class="menu-close" type="button" aria-label="Close menu"><span></span><span></span></button>
+  </div>
   <div id="options" role="group" aria-label="Intro version">
-    <button type="button" data-option="a" aria-pressed="true">HP Hero A</button>
-    <button type="button" data-option="b" aria-pressed="false">HP Hero B</button>
+    <button type="button" data-option="a" aria-pressed="true">Homepage - Random Modular</button>
+    <button type="button" data-option="b" aria-pressed="false">Homepage - Spells HALO</button>
     <button type="button" data-option="c" aria-pressed="false">Structure Hero</button>
     <button type="button" data-option="d" aria-pressed="false">Culture</button>
   </div>
@@ -257,10 +569,11 @@
        before the <base> fix above takes effect -->
   <script type="module">
     // ?option= picks the hero: a / b = the H scroll story (two intros, main.js),
-    // c = the orbiting line-drawing structure (structure.js), d = Culture, the
+    // c = the orbiting line-drawing structure (structure.js), e = the same with a
+    // camera flythrough intro (structure.js), d = Culture, the
     // original isometric "#" scene (culture.js). The buttons show
     // which is playing; picking another reloads with it so it plays from the top.
-    const option = ['a', 'b', 'c', 'd'].includes(new URLSearchParams(location.search).get('option'))
+    const option = ['a', 'b', 'c', 'd', 'e'].includes(new URLSearchParams(location.search).get('option'))
       ? new URLSearchParams(location.search).get('option') : 'a';
     for (const btn of document.querySelectorAll('#options button')) {
       btn.setAttribute('aria-pressed', String(btn.dataset.option === option));
@@ -268,10 +581,46 @@
         if (btn.dataset.option === option) return;
         const url = new URL(location.href);
         url.searchParams.set('option', btn.dataset.option);
-        location.href = url.toString();
+        // pixel over, then load the scene (it pixels back in on arrival)
+        window.pixelTransition.cover(() => { location.href = url.toString(); }, btn.dataset.option);
       });
     }
-    import({ c: './src/structure.js', d: './src/culture.js' }[option] ?? './src/main.js');
+    import({ c: './src/structure.js', e: './src/structure.js', d: './src/culture.js' }[option] ?? './src/main.js');
+
+    // Menu: the burger opens it (text animates in, bars drop in behind), the X
+    // or Escape closes it. The bars' scene is only loaded the first time.
+    const menu = document.getElementById('menu'), burger = document.querySelector('.burger');
+    const BRAND_ARROW = 'M2.08626 68.4661L0 66.4673V57.5568L1.99034 55.5339H94.769C103.306 55.5339 111.579 56.1359 119.948 56.8343C120.955 56.9307 121.962 56.3527 122.25 55.6302C122.538 54.9077 122.37 53.5832 121.483 52.9089C115.296 48.1165 109.421 43.0833 103.809 37.4721L75.3932 8.98271L75.3452 5.82793L81.1244 0H84.3137C84.3137 0.0240823 144 59.965 144 59.965V63.9627C144.024 63.9627 84.3617 123.904 84.3617 123.904L81.1724 124L75.3932 118.22V115.09C75.3692 115.09 104.001 86.3593 104.001 86.3593C109.565 80.7963 115.416 75.8353 121.555 71.0429C122.37 70.4168 122.586 69.2367 122.298 68.442C122.01 67.6473 121.027 67.0934 119.972 67.1657C111.603 67.864 103.354 68.4661 94.6731 68.4661H2.08626Z';   // Client Files/Brand/Logo/arrow.svg
+    // each link: its words in a wrapper that slides on hover, and an arrow
+    // (hidden until hover) in front of them
+    for (const a of menu.querySelectorAll('.menu-nav a')) {
+      a.innerHTML = '<svg class="arrow" viewBox="0 0 144 124" aria-hidden="true"><path d="' + BRAND_ARROW + '"/></svg>'
+        + '<span class="label">' + a.textContent + '</span>';
+    }
+    let menuBars = null;
+    function openMenu() {
+      menu.classList.add('open');
+      // the text animates in as the pixels start clearing (it'd play unseen under them)
+      setTimeout(() => menu.classList.add('play'), 200);
+      menu.setAttribute('aria-hidden', 'false');
+      burger.setAttribute('aria-expanded', 'true');
+      document.documentElement.classList.add('menu-open');
+      (menuBars ??= import('./src/menu.js')).then(m => m.start());
+    }
+    function closeMenu() {
+      menu.classList.remove('open', 'play');
+      menu.setAttribute('aria-hidden', 'true');
+      burger.setAttribute('aria-expanded', 'false');
+      document.documentElement.classList.remove('menu-open');
+      menuBars?.then(m => m.stop());
+      burger.focus();
+    }
+    // both ways through the pixel transition: lime pixels into the menu, the
+    // scene's own shades back out to it
+    burger.addEventListener('click', () => window.pixelTransition.swap(openMenu, 'menu'));
+    const leaveMenu = () => window.pixelTransition.swap(closeMenu, option);
+    menu.querySelector('.menu-close').addEventListener('click', leaveMenu);
+    addEventListener('keydown', e => { if (e.key === 'Escape' && menu.classList.contains('open')) leaveMenu(); });
   </script>
 </body>
 </html>

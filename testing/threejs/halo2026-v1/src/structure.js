@@ -31,14 +31,28 @@ const C = {
   // (speed: the whole build runs this many times faster; the numbers are at 1x).
   // On the way out the pieces lift back off in reverse order, `exitStagger` of
   // their build-in spacing apart.
-  build: { start: 1.1, speed: 1.5, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22, exitStagger: 0.35 },
+  build: { start: 1.1, speed: 2.25, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22, exitStagger: 0.35 },
   // the looping sequence (default, unless ?formation= picks one): build a
   // formation, hold it, lift it off, the floor lines slide to the next one's
   // footprint and it builds in (`next` seconds after the last piece has gone)
-  sequence: { formations: [1, 9, 10], hold: 3, next: 0.5 },
+  sequence: { formations: [1, 9, 10], hold: 2, next: 0.33 },
+  // Orbit-in intro (?option=e, "Structure Hero Flythrough"): while the first
+  // formation builds, the camera starts close in (`startZoom` x the final view
+  // size), low down (`startEl` degrees) and `sweep` degrees further back round
+  // the orbit, with the structure centred; over `duration` s it pulls back
+  // (slowing all the way) and, from `riseFrom` of the way through, rises up,
+  // settling onto the usual view (the structure sliding over to the right) at
+  // the usual orbit speed, which carries on from there. The H1 starts fading
+  // up `titleAt` s in.
+  intro: { duration: 5, sweep: 20, startEl: 5, riseFrom: 0.25, startZoom: 0.35, titleAt: 2 },
   // floor lines (as in the other scenes): four lines flush with the footprint's
-  // outer edges, drawing themselves in before the build starts
-  floor: { start: 0.15, draw: 0.8, stagger: 0.12, reach: 14, far: 60 },
+  // outer edges, drawing themselves in before the build starts. Their far ends
+  // fade to nothing between fade[0] and fade[1] (world units from the structure's
+  // centre): well off screen in the settled view, but it hides the line ends
+  // when the intro's low, zoomed-out camera can see that far.
+  // (introFade: in the Flythrough intro the lines don't draw in, which whips
+  // round from the low camera; they fade in at full length over this long)
+  floor: { start: 0.15, draw: 0.8, stagger: 0.12, reach: 14, far: 60, fade: [30, 55], introFade: 1.6 },
 };
 
 const container = document.getElementById('scene');
@@ -58,7 +72,11 @@ document.getElementById('scroll').style.height = '100vh';
 document.getElementById('intro').style.display = 'none';
 document.documentElement.style.overflow = document.body.style.overflow = 'hidden';
 document.getElementById('tagline').style.display = 'none';
-document.getElementById('structure-title').style.display = 'block';
+// Structure Hero Flythrough (?option=e) is this same scene with an orbit-in intro
+// (see "Orbit-in intro" below); its H1 stays hidden until the camera has landed
+const FLY = new URLSearchParams(location.search).get('option') === 'e';
+const title = document.getElementById('structure-title');
+if (!FLY) title.style.display = 'block';
 document.documentElement.style.background = '#' + C.bg.toString(16).padStart(6, '0');
 
 // ---------------------------------------------------------------------------
@@ -448,7 +466,27 @@ function buildFormation(f) {
 // stay for the whole visit: on a change of formation they slide over to hug the
 // new footprint (like the floor lines in Options A/B).
 const F = C.floor;
-const floorMat = new LineMaterial({ color: C.ink, linewidth: C.lineWidth });
+const floorMat = new LineMaterial({ color: C.ink, linewidth: C.lineWidth, transparent: true });
+// the fade with distance: the shader gets each point's floor position and fades
+// its alpha between two radii round the structure's centre (updated each frame)
+const floorFade = { centre: { value: new THREE.Vector2() }, near: { value: 1 }, far: { value: 2 } };
+floorMat.onBeforeCompile = shader => {
+  Object.assign(shader.uniforms, { fadeCentre: floorFade.centre, fadeNear: floorFade.near, fadeFar: floorFade.far });
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <clipping_planes_pars_vertex>', '#include <clipping_planes_pars_vertex>\nvarying vec3 vFloorPos;')
+    .replace('vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );',
+      'vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );\n\t\t\tvFloorPos = ( modelMatrix * vec4( position.y < 0.5 ? instanceStart : instanceEnd, 1.0 ) ).xyz;');
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <clipping_planes_pars_fragment>',
+      '#include <clipping_planes_pars_fragment>\nvarying vec3 vFloorPos;\nuniform vec2 fadeCentre;\nuniform float fadeNear;\nuniform float fadeFar;')
+    .replace('gl_FragColor = vec4( diffuseColor.rgb, alpha );',
+      'alpha *= 1.0 - smoothstep( fadeNear, fadeFar, length( vFloorPos.xz - fadeCentre ) );\n\t\t\tgl_FragColor = vec4( diffuseColor.rgb, alpha );');
+};
+function updateFloorFade() {
+  floorFade.centre.value.set(centre.x, centre.z);
+  floorFade.near.value = F.fade[0];
+  floorFade.far.value = F.fade[1];
+}
 const floorLines = ['z0', 'z1', 'x0', 'x1'].map((side, i) => {
   const obj = new LineSegments2(new LineSegmentsGeometry().setPositions([0, 0, 0, 0, 0, 0]), floorMat);
   obj.visible = false;
@@ -459,13 +497,15 @@ const floorLines = ['z0', 'z1', 'x0', 'x1'].map((side, i) => {
 let fpNow = null;              // footprint the lines are on right now, easing to `footprint`
 const easeInOut = u => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 function updateFloor(time) {
+  // the Flythrough intro fades them in at full length instead of drawing them
+  if (FLY) floorMat.opacity = Math.min(1, Math.max(0, (time - F.start) / F.introFade)) ** 2;
   const [x0, z0, x1, z1] = fpNow, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
   for (const l of floorLines) {
     const u = Math.min(1, (time - l.at) / F.draw);
     l.obj.visible = u > 0;
     if (u <= 0) continue;
     // distance a..b along the line: drawing in, then far past the screen
-    const [a, b] = u < 1 ? [-F.reach, -F.reach + 2 * F.reach * easeInOut(u)] : [-F.far, F.far];
+    const [a, b] = u < 1 && !FLY ? [-F.reach, -F.reach + 2 * F.reach * easeInOut(u)] : [-F.far, F.far];
     const p = {
       z0: [mx + a, z0, mx + b, z0], z1: [mx + a, z1, mx + b, z1],
       x0: [x0, mz + a, x0, mz + b], x1: [x1, mz + a, x1, mz + b],
@@ -522,13 +562,14 @@ const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
 const centre = new THREE.Vector3(), targetCentre = new THREE.Vector3();
 let radius = 1, targetRadius = 1;
 
-function frameCamera() {
+// zoom: view size multiplier (> 1 = further out); slide: 0..1 of the move to the right
+function frameCamera(zoom = 1, slide = 1) {
   const w = window.innerWidth, h = window.innerHeight, aspect = w / h;
-  const half = radius * C.fill / Math.min(1, aspect);   // fit the structure's sphere, landscape or portrait
+  const half = zoom * radius * C.fill / Math.min(1, aspect);   // fit the structure's sphere, landscape or portrait
   camera.top = half; camera.bottom = -half;
   // landscape: slide the frame left so the structure sits right of centre,
   // leaving the left side clear for the H1
-  const shift = aspect > 1 ? C.offsetX * 2 * half * aspect : 0;
+  const shift = aspect > 1 ? slide * C.offsetX * 2 * half * aspect : 0;
   camera.left = -half * aspect - shift; camera.right = half * aspect - shift;
   camera.updateProjectionMatrix();
 }
@@ -595,6 +636,16 @@ window.addEventListener('pointermove', e => {
 });
 document.documentElement.addEventListener('pointerleave', () => { tmx = tmy = 0; });
 
+// ---------------------------------------------------------------------------
+// Orbit-in intro (?option=e): the same orthographic camera, swinging round and
+// moving in while the first formation builds. Every motion eases out with a
+// cubic, so the camera decelerates smoothly; the orbit angle eases onto the
+// regular orbit (rather than to a standstill), so it carries straight on.
+// ---------------------------------------------------------------------------
+const IN = C.intro;
+let introDone = !FLY, introEndAt = 0, orbitFrom = 0;   // orbitFrom: clock when the regular orbit takes over
+const smooth = u => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+
 let last = clock0, frozen = null;
 function frame() {
   requestAnimationFrame(frame);
@@ -603,8 +654,8 @@ function frame() {
   const clock = now - clock0;
   let time = frozen ?? clock - buildAt;
   // the sequence: hold the built formation, lift it off, then on to the next
-  if (looping && frozen === null) {
-    if (exitAt === null && time > buildEnd() + SQ.hold) exitAt = time;
+  if (looping && frozen === null && introDone) {
+    if (exitAt === null && time > Math.max(buildEnd(), introEndAt) + SQ.hold) exitAt = time;
     else if (exitAt !== null && time > exitAt + exitLength()) {
       loopIdx = (loopIdx + 1) % SQ.formations.length;
       show(SQ.formations[loopIdx] - 1, { delay: SQ.next });
@@ -619,12 +670,33 @@ function frame() {
   centre.lerp(targetCentre, kf);
   radius += (targetRadius - radius) * kf;
   for (let j = 0; j < 4; j++) fpNow[j] += (footprint[j] - fpNow[j]) * kf;
-  frameCamera();
+
+  // orbit angle, height, zoom and sideways slide: the regular orbit, or the intro easing onto it
+  let az = C.azimuth + C.orbitSpeed * (frozen ?? clock - orbitFrom), el = C.elevation, zoom = 1, slide = 1, tilt = 1;
+  if (!introDone) {
+    const p = Math.min(1, time / IN.duration), q = (1 - p) ** 3;   // q: 1 -> 0, easing out
+    // the swing eases in and out (on top of the regular orbit speed), so it starts gently
+    az = C.azimuth + C.orbitSpeed * (time - IN.duration) - IN.sweep * (1 - smooth(p));
+    // the rise stays low while it moves in, then lifts (and settles)
+    el = IN.startEl + (C.elevation - IN.startEl) * smooth((p - IN.riseFrom) / (1 - IN.riseFrom));
+    zoom = IN.startZoom + (1 - IN.startZoom) * smooth(p);   // stays close while the first pieces land
+    slide = smooth((p - 0.35) / 0.65);
+    tilt = 1 - q;
+    if (time >= IN.titleAt) title.style.display = 'block';   // its lines fade up (CSS)
+    if (p >= 1 && frozen === null) {
+      // landed: the regular orbit carries on from here
+      introDone = true;
+      introEndAt = time;
+      orbitFrom = clock;
+    }
+  }
+  frameCamera(zoom, slide);
   updateFloor(frozen ?? clock - floorBorn);
+  updateFloorFade();
   updateBuild(time);
-  const az = THREE.MathUtils.degToRad(C.azimuth + C.orbitSpeed * (frozen ?? clock) + mx * C.mouseTilt[0]);
-  const el = THREE.MathUtils.degToRad(C.elevation - my * C.mouseTilt[1]);
-  camera.position.set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)).multiplyScalar(60).add(centre);
+  const azR = THREE.MathUtils.degToRad(az + mx * C.mouseTilt[0] * tilt);
+  const elR = THREE.MathUtils.degToRad(el - my * C.mouseTilt[1] * tilt);
+  camera.position.set(Math.cos(elR) * Math.sin(azR), Math.sin(elR), Math.cos(elR) * Math.cos(azR)).multiplyScalar(60).add(centre);
   camera.lookAt(centre);
   renderer.render(scene, camera);
 }
@@ -641,6 +713,6 @@ window.structureDebug = {
   replay: () => { frozen = null; show(formation); },
   buildEnd,
   exitLength,
-  state: () => ({ looping, formation: formation + 1, exiting: exitAt !== null }),
+  state: () => ({ looping, formation: formation + 1, exiting: exitAt !== null, introDone }),
   formations: FORMATIONS.map(f => f.name),
 };
