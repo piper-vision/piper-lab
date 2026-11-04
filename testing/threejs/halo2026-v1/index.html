@@ -98,7 +98,7 @@
     .burger:hover span:first-child { transform: translateY(-1px); }
     .burger:hover span:last-child { transform: translateY(1px); }
     /* Full-screen menu (burger): lime, links big on the left, contact bottom
-       right, outlined bars tumbling in behind (src/menu.js draws them). */
+       right, the homepage H floating on the right (src/menu.js draws it). */
     #menu {
       position: fixed;
       inset: 0;
@@ -110,8 +110,8 @@
     }
     #menu.open { display: block; }
     html.menu-open, html.menu-open body { overflow: hidden; }   /* no scrolling the page behind */
-    #menu-bars { position: absolute; inset: 0; }
-    #menu-bars canvas { display: block; }
+    #menu-h { position: absolute; inset: 0; }
+    #menu-h canvas { display: block; }
     .menu-nav {
       position: absolute;
       left: 6.6vw;
@@ -119,7 +119,7 @@
       transform: translateY(-52%);
       display: flex;
       flex-direction: column;
-      pointer-events: none;   /* only the links take the pointer; the bars can be grabbed elsewhere */
+      pointer-events: none;   /* only the links take the pointer */
     }
     .menu-nav a {
       font-family: 'FK Display', system-ui, sans-serif;
@@ -514,7 +514,7 @@
     </button>
   </header>
   <div id="menu" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
-    <div id="menu-bars"></div>
+    <div id="menu-h"></div>
     <nav class="menu-nav" aria-label="Main">
       <a href="#">The Halo Structure</a>
       <a href="#">The Design Lab</a>
@@ -587,8 +587,8 @@
     }
     import({ c: './src/structure.js', e: './src/structure.js', d: './src/culture.js' }[option] ?? './src/main.js');
 
-    // Menu: the burger opens it (text animates in, bars drop in behind), the X
-    // or Escape closes it. The bars' scene is only loaded the first time.
+    // Menu: the burger opens it (text animates in, the H rises in behind), the X
+    // or Escape closes it. The H scene is only loaded the first time.
     const menu = document.getElementById('menu'), burger = document.querySelector('.burger');
     const BRAND_ARROW = 'M2.08626 68.4661L0 66.4673V57.5568L1.99034 55.5339H94.769C103.306 55.5339 111.579 56.1359 119.948 56.8343C120.955 56.9307 121.962 56.3527 122.25 55.6302C122.538 54.9077 122.37 53.5832 121.483 52.9089C115.296 48.1165 109.421 43.0833 103.809 37.4721L75.3932 8.98271L75.3452 5.82793L81.1244 0H84.3137C84.3137 0.0240823 144 59.965 144 59.965V63.9627C144.024 63.9627 84.3617 123.904 84.3617 123.904L81.1724 124L75.3932 118.22V115.09C75.3692 115.09 104.001 86.3593 104.001 86.3593C109.565 80.7963 115.416 75.8353 121.555 71.0429C122.37 70.4168 122.586 69.2367 122.298 68.442C122.01 67.6473 121.027 67.0934 119.972 67.1657C111.603 67.864 103.354 68.4661 94.6731 68.4661H2.08626Z';   // Client Files/Brand/Logo/arrow.svg
     // each link: its words in a wrapper that slides on hover, and an arrow
