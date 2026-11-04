@@ -17,7 +17,7 @@ import { LineMaterial } from '../vendor/three/addons/lines/LineMaterial.js';
 const C = {
   bg: 0xe2baf6,           // background, and the fill that hides lines behind faces
   ink: 0x0b0b0b,
-  lineWidth: 1.5,         // CSS pixels, the same for every line (solid and dotted)
+  lineWidth: 1,           // CSS pixels, the same for every line (solid and dotted); same as Options A/B (config.js)
   elevation: 30,          // degrees above the floor
   azimuth: 35,            // starting angle
   orbitSpeed: 7,          // degrees per second
@@ -28,7 +28,14 @@ const C = {
   // build-in: each piece falls from `drop` above its place over `fall` seconds
   // (accelerating, like it's dropped), fading in over the start of the fall, then
   // settles with a small bounce
-  build: { start: 1.1, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22 },
+  // (speed: the whole build runs this many times faster; the numbers are at 1x).
+  // On the way out the pieces lift back off in reverse order, `exitStagger` of
+  // their build-in spacing apart.
+  build: { start: 1.1, speed: 1.5, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22, exitStagger: 0.35 },
+  // the looping sequence (default, unless ?formation= picks one): build a
+  // formation, hold it, lift it off, the floor lines slide to the next one's
+  // footprint and it builds in (`next` seconds after the last piece has gone)
+  sequence: { formations: [1, 9, 10], hold: 3, next: 0.5 },
   // floor lines (as in the other scenes): four lines flush with the footprint's
   // outer edges, drawing themselves in before the build starts
   floor: { start: 0.15, draw: 0.8, stagger: 0.12, reach: 14, far: 60 },
@@ -36,7 +43,9 @@ const C = {
 
 const container = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// always 2x, like Options A/B: the lines come out a whole number of pixels and
+// are smoothed down, so they look the same weight on every screen
+renderer.setPixelRatio(2);
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
 
@@ -55,7 +64,7 @@ document.documentElement.style.background = '#' + C.bg.toString(16).padStart(6, 
 // one unit at its own time.
 // ---------------------------------------------------------------------------
 const fillMat = new THREE.MeshBasicMaterial({
-  color: C.bg, side: THREE.DoubleSide,
+  color: C.bg, side: THREE.DoubleSide, transparent: true,
   polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,   // outlines win over their own faces
 });
 let lineMats = [];     // every line material, for resize + fade
@@ -63,7 +72,9 @@ let pieces = [];
 let cur = null;
 // start a new piece that drops in at `at` seconds (relative to the build start)
 function begin(at, { dashed = false } = {}) {
-  cur = { at, dashed, group: new THREE.Group(), segs: [] };
+  // each piece has its own fill, so it can fade with the piece's lines instead
+  // of blinking out (it hides the lines behind it while it's solid)
+  cur = { at, dashed, group: new THREE.Group(), segs: [], fill: fillMat.clone() };
   pieces.push(cur);
   scene.add(cur.group);
 }
@@ -76,7 +87,7 @@ function addEdges(geo, matrix) {
     cur.segs.push(v.x, v.y, v.z);
   }
 }
-function addMesh(geo, m = new THREE.Mesh(geo, fillMat), edges = true) {
+function addMesh(geo, m = new THREE.Mesh(geo, cur.fill), edges = true) {
   m.updateMatrix();
   cur.group.add(m);
   if (edges) addEdges(geo, m.matrix);
@@ -84,14 +95,14 @@ function addMesh(geo, m = new THREE.Mesh(geo, fillMat), edges = true) {
 // solid box between two corners (fill only when edges = false)
 function box(x0, y0, z0, x1, y1, z1, edges = true) {
   const geo = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
-  const m = new THREE.Mesh(geo, fillMat);
+  const m = new THREE.Mesh(geo, cur.fill);
   m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
   addMesh(geo, m, edges);
 }
 // flat panel (single outline): 'x' = in the plane x = c, 'z' = in z = c, 'y' = horizontal at y = c
 function panel(axis, c, a0, a1, b0, b1) {
   const geo = new THREE.PlaneGeometry(1, 1);
-  const m = new THREE.Mesh(geo, fillMat);
+  const m = new THREE.Mesh(geo, cur.fill);
   if (axis === 'x') { m.rotation.y = Math.PI / 2; m.scale.set(b1 - b0, a1 - a0, 1); m.position.set(c, (a0 + a1) / 2, (b0 + b1) / 2); }
   if (axis === 'z') { m.scale.set(a1 - a0, b1 - b0, 1); m.position.set((a0 + a1) / 2, (b0 + b1) / 2, c); }
   if (axis === 'y') { m.rotation.x = -Math.PI / 2; m.scale.set(a1 - a0, b1 - b0, 1); m.position.set((a0 + a1) / 2, c, (b0 + b1) / 2); }
@@ -101,7 +112,7 @@ const line = (x0, y0, z0, x1, y1, z1) => cur.segs.push(x0, y0, z0, x1, y1, z1);
 // adjustable foot: a disc pad on the ground and a short stem up to the deck
 function foot(x, z, top) {
   const r = 0.2, n = 28;
-  const disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.07, n), fillMat);
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.07, n), cur.fill);
   disc.position.set(x, 0.035, z); disc.updateMatrix(); cur.group.add(disc);
   for (let k = 0; k < n; k++) {
     const a0 = (k / n) * Math.PI * 2, a1 = ((k + 1) / n) * Math.PI * 2;
@@ -349,6 +360,13 @@ function buildFormation(f) {
   const posts = new Map();     // "x,z" -> top
   for (const k of upper?.corners ?? []) posts.set(`${k.x},${k.z}`, POST_TOP);
   for (const [x, z] of f.posts ?? []) posts.set(`${x},${z}`, f.postTop ?? POST_TOP);
+  // any post under a roof (on its edge or inside) runs right up to it
+  const roofs = f.roofs ?? [];
+  for (const key of posts.keys()) {
+    const [x, z] = key.split(',').map(Number);
+    const roof = roofs.find(([x0, z0, x1, z1]) => x >= x0 - 1e-4 && x <= x1 + 1e-4 && z >= z0 - 1e-4 && z <= z1 + 1e-4);
+    if (roof) posts.set(key, roof[4] ?? ROOF);
+  }
   for (const [key, top] of posts) {
     const [x, z] = key.split(',').map(Number);
     begin(next(0.08)); line(x, DECK[1], z, x, top, z);
@@ -357,9 +375,13 @@ function buildFormation(f) {
 
   // each stair from the bottom up: the lower flight, the landing (as wide as
   // the stairs), then the upper flight; every step is one RISE x RUN, and the
-  // top step is one riser below the upper floor
+  // top step is one riser below the upper floor. Several stairs build at the
+  // same time.
+  next(0.15);
+  const stairsAt = t;
+  let stairsEnd = t;
   for (const s of stairs) {
-    next(0.15);
+    t = stairsAt;
     for (let k = 0; k < STEPS; k++) {
       const z0 = LANE.front + RUN * (STEPS - 1 - k);
       begin(next(0.09)); lbox(s, -W, DECK[1], z0, 0, DECK[1] + RISE * (k + 1), z0 + RUN);
@@ -369,7 +391,9 @@ function buildFormation(f) {
       const z1 = LANE.landing - RUN * k;
       begin(next(0.09)); lbox(s, -W, DECK[1], z1 - RUN, 0, LAND + RISE * (k + 1), z1);
     }
+    stairsEnd = Math.max(stairsEnd, t);
   }
+  t = stairsEnd;
 
   // fence on the upper floor's outside edges, leaving a gap where each stair
   // arrives; straight runs are one panel each, placed going round from the back
@@ -394,19 +418,8 @@ function buildFormation(f) {
     }
   }
 
-  // the roofs, lifted straight off (exploded), then dotted lines from the posts
-  // under their front corners showing where they go
-  const roofs = f.roofs ?? [];
+  // the roofs, sitting on the tops of the posts
   for (const [x0, z0, x1, z1, y = ROOF] of roofs) { begin(next(0.35)); panel('y', y, x0, x1, z0, z1); }
-  if (roofs.length) {
-    begin(next(0.5), { dashed: true });
-    for (const [x0, , x1, z1, y = ROOF] of roofs) {
-      for (const x of [x0, x1]) {
-        const top = posts.get(`${x},${z1}`);
-        if (top !== undefined) line(x, top + 0.12, z1, x, y - 0.08, z1);
-      }
-    }
-  }
 
   // one outline per piece, so each can move and fade on its own
   const segs = [];
@@ -421,58 +434,79 @@ function buildFormation(f) {
     segs.push(...p.segs);
     p.group.visible = false;
   }
+  // lifting off goes in reverse: the last piece in is the first out
+  for (const p of pieces) p.out = (t - p.at) * B.exitStagger;
   return segs;
 }
 
 // Floor lines: two along X flush with the back and front of the footprint, two
 // along Z flush with its left and right. Each draws itself in across the view
-// (its end sliding out from one side), then reaches far past the screen.
+// (its end sliding out from one side), then reaches far past the screen. They
+// stay for the whole visit: on a change of formation they slide over to hug the
+// new footprint (like the floor lines in Options A/B).
 const F = C.floor;
-let floorLines = [];
-function makeFloorLines() {
-  const [x0, z0, x1, z1] = footprint;
-  const mat = new LineMaterial({ color: C.ink, linewidth: C.lineWidth });
-  lineMats.push(mat);
-  const mid = [(x0 + x1) / 2, (z0 + z1) / 2];
-  floorLines = [{ along: 'x', z: z0 }, { along: 'x', z: z1 }, { along: 'z', x: x0 }, { along: 'z', x: x1 }].map((l, i) => {
-    const obj = new LineSegments2(new LineSegmentsGeometry(), mat);
-    obj.visible = false;
-    scene.add(obj);
-    return { ...l, mid, obj, at: F.start + i * F.stagger, done: false };
-  });
-}
-// points at distance a and b along the line
-const floorPoints = (l, a, b) => (l.along === 'x'
-  ? [l.mid[0] + a, 0, l.z, l.mid[0] + b, 0, l.z]
-  : [l.x, 0, l.mid[1] + a, l.x, 0, l.mid[1] + b]);
+const floorMat = new LineMaterial({ color: C.ink, linewidth: C.lineWidth });
+const floorLines = ['z0', 'z1', 'x0', 'x1'].map((side, i) => {
+  const obj = new LineSegments2(new LineSegmentsGeometry().setPositions([0, 0, 0, 0, 0, 0]), floorMat);
+  obj.visible = false;
+  obj.frustumCulled = false;
+  scene.add(obj);
+  return { side, obj, at: F.start + i * F.stagger };
+});
+let fpNow = null;              // footprint the lines are on right now, easing to `footprint`
 const easeInOut = u => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 function updateFloor(time) {
+  const [x0, z0, x1, z1] = fpNow, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
   for (const l of floorLines) {
-    if (l.done) continue;
     const u = Math.min(1, (time - l.at) / F.draw);
     l.obj.visible = u > 0;
     if (u <= 0) continue;
-    if (u < 1) l.obj.geometry.setPositions(floorPoints(l, -F.reach, -F.reach + 2 * F.reach * easeInOut(u)));
-    else { l.obj.geometry.setPositions(floorPoints(l, -F.far, F.far)); l.done = true; }   // off-screen swap
+    // distance a..b along the line: drawing in, then far past the screen
+    const [a, b] = u < 1 ? [-F.reach, -F.reach + 2 * F.reach * easeInOut(u)] : [-F.far, F.far];
+    const p = {
+      z0: [mx + a, z0, mx + b, z0], z1: [mx + a, z1, mx + b, z1],
+      x0: [x0, mz + a, x0, mz + b], x1: [x1, mz + a, x1, mz + b],
+    }[l.side];
+    const seg = l.obj.geometry.attributes.instanceStart.data;   // [x0 y0 z0 x1 y1 z1], updated in place
+    seg.array.set([p[0], 0, p[1], p[2], 0, p[3]]);
+    seg.needsUpdate = true;
   }
 }
 
 // Build-in: each piece falls from above (accelerating), fading in as it starts,
-// lands in place with a small settle. Dotted lines just fade in, no fall.
+// lands in place with a small settle. Lifting off is the same in reverse: each
+// piece accelerates back up and fades out. Dotted lines just fade, no move.
 const B = C.build;
+let buildDelay = B.start;      // seconds after show() before the first piece drops
+let exitAt = null;             // build time the lift-off started (null = standing)
+const lastAt = () => Math.max(0, ...pieces.map(p => p.at));
+const buildEnd = () => buildDelay + (lastAt() + B.fall + B.settle) / B.speed;
+const exitLength = () => (lastAt() * B.exitStagger + B.fall) / B.speed;
 function updateBuild(time) {
+  const bt = (time - buildDelay) * B.speed;                     // build clock, sped up
+  const xt = exitAt === null ? null : (time - exitAt) * B.speed;
   for (const p of pieces) {
-    const u = (time - B.start - p.at) / B.fall;
+    const u = (bt - p.at) / B.fall;
     p.group.visible = u > 0;
     if (u <= 0) continue;
-    p.mat.opacity = Math.min(1, u * B.fall / B.fadeIn);
-    if (p.dashed) continue;
-    let y = 0;
-    if (u < 1) y = B.drop * (1 - u * u);             // falling under gravity
-    else {
-      const v = (time - B.start - p.at - B.fall) / B.settle;
-      if (v < 1) y = B.bounce * Math.sin(Math.PI * v) * (1 - v);   // tiny settle after landing
+    let alpha = Math.min(1, u * B.fall / B.fadeIn), y = 0;
+    if (!p.dashed) {
+      if (u < 1) y = B.drop * (1 - u * u);                     // falling under gravity
+      else {
+        const v = (bt - p.at - B.fall) / B.settle;
+        if (v < 1) y = B.bounce * Math.sin(Math.PI * v) * (1 - v);   // tiny settle after landing
+      }
     }
+    if (xt !== null) {
+      const w = (xt - p.out) / B.fall;
+      if (w >= 1) { p.group.visible = false; continue; }
+      if (w > 0) { alpha *= 1 - w; if (!p.dashed) y += B.drop * w * w; }
+    }
+    p.mat.opacity = alpha;
+    // the fill fades with the lines: while it's see-through it stops hiding
+    // the lines behind it, so they fade back in rather than popping
+    p.fill.opacity = alpha;
+    p.fill.depthWrite = alpha >= 1;
     p.group.position.y = y;
   }
 }
@@ -495,61 +529,60 @@ function frameCamera() {
   camera.left = -half * aspect - shift; camera.right = half * aspect - shift;
   camera.updateProjectionMatrix();
 }
-function resize() {
-  const w = window.innerWidth, h = window.innerHeight;
-  renderer.setSize(w, h);
-  frameCamera();
-  const px = renderer.getPixelRatio();
-  for (const m of lineMats) {
+function sizeLines() {
+  const w = window.innerWidth, h = window.innerHeight, px = renderer.getPixelRatio();
+  for (const m of [floorMat, ...lineMats]) {
     m.resolution.set(w * px, h * px);
     m.linewidth = C.lineWidth * px;
   }
 }
+function resize() {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  frameCamera();
+  sizeLines();
+}
 window.addEventListener('resize', resize);
 
 // ---------------------------------------------------------------------------
-// Switching: clear the scene, build the new formation and play its build-in
-// from the top (the orbit carries on).
+// Switching: clear the pieces, build the new formation and play its build-in
+// (the orbit and floor lines carry on). With the sequence on, it holds each
+// formation, lifts it off and builds the next, round and round.
 // ---------------------------------------------------------------------------
 const clock0 = performance.now() / 1000;
-let buildAt = 0, formation = 0;
-function show(i, { snap = false } = {}) {
-  for (const obj of [...pieces.map(p => p.group), ...floorLines.map(l => l.obj)]) {
-    scene.remove(obj);
-    obj.traverse(o => o.geometry?.dispose());
+const SQ = C.sequence;
+let buildAt = 0, formation = 0, looping = false, loopIdx = 0;
+function show(i, { snap = false, delay = B.start } = {}) {
+  for (const p of pieces) {
+    scene.remove(p.group);
+    p.group.traverse(o => o.geometry?.dispose());
+    p.mat.dispose();
+    p.fill.dispose();
   }
-  for (const m of lineMats) m.dispose();
-  pieces = []; lineMats = []; floorLines = [];
+  pieces = []; lineMats = [];
   formation = i;
   const segs = buildFormation(FORMATIONS[i]);
-  makeFloorLines();
+  if (snap || !fpNow) fpNow = [...footprint];
   const bounds = new THREE.Box3().setFromArray(segs);
   bounds.getCenter(targetCentre);
   targetRadius = bounds.getBoundingSphere(new THREE.Sphere()).radius;
   if (snap) { centre.copy(targetCentre); radius = targetRadius; }
+  buildDelay = delay;
+  exitAt = null;
   buildAt = performance.now() / 1000 - clock0;
-  resize();
-  for (const btn of document.querySelectorAll('#formations button')) btn.setAttribute('aria-pressed', String(+btn.dataset.i === i));
+  // only the new line materials need sizing; resizing the canvas here would
+  // blank it for a frame (a flash)
+  sizeLines();
+}
+function startLoop() {
+  looping = true; loopIdx = 0;
+  show(SQ.formations[0] - 1);
 }
 
-// formation buttons (1-10), and ?formation= in the URL so a layout can be linked
-const bar = document.getElementById('formations');
-FORMATIONS.forEach((f, i) => {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.dataset.i = i;
-  btn.textContent = `${i + 1} ${f.name}`;
-  btn.addEventListener('click', () => {
-    const url = new URL(location.href);
-    url.searchParams.set('formation', i + 1);
-    history.replaceState(null, '', url);
-    show(i);
-  });
-  bar.appendChild(btn);
-});
-bar.style.display = 'flex';
+// the sequence plays by default; ?formation=1..10 in the URL shows just that one
 const asked = parseInt(new URLSearchParams(location.search).get('formation'), 10);
-show(asked >= 1 && asked <= FORMATIONS.length ? asked - 1 : 0, { snap: true });
+const floorBorn = performance.now() / 1000 - clock0;
+if (asked >= 1 && asked <= FORMATIONS.length) show(asked - 1, { snap: true });
+else { looping = true; show(SQ.formations[0] - 1, { snap: true }); }
 
 let mx = 0, my = 0, tmx = 0, tmy = 0;
 window.addEventListener('pointermove', e => {
@@ -565,14 +598,26 @@ function frame() {
   const now = performance.now() / 1000, dt = Math.min(now - last, 0.05);
   last = now;
   const clock = now - clock0;
-  const time = frozen ?? clock - buildAt;
+  let time = frozen ?? clock - buildAt;
+  // the sequence: hold the built formation, lift it off, then on to the next
+  if (looping && frozen === null) {
+    if (exitAt === null && time > buildEnd() + SQ.hold) exitAt = time;
+    else if (exitAt !== null && time > exitAt + exitLength()) {
+      loopIdx = (loopIdx + 1) % SQ.formations.length;
+      show(SQ.formations[loopIdx] - 1, { delay: SQ.next });
+      // the new formation's clock starts now; with the old one, its pieces
+      // would all show fully built for this one frame (the flash)
+      time = clock - buildAt;
+    }
+  }
   const k = 1 - Math.exp(-3 * dt);
   mx += (tmx - mx) * k; my += (tmy - my) * k;
   const kf = frozen === null ? 1 - Math.exp(-C.reframe * dt) : 1;
   centre.lerp(targetCentre, kf);
   radius += (targetRadius - radius) * kf;
+  for (let j = 0; j < 4; j++) fpNow[j] += (footprint[j] - fpNow[j]) * kf;
   frameCamera();
-  updateFloor(time);
+  updateFloor(frozen ?? clock - floorBorn);
   updateBuild(time);
   const az = THREE.MathUtils.degToRad(C.azimuth + C.orbitSpeed * (frozen ?? clock) + mx * C.mouseTilt[0]);
   const el = THREE.MathUtils.degToRad(C.elevation - my * C.mouseTilt[1]);
@@ -583,12 +628,16 @@ function frame() {
 frame();
 
 // Debug: structureDebug.freeze(seconds) holds the build (and orbit) at that
-// moment, structureDebug.show(n) switches to formation n (1-10),
-// structureDebug.replay() plays it again, structureDebug.buildEnd() when it finishes.
+// moment, structureDebug.show(n) switches to formation n (1-10) and stops the
+// loop, structureDebug.loop() restarts the sequence, structureDebug.replay()
+// plays the current one again, structureDebug.buildEnd() when it finishes.
 window.structureDebug = {
-  freeze: s => { frozen = s; for (const l of floorLines) l.done = false; },
-  show: n => show(n - 1, { snap: true }),
+  freeze: s => { frozen = s; },
+  show: n => { looping = false; show(n - 1, { snap: true }); },
+  loop: () => { frozen = null; startLoop(); },
   replay: () => { frozen = null; show(formation); },
-  buildEnd: () => B.start + Math.max(...pieces.map(p => p.at)) + B.fall + B.settle,
+  buildEnd,
+  exitLength,
+  state: () => ({ looping, formation: formation + 1, exiting: exitAt !== null }),
   formations: FORMATIONS.map(f => f.name),
 };

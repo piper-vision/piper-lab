@@ -5,10 +5,13 @@ export const CONFIG = {
   // ---- look
   background: 0xfff8e6,      // cream of the flat artwork, used throughout
   yellow: 0xe5ff00,
-  edgeColor: 0x151515,       // outline on every visible prism edge
-  edgeOpacity: 0.7,          // lower = finer-looking outline (GL lines are always 1 device pixel)
-  gridColor: 0x3a3a3a,       // thin dark floor line
-  minDpr: 2,                 // render at least 2x so outlines are half a CSS pixel
+  edgeColor: 0x0b0b0b,       // outline on every visible prism edge
+  edgeOpacity: 1,
+  gridColor: 0x0b0b0b,       // floor lines
+  lineWidth: 0.75,           // CSS pixels, every line (outlines + floor). A touch under Option C's 1
+                             // (structure.js) so they look the same: black on the bright cream /
+                             // yellow reads heavier than on the lilac
+  minDpr: 2,                 // render at least 2x so the lines stay crisp
   maxDpr: 2,
   clipBelow: 0.03,           // floor clip plane sits this far under y=0 (edge lines on the floor stay visible)
   clipAfterIntro: false,     // false = floor is transparent once the H has landed (tumbling bars can dip below the grid)

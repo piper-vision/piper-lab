@@ -102,19 +102,7 @@
       display: flex;
       gap: 8px;
     }
-    /* Option C formation picker, bottom right (structure.js fills and shows it). */
-    #formations {
-      position: fixed;
-      right: max(18px, 2.4vw);
-      bottom: max(18px, 2.2vw);
-      z-index: 10;
-      display: none;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 6px;
-      max-width: 60vw;
-    }
-    #options button, #formations button {
+    #options button {
       font-family: 'FK Display', system-ui, sans-serif;
       font-size: 14px;
       line-height: 1;
@@ -125,7 +113,7 @@
       color: #0b0b0b;
       cursor: pointer;
     }
-    #options button[aria-pressed="true"], #formations button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
+    #options button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
     /* Option C headline: left side, beside the structure (structure.js shows it). */
     #structure-title {
       position: fixed;
@@ -176,11 +164,10 @@
     </button>
   </header>
   <div id="options" role="group" aria-label="Intro version">
-    <button type="button" data-option="a" aria-pressed="true">Option A</button>
-    <button type="button" data-option="b" aria-pressed="false">Option B</button>
-    <button type="button" data-option="c" aria-pressed="false">Option C</button>
+    <button type="button" data-option="a" aria-pressed="true">HP Hero A</button>
+    <button type="button" data-option="b" aria-pressed="false">HP Hero B</button>
+    <button type="button" data-option="c" aria-pressed="false">Structure Hero A</button>
   </div>
-  <div id="formations" role="group" aria-label="Structure formation"></div>
   <div id="scene"></div>
   <h1 id="tagline">
     <span class="line">Raising the bar</span>

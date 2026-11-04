@@ -1,10 +1,13 @@
 import * as THREE from 'three';
+import { LineSegments2 } from '../vendor/three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from '../vendor/three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from '../vendor/three/addons/lines/LineMaterial.js';
 import { CONFIG as C } from './config.js';
 
 const container = document.getElementById('scene');
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-// Render at least 2x so the 1-device-pixel outlines come out half a CSS pixel wide
+// Render at least 2x so the lines stay crisp
 renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, C.minDpr), C.maxDpr));
 renderer.setSize(window.innerWidth, window.innerHeight);
 // During the intro everything below the floor is clipped away, so bars launched
@@ -132,7 +135,9 @@ function placeCamera(azDeg = curAz) {
 // ---------------------------------------------------------------------------
 const gridGroup = new THREE.Group();
 scene.add(gridGroup);
-const gridMat = new THREE.LineBasicMaterial({ color: C.gridColor, transparent: true });
+// Lines are fat lines (three's LineSegments2) so they can be C.lineWidth CSS
+// pixels, the same weight as Option C; plain GL lines are always 1 device pixel.
+const gridMat = new LineMaterial({ color: C.gridColor, linewidth: C.lineWidth, transparent: true });
 let gridLines = [];
 let gridDone = 0;   // time (s) when the last line finishes
 
@@ -170,10 +175,8 @@ function buildGrid() {
       const b = isX ? new THREE.Vector3(maxX, 0, c) : new THREE.Vector3(c, 0, minZ);
       const fa = isX ? new THREE.Vector3(-R, 0, c) : new THREE.Vector3(c, 0, R);
       const fb = isX ? new THREE.Vector3(R, 0, c) : new THREE.Vector3(c, 0, -R);
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array([a.x, a.y, a.z, a.x, a.y, a.z]);
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
-      const obj = new THREE.Line(geo, gridMat);
+      const geo = new LineSegmentsGeometry().setPositions([a.x, a.y, a.z, a.x, a.y, a.z]);
+      const obj = new LineSegments2(geo, gridMat);
       obj.frustumCulled = false;
       gridGroup.add(obj);
       const delay = t0 + i * C.gridDrawStagger;
@@ -193,7 +196,8 @@ function updateGrid(t) {
   for (const l of gridLines) {
     const p = THREE.MathUtils.clamp((t - l.delay) / C.gridDrawDuration, 0, 1);
     const e = easeInOut(p);
-    const arr = l.obj.geometry.attributes.position.array;
+    const seg = l.obj.geometry.attributes.instanceStart.data;   // [x0 y0 z0 x1 y1 z1]
+    const arr = seg.array;
     if (p < 1) {
       arr[0] = l.a.x; arr[2] = l.a.z;
       arr[3] = l.a.x + (l.b.x - l.a.x) * e;
@@ -206,7 +210,7 @@ function updateGrid(t) {
     // slide the line out / in to hug the current formation
     if (l.isX) arr[2] = arr[5] = l.sign * hugZ;
     else arr[0] = arr[3] = l.sign * hugX;
-    l.obj.geometry.attributes.position.needsUpdate = true;
+    seg.needsUpdate = true;
     l.obj.visible = p > 0;
   }
 }
@@ -220,17 +224,17 @@ const yellowMat = new THREE.MeshBasicMaterial({
   color: C.yellow,
   polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1, // faces sit behind their own edge lines
 });
-const edgeMat = new THREE.LineBasicMaterial({ color: C.edgeColor, transparent: true, opacity: C.edgeOpacity });
+const edgeMat = new LineMaterial({ color: C.edgeColor, linewidth: C.lineWidth, transparent: true, opacity: C.edgeOpacity });
 
 const longGeo = new THREE.BoxGeometry(W, H, L);
 const shortGeo = new THREE.BoxGeometry(W, H, ML);
-const longEdges = new THREE.EdgesGeometry(longGeo);
-const shortEdges = new THREE.EdgesGeometry(shortGeo);
+const longEdges = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(longGeo));
+const shortEdges = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(shortGeo));
 
 // x, z = the block's resting place in the H
 function makeBar(long, x, z) {
   const mesh = new THREE.Mesh(long ? longGeo : shortGeo, yellowMat);
-  mesh.add(new THREE.LineSegments(long ? longEdges : shortEdges, edgeMat));
+  mesh.add(new LineSegments2(long ? longEdges : shortEdges, edgeMat));
   mesh.visible = false;
   scene.add(mesh);
   return { len: long ? L : ML, x, z, mesh };
@@ -658,6 +662,11 @@ function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   aspect = w / h;
   renderer.setSize(w, h);
+  const px = renderer.getPixelRatio();
+  for (const m of [gridMat, edgeMat]) {
+    m.resolution.set(w * px, h * px);
+    m.linewidth = C.lineWidth * px;
+  }
   // the grid's extent is measured from the resting iso view
   const keep = sp;
   sp = 0; placeCamera(); buildGrid();
