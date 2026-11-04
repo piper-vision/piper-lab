@@ -432,18 +432,6 @@ function syncMeshes(t) {
   }
 }
 
-// Option A / Option B buttons (bottom left): show which intro is playing; picking
-// the other reloads the page with ?option= so the whole sequence plays from the top.
-for (const btn of document.querySelectorAll('#options button')) {
-  btn.setAttribute('aria-pressed', String(btn.dataset.option === OPTION));
-  btn.addEventListener('click', () => {
-    if (btn.dataset.option === OPTION) return;
-    const url = new URL(location.href);
-    url.searchParams.set('option', btn.dataset.option);
-    location.href = url.toString();
-  });
-}
-
 // Scrolling stays locked until the H has landed (it's where the scroll story starts).
 // overflow:hidden stops the wheel, and anything that still scrolls the page (touch
 // on some phones, keys, scripts) is snapped back to the top by readScroll.

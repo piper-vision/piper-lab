@@ -102,7 +102,19 @@
       display: flex;
       gap: 8px;
     }
-    #options button {
+    /* Option C formation picker, bottom right (structure.js fills and shows it). */
+    #formations {
+      position: fixed;
+      right: max(18px, 2.4vw);
+      bottom: max(18px, 2.2vw);
+      z-index: 10;
+      display: none;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+      max-width: 60vw;
+    }
+    #options button, #formations button {
       font-family: 'FK Display', system-ui, sans-serif;
       font-size: 14px;
       line-height: 1;
@@ -113,7 +125,28 @@
       color: #0b0b0b;
       cursor: pointer;
     }
-    #options button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
+    #options button[aria-pressed="true"], #formations button[aria-pressed="true"] { background: #0b0b0b; color: #fff8e6; }
+    /* Option C headline: left side, beside the structure (structure.js shows it). */
+    #structure-title {
+      position: fixed;
+      left: max(18px, 2.65vw);
+      top: 50%;
+      z-index: 2;
+      margin: 0;
+      display: none;
+      font-family: 'FK Display', system-ui, sans-serif;
+      font-weight: 400;
+      font-size: min(8vw, 15vh);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: #0b0b0b;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+    #structure-title .line { display: block; white-space: nowrap; opacity: 0; animation: title-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+    #structure-title .line:nth-child(1) { animation-delay: 0.5s; }
+    #structure-title .line:nth-child(2) { animation-delay: 0.65s; }
+    @keyframes title-in { from { opacity: 0; transform: translateY(0.4em); } to { opacity: 1; transform: none; } }
     /* First homepage section. The hero ends on the yellow circle filling the
        screen, so this starts the same yellow and scrolls up over the fixed
        canvas seamlessly. Placeholder until the real layout/content lands. */
@@ -145,17 +178,39 @@
   <div id="options" role="group" aria-label="Intro version">
     <button type="button" data-option="a" aria-pressed="true">Option A</button>
     <button type="button" data-option="b" aria-pressed="false">Option B</button>
+    <button type="button" data-option="c" aria-pressed="false">Option C</button>
   </div>
+  <div id="formations" role="group" aria-label="Structure formation"></div>
   <div id="scene"></div>
   <h1 id="tagline">
     <span class="line">Raising the bar</span>
     <span class="line">for temporary</span>
     <span class="line">structures.</span>
   </h1>
+  <h1 id="structure-title">
+    <span class="line">The Halo</span>
+    <span class="line">Structure</span>
+  </h1>
   <div id="scroll"></div>
   <section id="intro"></section>
   <!-- inline import (not a static src) so the preload scanner can't fetch it
        before the <base> fix above takes effect -->
-  <script type="module">import './src/main.js';</script>
+  <script type="module">
+    // ?option= picks the hero: a / b = the H scroll story (two intros, main.js),
+    // c = the orbiting line-drawing structure (structure.js). The buttons show
+    // which is playing; picking another reloads with it so it plays from the top.
+    const option = ['a', 'b', 'c'].includes(new URLSearchParams(location.search).get('option'))
+      ? new URLSearchParams(location.search).get('option') : 'a';
+    for (const btn of document.querySelectorAll('#options button')) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.option === option));
+      btn.addEventListener('click', () => {
+        if (btn.dataset.option === option) return;
+        const url = new URL(location.href);
+        url.searchParams.set('option', btn.dataset.option);
+        location.href = url.toString();
+      });
+    }
+    import(option === 'c' ? './src/structure.js' : './src/main.js');
+  </script>
 </body>
 </html>
