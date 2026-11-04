@@ -31,7 +31,7 @@ const C = {
   // (speed: the whole build runs this many times faster; the numbers are at 1x).
   // On the way out the pieces lift back off in reverse order, `exitStagger` of
   // their build-in spacing apart.
-  build: { start: 1.1, speed: 2.25, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22, exitStagger: 0.35 },
+  build: { start: 1.1, speed: 1.5, drop: 2.2, fall: 0.55, fadeIn: 0.2, bounce: 0.05, settle: 0.22, exitStagger: 0.35 },
   // the looping sequence (default, unless ?formation= picks one): build a
   // formation, hold it, lift it off, the floor lines slide to the next one's
   // footprint and it builds in (`next` seconds after the last piece has gone)

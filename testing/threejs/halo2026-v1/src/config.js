@@ -74,6 +74,7 @@ export const CONFIG = {
   // scroll distance ~3.7 screens: swing 0.6 overlapping the start of the fly-through
   // (through the H ~0.4, then on through the photos ~2.9) so it is one continuous move
   scrollLength: 4.7,         // page height in screens; less = more camera movement per wheel step
+  trackpadScroll: 0.45,      // trackpad scrolling is scaled by this (mouse wheels aren't); lower = less sensitive
   scrollSmooth: 6,           // how quickly the scene catches up with the scrollbar (1/s)
   faceEnd: 0.16,             // camera has swung face-on (flat H, no outlines) by here
   flyStart: 0.08,          // fly-through starts here, well before the swing ends, so the two blend

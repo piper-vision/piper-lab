@@ -1009,6 +1009,17 @@ function readScroll() {
   liftTagline();
 }
 window.addEventListener('scroll', readScroll, { passive: true });
+// Trackpads (a MacBook's especially) send a stream of small wheel events plus
+// momentum and race through the story, while mouse wheels feel right; so
+// trackpad scrolling is taken over and scaled by C.trackpadScroll. (Usual
+// test: Chrome/Safari report a trackpad's wheelDeltaY as exactly -3 x deltaY;
+// Firefox reports mouse wheels in lines, trackpads in pixels.)
+const isTrackpad = e => (e.wheelDeltaY ? e.wheelDeltaY === -3 * e.deltaY : e.deltaMode === 0);
+window.addEventListener('wheel', e => {
+  if (e.ctrlKey || !isTrackpad(e) || document.documentElement.classList.contains('menu-open')) return;   // pinch-zoom / mouse / menu open
+  e.preventDefault();
+  window.scrollBy(0, e.deltaY * C.trackpadScroll);
+}, { passive: false });
 window.addEventListener('resize', resize);
 resize();
 
