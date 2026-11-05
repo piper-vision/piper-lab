@@ -11,8 +11,9 @@ import { LineMaterial } from '../vendor/three/addons/lines/LineMaterial.js';
 import { CONFIG as HC } from './config.js';
 
 const C = {
-  bg: 0xe5ff00,
-  ink: 0x0b0b0b,
+  bg: 0x191919,
+  ink: 0xe6ff00,           // outlines: lime ...
+  lineOpacity: 0.5,        // ... at half strength
   lineWidth: 0.75,        // CSS pixels, as the homepage scenes
   elevation: HC.elevation,   // the homepage's isometric view
   azimuth: HC.azimuth,
@@ -99,7 +100,7 @@ function frame(now) {
   mx += (tmx - mx) * k; my += (tmy - my) * k;
   // the lines fade in as the menu opens; it turns constantly, tipped forwards,
   // leaning a little towards the cursor
-  lineMat.opacity = easeOut(Math.min(1, t / C.enter.time));
+  lineMat.opacity = C.lineOpacity * easeOut(Math.min(1, t / C.enter.time));
   spin.rotation.z = deg(C.spin * t);
   tilt.quaternion.setFromAxisAngle(screenRight, deg(C.tilt + my * C.mouseTilt[1]))
     .premultiply(_qa.setFromAxisAngle(up, deg(mx * C.mouseTilt[0])));

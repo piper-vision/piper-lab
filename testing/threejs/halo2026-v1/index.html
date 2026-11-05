@@ -20,7 +20,12 @@
   <!-- inline favicon: no /favicon.ico request, so no 404 on the server -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M9%204%20L9%2028%20M23%204%20L23%2028%20M9%2016%20L23%2016'%20fill='none'%20stroke='%23222'%20stroke-width='3'/%3E%3C/svg%3E" />
   <style>
-    html, body { margin: 0; background: #fff8e6; overflow-x: hidden; }
+    /* the page colour lives on <html> only (each scene sets it), with the body
+       transparent: at fractional window sizes the browser can paint a sub-pixel
+       strip at the edges in the page colour, so it must always be the scene's */
+    html, body { margin: 0; overflow-x: hidden; }
+    html { background: #fff8e6; }
+    body { background: transparent; }
     /* no visible scrollbar on any scene (HP Hero still scrolls): it would
        otherwise come and go between scenes and shift the page sideways */
     html { scrollbar-width: none; }
@@ -29,6 +34,9 @@
     /* empty spacer that gives the page its scroll distance (height set from config) */
     #scroll { position: relative; height: 500vh; pointer-events: none; }
     canvas { display: block; }
+    /* every full-screen canvas exactly fills the window, so a fractional window
+       size (browser zoom, display scaling) never leaves a hairline of page showing */
+    #scene canvas, #menu-h canvas { width: 100% !important; height: 100% !important; }
     @font-face {
       font-family: 'FK Display';
       src: url('./assets/fonts/FKDisplay-Regular.ttf') format('truetype');
@@ -97,34 +105,35 @@
     .burger span { display: block; height: 2px; background: currentColor; transition: transform 0.25s ease; }
     .burger:hover span:first-child { transform: translateY(-1px); }
     .burger:hover span:last-child { transform: translateY(1px); }
-    /* Full-screen menu (burger): lime, links big on the left, contact bottom
+    /* Full-screen menu (burger): near-black, links big on the left in off-white
+       (lime on hover), contact bottom
        right, the homepage H floating on the right (src/menu.js draws it). */
     #menu {
       position: fixed;
       inset: 0;
       z-index: 25;
       display: none;
-      background: #e5ff00;
-      color: #0b0b0b;
+      background: #191919;
+      color: #ebebe1;
       overflow: hidden;
     }
     #menu.open { display: block; }
     html.menu-open, html.menu-open body { overflow: hidden; }   /* no scrolling the page behind */
+    html.menu-open { background: #191919 !important; }   /* edges match the menu (beats the scenes' inline colour) */
     #menu-h { position: absolute; inset: 0; }
     #menu-h canvas { display: block; }
     .menu-nav {
       position: absolute;
-      left: 6.6vw;
-      top: 50%;
-      transform: translateY(-52%);
+      left: 6.1vw;
+      bottom: 6vw;            /* bottom-left, the last link level with the foot of the contact block */
       display: flex;
       flex-direction: column;
       pointer-events: none;   /* only the links take the pointer */
     }
     .menu-nav a {
       font-family: 'FK Display', system-ui, sans-serif;
-      font-size: min(4.6vw, 8.4vh);
-      line-height: 1.36;
+      font-size: clamp(30px, 3.5vw, 70px);   /* ~50pt on a 1440px-wide screen */
+      line-height: 1.16;
       letter-spacing: -0.02em;
       color: inherit;
       text-decoration: none;
@@ -148,6 +157,8 @@
       clip-path: inset(0 100% 0 0);
       transition: clip-path 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
     }
+    .menu-nav a { transition: color 0.3s ease; }
+    .menu-nav a:hover, .menu-nav a:focus-visible { color: #e6ff00; }   /* words and arrow both */
     .menu-nav a:hover .label, .menu-nav a:focus-visible .label { transform: translateX(1.12em); }
     .menu-nav a:hover .arrow, .menu-nav a:focus-visible .arrow { clip-path: inset(0 0 0 0); transition-delay: 0.06s; }
     .menu-nav a:focus-visible { outline: none; }
@@ -175,7 +186,7 @@
       opacity: 0;
     }
     #menu.play .menu-contact { animation: menu-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.55s forwards; }
-    .menu-contact svg { width: 10vw; height: auto; flex: none; }
+    .menu-contact svg { width: 7vw; height: auto; flex: none; }
     .menu-contact a { color: inherit; text-decoration: none; pointer-events: auto; display: block; }
     .menu-contact address { font-style: normal; margin-top: 0.75em; }
     .menu-close {
@@ -188,7 +199,7 @@
       border: 0;
       background: none;
       cursor: pointer;
-      color: inherit;
+      color: #e6ff00;
     }
     .menu-close span {
       position: absolute;
@@ -334,8 +345,8 @@
     (function () {
       // pixel shades, by the scene being opened: Structure Hero (and its Flythrough)
       // in shades of its lilac background, Culture in shades of its blue, the HP
-      // Hero scenes in shades of their cream, the menu in shades of the bars' neon
-      // lime; one picked at random per pixel
+      // Hero scenes in shades of their cream, the menu in shades of its near-black;
+      // one picked at random per pixel (lime is the fallback)
       var PALETTES = {
         lime: ['#e5ff00', '#dcf600', '#d3ed00', '#ebff2e', '#e1fa00', '#efff52'],
         c: ['#e2baf6', '#e6c3f7', '#eacbf9', '#ddb1f3', '#d8a9f1', '#e4bff7'],
@@ -343,6 +354,7 @@
       };
       PALETTES.e = PALETTES.c;
       PALETTES.a = PALETTES.b = ['#fff8e6', '#fbf3de', '#fffbee', '#f7efd7', '#fdf5e0', '#f3ead0'];
+      PALETTES.menu = ['#191919', '#1d1d1d', '#151515', '#212121', '#1b1b1b', '#171717'];   // the menu's near-black
       var SHADES = PALETTES.lime;
       var ACROSS = 6, COVER_MS = 345, REVEAL_MS = 500, REVEAL_DELAY = 115, STRETCH_MS = 155;
       // module shapes [w, h] in cells, and how often each is tried
@@ -421,12 +433,17 @@
       var easeOut = function (u) { return 1 - Math.pow(1 - u, 3); };
       // bring every module in (or take it away) in the shuffled order over `ms`;
       // each one stretches out (or shrinks back) over STRETCH_MS
+      // Each run works on its own copy of the tile list, and a newer run stops
+      // an older one, so two can never fight over the same pixels (which could
+      // leave slivers of the last scene's colour stuck on screen).
+      var runId = 0;
       function run(on, ms, done) {
-        var n = tiles.length, start = performance.now();
+        var mine = ++runId, list = tiles.slice(), n = list.length, start = performance.now();
         (function step(now) {
+          if (mine !== runId) return;
           var finished = 0;
           for (var i = 0; i < n; i++) {
-            var t = tiles[i], g = (now - start - (i / n) * ms) / STRETCH_MS;
+            var t = list[i], g = (now - start - (i / n) * ms) / STRETCH_MS;
             if (g < 0 || t.done) { if (t.done) finished++; continue; }
             if (g >= 1) g = 1;
             var f = easeOut(g);
@@ -437,7 +454,7 @@
           }
           if (finished < n) requestAnimationFrame(step);
           else {
-            for (i = 0; i < n; i++) tiles[i].done = false;
+            for (i = 0; i < n; i++) list[i].done = false;
             // fully cleared: wipe any oversize slivers left along the edges
             if (!on) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); useGrid(); }
             if (done) done();
@@ -483,6 +500,7 @@
       var saved = null;
       try { saved = JSON.parse(sessionStorage.getItem('pixelIn') || 'null'); sessionStorage.removeItem('pixelIn'); } catch (e) {}
       if (saved) {
+        busy = true;   // no other transition until this reveal has finished
         setup();
         if (saved.w === cv.width && saved.h === cv.height && saved.tiles) {
           cell = saved.cell;
@@ -495,7 +513,7 @@
         }
         for (var i = 0; i < tiles.length; i++) draw(tiles[i], 1);
         window.addEventListener('load', function () {
-          setTimeout(function () { run(false, REVEAL_MS); }, REVEAL_DELAY);
+          setTimeout(function () { run(false, REVEAL_MS, function () { busy = false; }); }, REVEAL_DELAY);
         });
       }
     })();
