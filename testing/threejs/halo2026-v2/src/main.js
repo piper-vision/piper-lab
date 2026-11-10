@@ -162,8 +162,15 @@
   let frozen = null, start = performance.now() + preDelay();
   // the pre-intro calls this the moment its flat H lands, so the two can never drift apart
   // (preDelay above is only the fallback if it never loads)
-  window.haloBeginTimeline = () => { if (frozen == null) start = performance.now(); };
-  if (PRE) start += 3000;
+  // the flat bars stay hidden until then: the 3D canvas only covers them once three.js has loaded
+  // and drawn, so without this the flat H could flash for a moment before the 3D animation starts
+  const showBars = v => bars.forEach(b => { b.style.visibility = v ? '' : 'hidden'; });
+  window.haloBeginTimeline = () => { showBars(true); if (frozen == null) start = performance.now(); };
+  if (PRE) {
+    start += 3000;
+    showBars(false);
+    setTimeout(() => showBars(true), preDelay() + 3000);   // fallback if the pre-intro never loads
+  }
   function frame(now) {
     const tt = frozen ?? (now - start) / 1000;
     const gt = C.loop ? -1 : tt - galleryStart;
@@ -179,7 +186,7 @@
   requestAnimationFrame(frame);
 
   window.haloDebug = {
-    freeze: s => { frozen = s; window.haloPre3d?.finish(); },
+    freeze: s => { frozen = s; window.haloPre3d?.finish(); showBars(true); },
     gallery: () => ({ galleryStart }),
     end: () => galleryStart + C.end.at,   // haloDebug.freeze(haloDebug.end() + 2) = settled end layout
     boxes: () => end.boxes(),
