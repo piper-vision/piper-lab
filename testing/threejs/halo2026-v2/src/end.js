@@ -27,7 +27,7 @@ window.HaloEnd = function (C) {
       `<div class="blk copy">${copy.map(l => mask('cline', l)).join('')}</div>` +
       `<div class="blk ctas">${mask('btn primary', E.buttons[0])}${mask('btn secondary', E.buttons[1])}</div>` +
       (L.meta || []).map(m => `<div class="blk meta">${mask('', m.text)}</div>`).join('') +
-      (L.modes ? `<div class="blk modes">${mask('', '<div class="modes-in" role="group" aria-label="Gallery style">' + E.modes.map((m, i) => '<button type="button" data-mode="' + m.key + '"' + (i ? '' : ' class="on"') + '>' + m.label + '</button>').join('') + '</div>')}</div>` : '') +
+      (L.modes ? `<div class="blk modes">${mask('', '<div class="modes-row"><div class="modes-in" role="group" aria-label="Gallery style">' + E.modes.map((m, i) => '<button type="button" data-mode="' + m.key + '"' + (i ? '' : ' class="on"') + '>' + m.label + '</button>').join('') + '</div>' + '</div>')}</div>` : '') +
       (L.contact ? `<div class="blk topcta">${mask('', '<a class="topcta-btn" href="#">' + (L.contact.label || 'Contact us') + '</a>')}</div>` : '') +
       (L.burger ? `<div class="blk burger">${mask('', '<button class="burger-btn" type="button" aria-label="Open menu"><i></i><i></i></button>')}</div>` : '') +
       (L.nav ? `<nav class="blk nav">${E.nav.links.map(t => mask('nlink', t)).join('')}${mask('nlink cta', E.nav.cta)}</nav>` : '');

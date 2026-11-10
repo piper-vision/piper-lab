@@ -131,8 +131,13 @@ window.HaloGallery = function (stage, C, ease) {
     const GOLD = Math.PI * (3 - Math.sqrt(5)), a0 = r() * Math.PI * 2;
     // sides of the screen (right, bottom, left, top): a photo whose direction is blocked by text
     // goes to the emptiest open side instead of piling up wherever happens to be free
-    const side = (sx, sy) => Math.abs(sx) / (vw / 2) > Math.abs(sy) / (vh / 2) ? (sx > 0 ? 0 : 2) : (sy > 0 ? 1 : 3);
-    const used = [0, 0, 0, 0];
+    // 8 compass sectors (diagonals included, measured in screen-proportional terms so the corners
+    // count): a photo whose direction is blocked goes to the emptiest sector, and no two photos may
+    // fly out along nearly the same line (they'd stack up on one side)
+    const NS = 8, angOf = (sx, sy) => Math.atan2(sy / (vh / 2), sx / (vw / 2));
+    const side = (sx, sy) => ((Math.round(angOf(sx, sy) / (Math.PI * 2 / NS)) % NS) + NS) % NS;
+    const used = new Array(NS).fill(0), dirs = [];
+    const angGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
     byPhase.forEach((p, i) => {
       const W = (p.square ? SQ.size[0] + r() * (SQ.size[1] - SQ.size[0]) : G.width[0] + r() * (G.width[1] - G.width[0])) * vw * ps, H = W / p.aspect;
       const sw = W / dc, sh = H / dc;   // size on screen at the check distance
@@ -152,12 +157,16 @@ window.HaloGallery = function (stage, C, ease) {
             score = Math.min(score, Math.hypot(sx - q.sx, sy - q.sy, dPh * vw * G.depthWeight));
           }
           // a side already holding more than its share loses out to emptier sides
-          if (h === 0) score -= vw * (used[side(sx, sy)] - Math.min(...used));
+          if (h === 0 && !p.square) {
+            score -= vw * 1.5 * (used[side(sx, sy)] - Math.min(...used));
+            const a = angOf(sx, sy);
+            for (const b of dirs) if (angGap(a, b) < 0.32) score -= vw * 2 * (0.32 - angGap(a, b)) / 0.32;
+          }
           if (score > bestScore) { bestScore = score; best = { sx, sy, h }; }
         }
         if (best && best.h === 0) break;   // a clear spot near the target direction: done
       }
-      if (best) used[side(best.sx, best.sy)]++;
+      if (best && !p.square) { used[side(best.sx, best.sy)]++; dirs.push(angOf(best.sx, best.sy)); }
       if (!best) best = { sx: (r() < 0.5 ? -1 : 1) * vw * 0.4, sy: 0 };
       Object.assign(p, best, { X: best.sx * dc, Y: best.sy * dc, W, H });
       placed.push(p);

@@ -151,7 +151,8 @@ window.HALO_CONFIG = {
     buttons: ['Start a project', 'See our work'],
     // gallery style switch (bottom-left): 3D Gallery = photos flying at the camera, Mouse Follow = photos trail the cursor
     // Modular = the 3D gallery, but each photo flies as separate modules that snap together as it nears
-    modes: [{ key: 'gallery', label: '3D Gallery' }, { key: 'modular', label: 'Modular' }, { key: 'follow', label: 'Mouse Follow' }],
+    // (Modular still works in code: add { key: 'modular', label: 'Modular' } to bring it back)
+    modes: [{ key: 'gallery', label: '3D Gallery' }, { key: 'follow', label: 'Mouse Follow' }],
     nav: { links: ['The Halo Structure', 'What we offer', 'Company', 'Projects', 'News & Views'], cta: 'Contact' },
     // Layout options (design px in the 1920x1080 frame). Keys 0-8 or ?layout=N switch live.
     // Each block: x, y (top, or bottom with anchor:'bottom'), align left|center|right,
@@ -211,10 +212,10 @@ window.HALO_CONFIG = {
         buttons: { x: 1289, y: 1040, anchor: 'bottom', size: 17.3, gap: 0.77 },
         nav: { x: 1824, y: 38, size: 17, align: 'right' } },   // James' mock: assets/ref-end-4.webp
       { name: '8 Burger (small logo above the bar)',   // James' mock: assets/ref-end-5.webp
-        logo: { x: 40, y: 40, w: 127 },                     // sits above the left bar, aligned to its left edge
-        burger: { x: 1880, y: 40, size: 52, align: 'right' },   // above the right bar, aligned to its right edge
-        contact: { x: 1820, y: 40, size: 17, align: 'right', label: 'Contact us' },   // dark button just left of the burger, same height
-        modes: { x: 110, y: 1040, anchor: 'bottom', size: 15 },   // gallery style switch, bottom-left
+        logo: { x: 40, y: 40, w: 127, keepOut: 0 },   // keepOut 0: photos may pass behind the small corner UI (opens the diagonals)                     // sits above the left bar, aligned to its left edge
+        burger: { x: 1880, y: 40, size: 52, align: 'right', keepOut: 0 },   // above the right bar, aligned to its right edge
+        contact: { x: 1820, y: 40, size: 17, align: 'right', label: 'Contact us', keepOut: 0 },   // dark button just left of the burger, same height
+        modes: { x: 110, y: 1040, anchor: 'bottom', size: 15, keepOut: 0 },   // gallery style switch, bottom-left
         title: { x: 962, y: 330, size: 142.5, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5,
           // the three lines sit at different depths (design px, + = nearer); flat at rest, the cursor turns the stack
           depth: { z: [0, 0, 0], perspective: 1500, turn: [16, 10], smooth: 3 } },   // all lines on one plane; the cursor tilts the whole headline
