@@ -122,6 +122,20 @@ window.HALO_CONFIG = {
     candidates: 80,      // spots tried per photo, best spread wins
     depthWeight: 0.35,   // how much arrival time counts when spreading photos out
     revealStagger: 0.05, // first photos pop in one after another (s) ..
+    // cursor steering: the camera slides towards the cursor so the stream drifts (near photos move most)
+    // modular mode: modules per photo, how far apart in depth / sideways they fly, distance range where whole
+    // lime squares flying in the stream among the photos: how many, size range (screen widths at d = 1);
+    // overUI = they fly through (in front of) the text and buttons instead of keeping clear
+    squares: { count: 12, size: [0.035, 0.08], overUI: false },   // false: behind the text (James), still flying straight through it
+    // paper bend (3D Gallery): photos fly in like sheets of paper with their edges + corners bent back (bend = edge angle,
+    // deg), flattening out by straightAt of the way through their fade-in; cols x rows tiles make the curve
+    paper: { on: false, bend: 55, cols: 9, rows: 6, straightAt: 0.95 },   // off: James preferred flat photos
+    // pieces: grid size, depth spread + sideways scatter + tilt (deg) + shrink while apart; assemble = [distance where they
+    // start converging, distance where they've locked into the whole photo] (1 = the H's plane; photos appear at far 5)
+    modular: { cols: 3, rows: 3, spread: 1.6, scatter: 1.6, spin: 16, shrink: 0.55, assemble: [5.0, 3.7] },
+    steer: { shift: [0.06, 0.04], smooth: 2.5 },   // slide at the window edge (screen widths at d = 1); ease (1/s)
+    // depth of field: soft far away, sharp through the middle, a little motion blur + stretch rushing past
+    dof: { far: 3.5, near: 2, sharp: [0.9, 2.9], stretch: 0.08, stretchAt: 0.75 },   // blur px, sharp range (distance), stretch
     revealDur: 0,        // .. 0 = no pop: the field is already full behind the final image
   },
 
@@ -136,7 +150,8 @@ window.HALO_CONFIG = {
       'skilled designers, planners and', 'problem-solvers treating temporary', 'structures like they’re built to last.'],
     buttons: ['Start a project', 'See our work'],
     // gallery style switch (bottom-left): 3D Gallery = photos flying at the camera, Mouse Follow = photos trail the cursor
-    modes: [{ key: 'gallery', label: '3D Gallery' }, { key: 'follow', label: 'Mouse Follow' }],
+    // Modular = the 3D gallery, but each photo flies as separate modules that snap together as it nears
+    modes: [{ key: 'gallery', label: '3D Gallery' }, { key: 'modular', label: 'Modular' }, { key: 'follow', label: 'Mouse Follow' }],
     nav: { links: ['The Halo Structure', 'What we offer', 'Company', 'Projects', 'News & Views'], cta: 'Contact' },
     // Layout options (design px in the 1920x1080 frame). Keys 0-8 or ?layout=N switch live.
     // Each block: x, y (top, or bottom with anchor:'bottom'), align left|center|right,
@@ -200,7 +215,9 @@ window.HALO_CONFIG = {
         burger: { x: 1880, y: 40, size: 52, align: 'right' },   // above the right bar, aligned to its right edge
         contact: { x: 1820, y: 40, size: 17, align: 'right', label: 'Contact us' },   // dark button just left of the burger, same height
         modes: { x: 110, y: 1040, anchor: 'bottom', size: 15 },   // gallery style switch, bottom-left
-        title: { x: 962, y: 330, size: 142.5, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5 },
+        title: { x: 962, y: 330, size: 142.5, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5,
+          // the three lines sit at different depths (design px, + = nearer); flat at rest, the cursor turns the stack
+          depth: { z: [0, 0, 0], perspective: 1500, turn: [16, 10], smooth: 3 } },   // all lines on one plane; the cursor tilts the whole headline
         copy: { x: 1289, y: 968, anchor: 'bottom', size: 26 },
         buttons: { x: 1289, y: 1040, anchor: 'bottom', size: 17.3, gap: 0.77 },
         // outer bars drop to start below the logo + burger as the UI comes in

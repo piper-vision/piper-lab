@@ -16,7 +16,7 @@ window.HaloEnd = function (C) {
 
   const mask = (cls, inner, style = '') => `<div class="mask ${cls}" style="${style}"><div class="in">${inner}</div></div>`;
   const line = l => (typeof l === 'string' ? [l, 0] : l);   // 'text' or ['text', indent in design px]
-  let L, blocks, pieces;
+  let L, blocks, pieces, depthScale = 1;
 
   function build(n) {
     L = E.layouts[n] || E.layouts[0];
@@ -67,6 +67,13 @@ window.HaloEnd = function (C) {
       Object.assign(el.style, { right: '', left: `${c.left}px`, transform: '', justifyContent: 'flex-start' });
     }
     root.querySelectorAll('.tline').forEach(t => { t.style.paddingLeft = `${(+t.style.getPropertyValue('--ind') || 0) * kx}px`; });
+    // 3D title: every line pivots about the block's centre, so the stack turns as one object
+    if (L.title.depth) {
+      const tl = [...root.querySelectorAll('.tline')], tEl = root.querySelector('.title');
+      const cy = tEl.offsetHeight / 2;
+      tl.forEach(t => { t.style.transformOrigin = `50% ${cy - t.offsetTop}px`; });
+      depthScale = s;
+    } else root.querySelectorAll('.tline').forEach(t => { t.style.transform = ''; t.style.transformOrigin = ''; });
   }
 
   const pick = +(new URLSearchParams(location.search).get('layout') ?? E.layout ?? 0);
@@ -75,6 +82,13 @@ window.HaloEnd = function (C) {
   document.fonts.ready.then(place);   // re-measure once the fonts are in (buttons follow the paragraph's width)
 
   let onChange = () => {};
+  // cursor, eased, for the 3D title (-1..1, mouse only)
+  let mx = 0, my = 0, tmx = 0, tmy = 0, lastT = performance.now();
+  addEventListener('pointermove', ev => {
+    if (ev.pointerType && ev.pointerType !== 'mouse') return;
+    tmx = (ev.clientX / innerWidth) * 2 - 1; tmy = (ev.clientY / innerHeight) * 2 - 1;
+  });
+  document.documentElement.addEventListener('pointerleave', () => { tmx = tmy = 0; });
   const api = {
     // screen rects of the text blocks (masks, so unaffected by the slide), for the gallery
     // keepOut on a block (0..1) shrinks its no-photo zone around its centre: 1 = whole block,
@@ -84,11 +98,25 @@ window.HaloEnd = function (C) {
       return { left: b.left + dx, right: b.right - dx, top: b.top + dy, bottom: b.bottom - dy };
     }).filter(b => b.right > b.left && b.bottom > b.top),
     layout: n => { build(n); onChange(); },
+    mouse: (x, y) => { tmx = mx = x; tmy = my = y; },   // debug
     bars: () => L.bars || null,   // a layout can set its own final bar rects (design px)
     onLayout: f => { onChange = f; },
     // et: seconds since the end layout started coming in (< 0 = hidden)
     update(et) {
       root.style.visibility = et < 0 ? 'hidden' : 'visible';
+      // 3D title: the three lines sit at different depths (scaled so they look flat and normal at
+      // rest); moving the cursor turns the stack a little, which gives the depths away
+      const D = L.title.depth;
+      if (D && et >= 0) {
+        const now = performance.now(), dt = Math.min((now - lastT) / 1000, 0.05); lastT = now;
+        const k = 1 - Math.exp(-(D.smooth || 3) * dt);
+        mx += (tmx - mx) * k; my += (tmy - my) * k;
+        const P = D.perspective * depthScale, ry = mx * D.turn[0], rx = -my * D.turn[1];
+        root.querySelectorAll('.tline').forEach((t, i) => {
+          const z = (D.z[i] || 0) * depthScale;
+          t.style.transform = `perspective(${P}px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(${z}px) scale(${(P - z) / P})`;
+        });
+      }
       pieces.forEach((el, i) => {
         const k = et < 0 ? 0 : C.easeFn(Math.min(Math.max((et - E.stagger * i) / E.duration, 0), 1));
         // push fully past the mask: 100% of the piece + its mask padding (tight line heights let tops peek)
