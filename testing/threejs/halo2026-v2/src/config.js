@@ -135,6 +135,8 @@ window.HALO_CONFIG = {
     copy: ['People often think of us like architects', 'of adaptable space – a team of highly',
       'skilled designers, planners and', 'problem-solvers treating temporary', 'structures like they’re built to last.'],
     buttons: ['Start a project', 'See our work'],
+    // gallery style switch (bottom-left): 3D Gallery = photos flying at the camera, Mouse Follow = photos trail the cursor
+    modes: [{ key: 'gallery', label: '3D Gallery' }, { key: 'follow', label: 'Mouse Follow' }],
     nav: { links: ['The Halo Structure', 'What we offer', 'Company', 'Projects', 'News & Views'], cta: 'Contact' },
     // Layout options (design px in the 1920x1080 frame). Keys 0-8 or ?layout=N switch live.
     // Each block: x, y (top, or bottom with anchor:'bottom'), align left|center|right,
@@ -197,6 +199,7 @@ window.HALO_CONFIG = {
         logo: { x: 40, y: 40, w: 127 },                     // sits above the left bar, aligned to its left edge
         burger: { x: 1880, y: 40, size: 52, align: 'right' },   // above the right bar, aligned to its right edge
         contact: { x: 1820, y: 40, size: 17, align: 'right', label: 'Contact us' },   // dark button just left of the burger, same height
+        modes: { x: 110, y: 1040, anchor: 'bottom', size: 15 },   // gallery style switch, bottom-left
         title: { x: 962, y: 330, size: 142.5, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5 },
         copy: { x: 1289, y: 968, anchor: 'bottom', size: 26 },
         buttons: { x: 1289, y: 1040, anchor: 'bottom', size: 17.3, gap: 0.77 },

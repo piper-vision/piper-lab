@@ -64,6 +64,19 @@
     background: #1b1b1b; color: #fff; text-decoration: none; font: 400 1em/1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; border-radius: 99em;
     white-space: nowrap; transition: background-color 0.35s ease, color 0.35s ease; }
   #end .topcta-btn:hover, #end .topcta-btn:focus-visible { background: #e6ff00; color: #1b1b1b; outline: none; }
+  /* gallery style switch, bottom-left: a soft chip with two options, the active one lime */
+  #end .modes { pointer-events: auto; line-height: 1; }
+  #end .modes.mask, #end .modes > .mask { padding: 2px; margin: -2px; }
+  #end .modes-in { display: inline-flex; gap: 0.25em; padding: 0.3em; border-radius: 99em; background: rgba(11, 11, 11, 0.07);
+    font: 400 1em/1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; }
+  #end .modes-in button { font: inherit; color: #0b0b0b; background: transparent; border: 0; border-radius: 99em; padding: 0.7em 1.15em;
+    cursor: pointer; white-space: nowrap; transition: background-color 0.3s ease; }
+  #end .modes-in button:hover { background: rgba(11, 11, 11, 0.07); }
+  #end .modes-in button.on { background: #e6ff00; }
+  /* Mouse Follow photos */
+  .trail { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .trail-pic { position: absolute; left: 0; top: 0; background: center / cover no-repeat; transform-origin: 50% 50%;
+    transform: scale(0); will-change: transform; }   /* moved + scaled every frame by src/trail.js */
   #stage { position: fixed; inset: 0; overflow: hidden; }
   .bar { position: absolute; left: 0; top: 0; z-index: 2; will-change: transform; transform-origin: 0 0; }
 
@@ -368,7 +381,7 @@
 <script>
   // written in (rather than <script src>) so the browser's preload scanner can't request them at the
   // wrong path before the <base> fix above applies; they still load and run in order
-  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/end.js', 'src/main.js']
+  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js']
     .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
 </script>
 <script type="module">import './src/intro3d.js';</script>

@@ -13,6 +13,16 @@
     return el;
   });
   const gallery = C.gallery.mode === 'carousel' ? window.HaloCarousel(stage, C) : window.HaloGallery(stage, C, t => ease(t));
+  // gallery style, picked with the switch bottom-left: 'gallery' (3D, photos fly at the camera)
+  // or 'follow' (photos trail the cursor)
+  const trail = window.HaloTrail ? window.HaloTrail(stage, C) : null;
+  let galleryMode = 'gallery';
+  document.addEventListener('click', e => {
+    const b = e.target.closest('#end .modes-in button');
+    if (!b) return;
+    galleryMode = b.dataset.mode;
+    b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  });
   const bars = [];
   for (let i = 0; i < N; i++) {
     const el = document.createElement('div');
@@ -178,7 +188,8 @@
     // photos are already streaming behind the final image, so its fade reveals them
     // and they're drawn from the moment the first scene photo is fully opaque (hidden behind
     // it), so the browser decodes + uploads them long before they're seen: no stutter
-    gallery.update(C.loop ? -1 : tt - (total + Fz.photosAt), !C.loop && tt >= warmFrom);
+    gallery.update(C.loop ? -1 : tt - (total + Fz.photosAt), !C.loop && tt >= warmFrom && galleryMode === 'gallery');
+    trail?.enable(!C.loop && galleryMode === 'follow' && gt >= C.end.at);
     // the site layout comes in over the gallery as the intro ends
     end.update(C.loop ? -1 : gt - C.end.at);
     requestAnimationFrame(frame);
@@ -186,6 +197,8 @@
   requestAnimationFrame(frame);
 
   window.haloDebug = {
+    mode: k => document.querySelector('#end .modes-in [data-mode="' + k + '"]')?.click(),
+    trail: (x, y) => trail?.test(x, y),
     freeze: s => { frozen = s; window.haloPre3d?.finish(); showBars(true); },
     gallery: () => ({ galleryStart }),
     end: () => galleryStart + C.end.at,   // haloDebug.freeze(haloDebug.end() + 2) = settled end layout
