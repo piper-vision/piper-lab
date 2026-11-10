@@ -197,7 +197,7 @@ window.HALO_CONFIG = {
         logo: { x: 40, y: 40, w: 127 },                     // sits above the left bar, aligned to its left edge
         burger: { x: 1880, y: 40, size: 52, align: 'right' },   // above the right bar, aligned to its right edge
         contact: { x: 1820, y: 40, size: 17, align: 'right', label: 'Contact us' },   // dark button just left of the burger, same height
-        title: { x: 962, y: 372, size: 114, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5 },
+        title: { x: 962, y: 330, size: 142.5, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5 },
         copy: { x: 1289, y: 968, anchor: 'bottom', size: 26 },
         buttons: { x: 1289, y: 1040, anchor: 'bottom', size: 17.3, gap: 0.77 },
         // outer bars drop to start below the logo + burger as the UI comes in
