@@ -49,7 +49,19 @@
       if (k !== last[i]) { last[i] = k; words[i].style.color = mix(k); }
     }
     for (const b of lefts) if (b.getBoundingClientRect().top / innerHeight < K.revealAt + 0.2) b.classList.add('in');
+    // full-width images (under the logo strip, under the kit cards): internal parallax, like the service cards
+    // (photo is 124% of its frame)
+    for (const wide of wides) {
+      const box = wide.parentElement.getBoundingClientRect(), vh = innerHeight;
+      if (box.bottom > -vh * 0.2 && box.top < vh * 1.2) {
+        const q = Math.min(Math.max((box.top + box.height / 2 - vh / 2) / (vh / 2 + box.height / 2), -1), 1);
+        // measured against the FRAME: the photo overhangs it by 12% top and bottom, so drift stays inside that
+        wide.style.transform = `translate3d(0, ${(-q * K.wideDrift * box.height).toFixed(1)}px, 0)`;
+      }
+    }
   }
+  const wides = [...document.querySelectorAll('.nx-wide img')];   // every full-width image on the page
+  K.wideDrift = 0.115;  // share of the frame's height the photo travels each way (overhang is 0.12, so no edge ever shows)
   const queue = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
   addEventListener('scroll', queue, { passive: true });
   addEventListener('resize', queue);

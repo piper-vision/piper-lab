@@ -102,25 +102,39 @@
   #next { position: relative; z-index: 4; margin-top: 100vh; min-height: 100vh; background: #EBEBE1; }
   /* "What we build" (James' mock ref-next-1, 1920 design px via --u = 1 design px) */
   #next { background: #FFF8E6;   /* cream (James), as in the mock; the hero stays #EBEBE1 */
-    --u: calc(100vw / 1920); height: max(calc(1418 * var(--u)), 100vh); min-height: 0;   /* 1000 text + "Trusted to build for" + logo strip */ color: #191919; }
+    --u: calc(100vw / 1920); height: calc(2263.6 * var(--u)); min-height: 0;   /* 1081 text + "Trusted to build for" + logo strip + full-width image (ends at its bottom) */ color: #191919; }
   #next .m { display: block; overflow: hidden; padding-bottom: 0.14em; margin-bottom: -0.14em; }
   #next .m > span { display: block; transform: translateY(105%); transition: transform 0.9s cubic-bezier(0.8, 0, 0.1, 1); }
   #next .nx-left.in .m > span { transform: none; }
   .nx-left { position: absolute; left: calc(52 * var(--u)); top: calc(198 * var(--u)); }
   .nx-h { margin: 0; font: 400 calc(28.5 * var(--u)) / 1 'FK Display', sans-serif; }
   .nx-intro { margin: calc(22 * var(--u)) 0 0; font: 300 calc(24 * var(--u)) / 1.28 'Space Grotesk', sans-serif; white-space: nowrap; }
-  .nx-right { position: absolute; left: calc(871 * var(--u)); top: calc(196 * var(--u)); width: calc(960 * var(--u)); }   /* 960: wraps exactly like the mock */
+  .nx-right { position: absolute; left: calc(871 * var(--u)); top: calc(269 * var(--u)); width: calc(960 * var(--u)); }   /* 960: wraps exactly like the mock; top 269 under the label (ref-next-2) */
   .nx-words p { margin: 0 0 1.08em; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
   .nx-words .w { color: var(--grey, #acaca5); }   /* each word's colour is set by src/next.js as you scroll */
   .nx-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: calc(10 * var(--u));
     width: calc(197 * var(--u)); height: calc(53 * var(--u)); border-radius: 99em; background: #191919; color: #fff;
     font: 400 calc(21 * var(--u)) / 1 'Space Grotesk', sans-serif; text-decoration: none; transition: background-color 0.35s ease, color 0.35s ease; }
   .nx-btn:hover, .nx-btn:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  /* What we build v2 (ref-next-2): photo left with lime tape centred on its top edge; label above the paragraphs */
+  .nx-photo { left: calc(51.8 * var(--u)); top: calc(193.9 * var(--u)); width: calc(589.4 * var(--u)); height: calc(561.6 * var(--u)); }
+  .nx-frame { position: absolute; inset: 0; overflow: hidden; clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(0.8, 0, 0.1, 1); }
+  .nx-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.25); transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1); }
+  .nx-photo.in .nx-frame { clip-path: inset(0 0 0 0); }
+  .nx-photo.in .nx-frame img { transform: none; }
+  .nx-tape { position: absolute; left: 50%; top: calc(-15.9 * var(--u)); width: calc(91.2 * var(--u)); height: calc(31.7 * var(--u)); margin-left: calc(-45.6 * var(--u));
+    background: #E6FF00; transform: translateY(-40%) rotate(-14deg) scale(0.4); opacity: 0; transition: transform 0.3s ease, opacity 0.2s ease; }
+  .nx-photo.in .nx-tape { transform: none; opacity: 1; transition: transform 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) 0.85s, opacity 0.15s ease 0.85s; }
+  .nx-label { left: calc(871 * var(--u)); top: calc(181.7 * var(--u)); }
+  /* full-width image under the logos: frame is the photo's own 2000:861 shape; the photo inside is 124% tall (-12% top)
+     and src/next.js shifts it with the scroll (internal parallax) */
+  .nx-wide { position: absolute; left: 0; right: 0; top: calc(1437 * var(--u)); aspect-ratio: 2000 / 861; overflow: hidden; }
+  .nx-wide img { position: absolute; left: 0; top: -12%; width: 100%; height: 124%; object-fit: cover; display: block; will-change: transform; }
   /* logo carousel (right to left). One set = 6 cards x 360 design px; the track holds two sets and slides by one */
   /* "Trusted to build for" sits 146 design px above the cards (James' mock ref-logos-2), same styles as "What we build";
      the block + strip were moved down to start where the first part ended (1000) so there's room above it */
-  .nx-trust { top: calc(1000 * var(--u)); }
-  .nx-logos { position: absolute; left: 0; right: 0; top: calc(1146.5 * var(--u)); height: calc(174 * var(--u)); overflow: hidden; }
+  .nx-trust { top: calc(1081 * var(--u)); }   /* moved down 81 with the taller first part (ref-next-2) */
+  .nx-logos { position: absolute; left: 0; right: 0; top: calc(1227.5 * var(--u)); height: calc(174 * var(--u)); overflow: hidden; }
   .nx-track { display: flex; width: max-content; height: 100%; animation: nx-marquee 40s linear infinite; will-change: transform; }
   .nx-set { display: flex; gap: calc(10.6 * var(--u)); padding-right: calc(10.6 * var(--u)); height: 100%; }
   .nx-card { flex: none; width: calc(349 * var(--u)); height: 100%; border-radius: calc(22 * var(--u)); background: #ECEBE2;
@@ -165,7 +179,7 @@
   .sv-card { transform: translateX(100vw); z-index: 1; transition: transform 1.3s cubic-bezier(0.8, 0, 0.1, 1) var(--d, 0s); }
   #services.in .sv-card { transform: none; }
   /* "The kit & the team" (mock ref-kit: 2000 px wide = x0.96 to design px) */
-  #kit { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1580 * var(--u)); background: #EBEBE1; color: #191919; overflow: clip; }
+  #kit { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(2449 * var(--u));   /* cards + full-width image (ends at its bottom) */ background: #EBEBE1; color: #191919; overflow: clip; }
   .kt-h { position: absolute; left: calc(52 * var(--u)); top: calc(93.7 * var(--u)); margin: 0;
     font: 400 calc(99 * var(--u)) / 0.98 'FK Display', sans-serif; }
   .kt-intro { position: absolute; left: calc(53 * var(--u)); top: calc(315.2 * var(--u)); margin: 0; color: #69685F;
@@ -229,7 +243,7 @@
   .kt-kit .kt-btn:hover, .kt-kit .kt-btn:focus-visible { background: #e6ff00; color: #191919; }
   .kt-team .kt-p { left: calc(42.3 * var(--u)); top: calc(761.8 * var(--u)); color: #1B1608; }
   /* "Every build raises the bar" (mock ref-projects: 2000 px wide = x0.96). Text tops are cap-height corrected. */
-  #projects { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1295 * var(--u)); background: #FFF8E6; color: #191919; overflow: clip; }
+  #projects { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1245.8 * var(--u));   /* ends where the testimonial's lime begins (ref-testimonial) */ background: #FFF8E6; color: #191919; overflow: clip; }
   .pj-h { position: absolute; left: calc(52 * var(--u)); top: calc(142.3 * var(--u)); margin: 0; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
   .pj-all { position: absolute; right: calc(51 * var(--u)); top: calc(138.2 * var(--u)); display: flex; align-items: center; justify-content: center;
     width: calc(272.6 * var(--u)); height: calc(52.8 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;
@@ -266,6 +280,129 @@
   #projects.in .pj-m > span { transform: none; }
   #projects.in .pj-line { transform: none; }
   #projects.in .pj-dot { transform: none; }
+  /* Testimonial (mock ref-testimonial, positions mapped from the first column's stats). Lime bg pixels in (bgpixels.js). */
+  #testimonial { --u: calc(100vw / 1920); position: relative; z-index: 5; height: calc(581.8 * var(--u)); background: #E6FF00; color: #191919; }
+  /* the dotted connector reaches UP out of this section, from under the first project's stats (1070.1 in #projects,
+     i.e. 175.7 above this section's top), down to the dot; #testimonial sits above #projects (z 5) so it shows */
+  .tm-line { position: absolute; left: calc(53.3 * var(--u)); top: calc(-175.7 * var(--u)); width: 1px; height: calc(306.3 * var(--u));
+    background: repeating-linear-gradient(to bottom, #3A3A3A 0 1px, transparent 1px 4px); transform: scaleY(0); transform-origin: 50% 0;
+    transition: transform 1s cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0s); }
+  .tm-dot { position: absolute; left: calc(50.9 * var(--u)); top: calc(130.6 * var(--u)); width: calc(5.8 * var(--u)); height: calc(5.8 * var(--u));
+    border-radius: 50%; background: #191919; transform: scale(0); transition: transform 0.45s cubic-bezier(0.34, 1.7, 0.64, 1) var(--d, 0s); }
+  .tm-mark { position: absolute; left: calc(86.4 * var(--u)); top: calc(143.5 * var(--u)); width: calc(30.7 * var(--u)); height: auto; fill: #191919;
+    transform: translateY(-30%) rotate(-14deg) scale(0.4); opacity: 0;
+    transition: transform 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), opacity 0.15s ease var(--d, 0s); }
+  .tm-q { position: absolute; left: calc(82.6 * var(--u)); top: calc(214.3 * var(--u)); margin: 0; }
+  .tm-q p { margin: 0; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; white-space: nowrap; }
+  .tm-by { position: absolute; left: calc(0.9 * var(--u)); top: calc(179.5 * var(--u)); font: 400 calc(14.4 * var(--u)) / 1 Georgia, 'Times New Roman', serif; white-space: nowrap; }
+  #testimonial .km > span { transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #testimonial .tm-q p .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; }
+  #testimonial.in .km > span, #testimonial.in .tm-q p .km > span { transform: none; }   /* 2nd selector out-ranks the skew rule */
+  #testimonial.in .tm-line { transform: none; }
+  #testimonial.in .tm-dot { transform: none; }
+  #testimonial.in .tm-mark { transform: none; opacity: 1; }
+  /* Impact & Sustainability (mock ref-impact: 2000 px wide = x0.96; tops cap-height corrected) */
+  #impact { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1449.6 * var(--u)); background: #EBEBE1; color: #191919; overflow: clip; }
+  .im-h { position: absolute; left: calc(52 * var(--u)); top: calc(129.1 * var(--u)); margin: 0; font: 400 calc(73 * var(--u)) / 1.03 'FK Display', sans-serif; }
+  .im-intro { position: absolute; left: calc(53 * var(--u)); top: calc(296.5 * var(--u)); margin: 0; color: #6F6E66;
+    font: 300 calc(18.65 * var(--u)) / 1.55 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .im-all { position: absolute; right: calc(52 * var(--u)); top: calc(301.4 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(274.6 * var(--u)); height: calc(50.9 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;   /* black (James; mock had cream) */
+    font: 400 calc(20.8 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .im-all:hover, .im-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  .im-card { position: absolute; left: calc(53.8 * var(--u)); top: calc(391.7 * var(--u)); width: calc(1814.4 * var(--u)); height: calc(999.4 * var(--u));
+    border-radius: calc(21 * var(--u)); overflow: hidden; background: #181818; color: #F2F1E8; }
+  .im-3d { position: absolute; inset: 0; }
+  .im-stats { list-style: none; margin: 0; padding: 0; }
+  .im-pill { position: absolute; display: flex; align-items: center; height: calc(103.2 * var(--u)); box-sizing: border-box;
+    padding: 0 calc(46 * var(--u)) 0 calc(34.5 * var(--u)); border: 1px solid #8A8A84; border-radius: 99em; background: #121212; white-space: nowrap; }
+  .im-pill i { flex: none; width: calc(36.5 * var(--u)); height: calc(36.5 * var(--u)); border-radius: 50%; background: #E6FF00; }
+  .im-pill b { font: 400 calc(72.5 * var(--u)) / 1 'FK Display', sans-serif; margin: 0 calc(21 * var(--u)) 0 calc(14 * var(--u)); letter-spacing: -0.01em; }
+  .im-pill span { font: 400 calc(27.8 * var(--u)) / 1.1 'FK Display', sans-serif; }
+  .im-pill sup { font-size: 0.5em; vertical-align: 0.9em; line-height: 0; }
+  .im-hl { position: absolute; left: 0; right: 0; top: calc(424.8 * var(--u)); margin: 0; text-align: center;
+    font: 400 calc(73 * var(--u)) / 1.03 'FK Display', sans-serif; }
+  /* entrance (src/impact.js adds .in, sets --d): heading/headline lines rise with the skew, intro slides, button rises,
+     pills pop in with an overshoot, their dots blink on */
+  #impact .km > span { transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #impact :is(.im-h, .im-hl) .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; }
+  #impact.in :is(.im-h, .im-intro) .km > span, #impact .im-card.in .im-hl .km > span { transform: none; }
+  #impact .im-all { opacity: 0; translate: 0 calc(18 * var(--u)); transition: opacity 0.5s ease var(--d, 0s), translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), background-color 0.35s ease, color 0.35s ease; }
+  #impact.in .im-all { opacity: 1; translate: none; }
+  .im-pill { opacity: 0; scale: 0.6; transition: opacity 0.3s ease var(--d, 0s), scale 0.6s cubic-bezier(0.34, 1.6, 0.64, 1) var(--d, 0s); }
+  #impact .im-card.in .im-pill { opacity: 1; scale: 1; }
+  .im-pill i { scale: 0; transition: scale 0.45s cubic-bezier(0.34, 1.8, 0.64, 1) calc(var(--d, 0s) + 0.25s); }
+  #impact .im-card.in .im-pill i { scale: 1; }
+  /* News & Views (mock ref-news: 2000 px wide = x0.96; tops cap-height corrected) */
+  #news { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(993.6 * var(--u));   /* bottom padding halved with the build-type top (James) */ background: #FFF8E6; color: #191919; overflow: clip; }
+  .nw-h { position: absolute; left: calc(52 * var(--u)); top: calc(192.2 * var(--u)); margin: 0; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .nw-all { position: absolute; right: calc(49.9 * var(--u)); top: calc(188.2 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(181.4 * var(--u)); height: calc(52.8 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;   /* black like the other pills (mock: grey) */
+    font: 400 calc(18.8 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .nw-all:hover, .nw-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  /* the row scrolls sideways (scrollbar hidden); it starts on the page margin and runs off the right edge */
+  .nw-track { position: absolute; left: 0; right: 0; top: calc(282.2 * var(--u)); display: flex; gap: calc(24 * var(--u));
+    padding: 0 calc(52 * var(--u)) calc(4 * var(--u)) calc(50.9 * var(--u)); overflow: hidden;   /* scrolling switches on (.live) once the cards have landed, so the entrance can't fight the scroll + snap */
+    scrollbar-width: none; scroll-snap-type: x proximity; cursor: grab; outline: none; }
+  .nw-track::-webkit-scrollbar { display: none; }
+  .nw-track.live { overflow-x: auto; }
+  .nw-track:not(.live) { scroll-snap-type: none; cursor: default; }
+  .nw-track.dragging { cursor: grabbing; scroll-snap-type: none; }
+  .nw-track.dragging .nw-link { pointer-events: none; }
+  .nw-card { flex: none; position: relative; width: calc(795.8 * var(--u)); height: calc(621.1 * var(--u)); box-sizing: border-box;
+    border: 1px solid #E5E1D0; border-radius: calc(21 * var(--u)); background: #ECEBE2; scroll-snap-align: start; scroll-margin-left: calc(50.9 * var(--u)); }
+  .nw-link { position: absolute; inset: 0; color: inherit; text-decoration: none; -webkit-user-drag: none; }
+  .nw-tag { position: absolute; left: calc(55.6 * var(--u)); top: calc(26 * var(--u)); margin: 0; font: 400 calc(21.2 * var(--u)) / 1.2 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .nw-tag i { position: absolute; left: calc(-24 * var(--u)); top: 50%; width: calc(8.6 * var(--u)); height: calc(8.6 * var(--u)); margin-top: calc(-4.3 * var(--u)); border-radius: 50%; background: #191919; }
+  .nw-img { position: absolute; left: calc(10.5 * var(--u)); top: calc(62.4 * var(--u)); width: calc(774.7 * var(--u)); height: calc(400.3 * var(--u));
+    border-radius: calc(13 * var(--u)); overflow: hidden; }
+  .nw-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1); -webkit-user-drag: none; }
+  .nw-link:hover .nw-img img, .nw-link:focus-visible .nw-img img { transform: scale(1.04); }
+  .nw-p { position: absolute; left: calc(23.5 * var(--u)); top: calc(495.3 * var(--u)); margin: 0; color: #74766E; font: 300 calc(18.6 * var(--u)) / 1.29 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .nw-go { position: absolute; left: calc(741 * var(--u)); top: calc(571 * var(--u)); width: calc(19 * var(--u)); height: calc(19 * var(--u));
+    fill: none; stroke: #191919; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .nw-link:hover .nw-go, .nw-link:focus-visible .nw-go { transform: translateX(calc(4 * var(--u))); }
+  .nw-link:focus-visible { outline: 2px solid #191919; outline-offset: calc(4 * var(--u)); border-radius: calc(21 * var(--u)); }
+  /* entrance (src/news.js adds .in): heading rises with the skew, button rises, cards slide in from the right */
+  #news .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1); }
+  #news.in .km > span { transform: none; }
+  #news .nw-all { opacity: 0; translate: 0 calc(18 * var(--u)); transition: opacity 0.5s ease 0.2s, translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, background-color 0.35s ease, color 0.35s ease; }
+  #news.in .nw-all { opacity: 1; translate: none; }
+  /* slide in from 45% of the screen with a smooth, long ease-out (was 100vw with the snappy site ease: they arrived hard) */
+  .nw-card { transform: translateX(45vw); opacity: 0; transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s), opacity 0.6s ease var(--d, 0s); }
+  #news.in .nw-card { transform: none; opacity: 1; }
+  /* Find a build-type (mock ref-buildtype: 2000 px wide = x0.96; tops cap-height corrected) */
+  #buildtype { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1013 * var(--u));   /* top padding halved (James): everything moved up 93.9 */ background: #FFF8E6; color: #191919; overflow: clip; }
+  .bt-h { position: absolute; left: calc(60.6 * var(--u)); top: calc(263.4 * var(--u));   /* +175.2: lined up with the illustration (ref-buildtype-2) */ margin: 0; font: 400 calc(73 * var(--u)) / 1.026 'FK Display', sans-serif; }
+  .bt-p { position: absolute; left: calc(61.6 * var(--u)); top: calc(530.1 * var(--u)); margin: 0; color: #7A7461;
+    font: 300 calc(18.6 * var(--u)) / 1.575 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .bt-all { position: absolute; left: calc(61.4 * var(--u)); top: calc(687.1 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(179.5 * var(--u)); height: calc(50.9 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;
+    font: 400 calc(20.8 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .bt-all:hover, .bt-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  /* the illustration's own background is a hair off the page cream: multiply makes it vanish into the section */
+  .bt-illo { position: absolute; left: calc(637.2 * var(--u)); top: calc(93.9 * var(--u)); width: calc(1228.5 * var(--u)); aspect-ratio: 1840 / 1175; }
+  .bt-illo img { width: 100%; height: 100%; display: block; mix-blend-mode: multiply; }
+  .bt-tag { position: absolute; display: flex; align-items: center; height: calc(33.6 * var(--u)); padding: 0 calc(19.5 * var(--u));
+    border-radius: 99em; background: var(--c); color: #191919; text-decoration: none; white-space: nowrap;
+    font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: filter 0.3s ease; }
+  .bt-tag:hover, .bt-tag:focus-visible { filter: brightness(1.08) saturate(1.1); outline: none; }
+  /* entrance (src/buildtype.js adds .in, sets --d): heading lines rise with the skew, intro lines slide up, button
+     rises; the illustration wipes up from the bottom while settling from a slight zoom; the tags pop on with an
+     overshoot and then float gently, each on its own rhythm */
+  #buildtype .km > span { transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #buildtype .bt-h .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; }
+  #buildtype.in .km > span, #buildtype.in .bt-h .km > span { transform: none; }
+  #buildtype .bt-all { opacity: 0; translate: 0 calc(18 * var(--u)); transition: opacity 0.5s ease var(--d, 0s), translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), background-color 0.35s ease, color 0.35s ease; }
+  #buildtype.in .bt-all { opacity: 1; translate: none; }
+  .bt-illo { clip-path: inset(100% 0 0 0); transition: clip-path 1.3s cubic-bezier(0.8, 0, 0.1, 1) var(--d, 0s); }
+  .bt-illo img { transform: scale(1.08); transform-origin: 50% 100%; transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #buildtype.in .bt-illo { clip-path: inset(0 0 0 0); }
+  #buildtype.in .bt-illo img { transform: none; }
+  .bt-tag { opacity: 0; scale: 0.4; rotate: -8deg; transition: opacity 0.2s ease var(--d, 0s), scale 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), rotate 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), filter 0.3s ease; }
+  #buildtype.in .bt-tag { opacity: 1; scale: 1; rotate: 0deg; animation: bt-float var(--f, 5s) ease-in-out calc(var(--d, 0s) + 0.6s) infinite alternate; }
+  @keyframes bt-float { from { translate: 0 0; } to { translate: 0 calc(-9 * var(--u)); } }
+  @media (prefers-reduced-motion: reduce) { #buildtype.in .bt-tag { animation: none; } }
   /* Footer (mock ref-footer: 2000 px wide = x0.96). Text tops are cap-height corrected. */
   #footer { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1171 * var(--u)); background: #181818; color: #F5F6EC; overflow: clip; }
   .ft-logo { position: absolute; left: calc(49.9 * var(--u)); top: calc(384 * var(--u)); width: calc(1818.2 * var(--u)); height: auto; fill: #111111; overflow: hidden; }
@@ -453,11 +590,14 @@
 <body>
 <div id="stage"></div>
 <section id="next" aria-labelledby="build-h">
-  <!-- "What we build" (James' mock assets/ref-next-1.webp); behaviour in src/next.js -->
-  <div class="nx-left">
-    <h2 id="build-h" class="nx-h"><span class="m"><span>What we build</span></span></h2>
-    <p class="nx-intro"><span class="m"><span>Halo was founded in 2014, since</span></span><span class="m"><span>then we’ve grown in our size and</span></span><span class="m"><span>our projects.</span></span></p>
+  <!-- "What we build" (James' mocks assets/ref-next-1.webp, then ref-next-2.webp: photo with lime tape on the left,
+       the label moved above the paragraphs); behaviour in src/next.js. The photo unmasks upwards from a zoom and the
+       tape slaps on, as in the menu's "What we offer" dropdown. -->
+  <div class="nx-left nx-photo">
+    <div class="nx-frame"><img loading="eager" data-src="assets/build/structure.jpg" alt="Close-up of the Halo Structure's black steel frame and bolted joints against a blue sky"></div>
+    <i class="nx-tape"></i>
   </div>
+  <div class="nx-left nx-label"><h2 id="build-h" class="nx-h"><span class="m"><span>What we build</span></span></h2></div>
   <div class="nx-right">
     <div class="nx-words">
       <p>We believe temporary structures deserve permanent thinking – not just in how they’re built, but in the experience they create.</p>
@@ -492,10 +632,13 @@
       </div>
     </div>
   </div>
+  <!-- full-width image under the logos (James' mock ref-next-3); the photo is taller than its frame and drifts inside it
+       as the page scrolls (internal parallax, src/next.js). The section ends at its bottom edge. -->
+  <div class="nx-wide"><img data-src="assets/build/crew-wide.jpg" alt="Halo crew in hard hats lifting a perforated steel beam into place, beside a close-up of a white structure's bolted joints"></div>
 </section>
 <!-- "Four ways we create space" (James' mock assets/ref-services.webp); cards slide in from the right and the
      photos drift inside their frames (parallax), both in src/services.js -->
-<section id="services" aria-labelledby="sv-h" data-bg-pixels="#EBEBE1" data-bg-from="#FFF8E6">
+<section id="services" aria-labelledby="sv-h" data-bg-pixels="#EBEBE1" data-bg-from="#FFF8E6" data-bg-at="0.5">
   <h2 id="sv-h" class="sv-h">Four ways we create space</h2>
   <a class="sv-all" href="#">View all services</a>
   <div class="sv-cards">
@@ -553,6 +696,9 @@
 
     <a class="nx-btn kt-btn" href="#">About us</a>
   </article>
+  <!-- full-width image under the cards (James' mock ref-kit-2), same as the one under the logo strip: internal parallax
+       (src/next.js handles every .nx-wide), the section ends at its bottom edge -->
+  <div class="nx-wide" data-dark style="top: calc(1622.4 * var(--u))"><img data-src="assets/kit/stairs-wide.jpg" alt="Black-clad Halo structure: a stair up to a branded upper level, beside a low-angle view of its ribbed dark cladding against a blue sky"></div>
 </section>
 <!-- "Every build raises the bar" (James' mock assets/ref-projects.webp, photos from James). src/projects.js animates it
      in: the three photos unroll top-down at the same speed (so their different heights build a staircase), tags slide
@@ -591,6 +737,81 @@
       <p class="pj-stat"><span class="pj-m"><span><b data-count="4">4</b> garage builds,</span></span><span class="pj-m"><span><b data-count="6">6</b> gaming arenas,</span></span><span class="pj-m"><span>Podium in <b data-count="6">6</b> cities</span></span></p>
     </div>
   </article>
+</section>
+<!-- Testimonial (James' mock assets/ref-testimonial.webp): lime background that pixels in over the cream (bgpixels.js),
+     the first project's dotted connector continues down out of "Every build raises the bar" to a dot here, then the
+     quote mark pops, the quote rises line by line (skewed, like the headlines) and the attribution follows
+     (src/testimonial.js). -->
+<section id="testimonial" aria-label="Testimonial" data-bg-pixels="#E6FF00" data-bg-from="#FFF8E6" data-bg-at="0.7">
+  <i class="tm-line" aria-hidden="true"></i><i class="tm-dot" aria-hidden="true"></i>
+  <svg class="tm-mark" viewBox="0 0 32 26" aria-hidden="true"><path d="M0 26V15C0 7.6 3.9 2.4 11 0l2 4.2C8.7 6 6.9 8.7 6.6 12.4H13V26H0Zm18.6 0V15c0-7.4 3.9-12.6 11-15l2 4.2c-4.3 1.8-6.1 4.5-6.4 8.2h6.4V26h-13Z"/></svg>
+  <blockquote class="tm-q">
+    <p><span class="km"><span>Once you see what they can do, you start dreaming –</span></span><span class="km"><span>‘we could do that, we could do that’… things you’d never</span></span><span class="km"><span>try with a normal structure.</span></span></p>
+    <footer class="tm-by"><span class="km"><span>-Eric Godoy, Wimbledon</span></span></footer>
+  </blockquote>
+</section>
+<!-- Impact & Sustainability (James' mock assets/ref-impact.webp). Text, stat pills and headline are HTML/CSS; the dark
+     card's isometric grid + line-drawn formations are three.js (src/impact3d.js), the camera slowly panning across an
+     endlessly repeating scene. Entrance: src/impact.js. -->
+<section id="impact" aria-labelledby="im-h">
+  <h2 id="im-h" class="im-h"><span class="km"><span>Impact &amp;</span></span><span class="km"><span>Sustainability</span></span></h2>
+  <p class="im-intro"><span class="km"><span>Our modular system is made to be reused, reconfigured and redeployed again and again.</span></span><span class="km"><span>We also report the carbon footprint of our projects, so the impact of every build is clear.</span></span></p>
+  <a class="im-all" href="#">Our sustainability</a>
+  <div class="im-card" data-dark>
+    <div class="im-3d" aria-hidden="true"></div>
+    <ul class="im-stats">
+      <li class="im-pill" style="left: calc(644.2 * var(--u)); top: calc(126.7 * var(--u))"><i></i><b>x3</b><span>build hubs for<br>reduced milage</span></li>
+      <li class="im-pill" style="left: calc(151.7 * var(--u)); top: calc(314.9 * var(--u))"><i></i><b>95%</b><span>of kit<br>reused</span></li>
+      <li class="im-pill" style="left: calc(1220.2 * var(--u)); top: calc(327.4 * var(--u))"><i></i><b>15+</b><span>years of<br>building</span></li>
+      <li class="im-pill" style="left: calc(481.9 * var(--u)); top: calc(668.2 * var(--u))"><i></i><b>250+</b><span>Est tonnes of Co<sup>2</sup><br>avoided annually</span></li>
+    </ul>
+    <p class="im-hl"><span class="km"><span>Less waste.</span></span><span class="km"><span>More life in every structure</span></span></p>
+  </div>
+</section>
+<!-- News & Views (James' mock assets/ref-news.webp): a sideways-scrolling row of article cards (drag, trackpad or
+     shift-wheel; src/news.js). Copy is the mock's placeholder. Images: cladding.jpg is cropped from the mock (with its
+     lime lines), the steel frame is the What-we-build photo, the third is a stand-in for the mock's "Earth day" card. -->
+<section id="news" aria-labelledby="nw-h">
+  <h2 id="nw-h" class="nw-h"><span class="km"><span>News &amp; Views</span></span></h2>
+  <a class="nw-all" href="#">View all</a>
+  <div class="nw-track" tabindex="0" aria-label="Articles">
+    <article class="nw-card">
+      <a class="nw-link" href="#">
+        <p class="nw-tag"><i></i>Thought Leadership: Article Headline</p>
+        <div class="nw-img"><img data-src="assets/news/cladding.jpg" alt=""></div>
+        <p class="nw-p">Lorem ipsum dolor sit amet consectetur. Purus odio nibh<br>volutpat dignissim. Proin euismod tortor amet habitant<br>enim quam hendrerit ut. Nec nunc amet sem quis. Diam<br>duis sit ac eu quisque.</p>
+        <svg class="nw-go" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>
+      </a>
+    </article>
+    <article class="nw-card">
+      <a class="nw-link" href="#">
+        <p class="nw-tag"><i></i>Thought Leadership: Article Headline</p>
+        <div class="nw-img"><img data-src="assets/build/structure.jpg" alt=""></div>
+        <p class="nw-p">Lorem ipsum dolor sit amet consectetur. Purus odio nibh<br>volutpat dignissim. Proin euismod tortor amet habitant<br>enim quam hendrerit ut. Nec nunc amet sem quis. Diam<br>duis sit ac eu quisque.</p>
+        <svg class="nw-go" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>
+      </a>
+    </article>
+    <article class="nw-card">
+      <a class="nw-link" href="#">
+        <p class="nw-tag"><i></i>Thought Leadership: Article Headline</p>
+        <div class="nw-img"><img data-src="assets/services/indoor.jpg" alt=""></div>
+        <p class="nw-p">Lorem ipsum dolor sit amet consectetur. Purus odio nibh<br>volutpat dignissim. Proin euismod tortor amet habitant<br>enim quam hendrerit ut. Nec nunc amet sem quis. Diam<br>duis sit ac eu quisque.</p>
+        <svg class="nw-go" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>
+      </a>
+    </article>
+  </div>
+</section>
+<!-- Find a build-type (James' mock assets/ref-buildtype.webp): heading, intro and button on the left, James' isometric
+     rooms illustration on the right with the four service tags floating over it. Entrance + gentle float: src/buildtype.js. -->
+<section id="buildtype" aria-labelledby="bt-h">
+  <h2 id="bt-h" class="bt-h"><span class="km"><span>Find a</span></span><span class="km"><span>build-type</span></span><span class="km"><span>for your needs</span></span></h2>
+  <p class="bt-p"><span class="km"><span>Our modular system is made to be reused,</span></span><span class="km"><span>reconfigured and redeployed again and again. We</span></span><span class="km"><span>also report the carbon footprint of our projects,</span></span><span class="km"><span>so the impact of every build is clear.</span></span></p>
+  <a class="bt-all" href="#">View all</a>
+  <div class="bt-illo"><img data-src="assets/buildtype/rooms.jpg" alt="Isometric illustration of furnished rooms built inside a modular structure: lounge, kitchen, dining, bedroom, gym and bathroom"></div>
+  <a class="bt-tag" href="#" style="--c:#CC89E4; left: calc(728.6 * var(--u)); top: calc(125 * var(--u))">Bespoke Applications</a>
+  <a class="bt-tag" href="#" style="--c:#9ECDEB; left: calc(1582 * var(--u)); top: calc(238.3 * var(--u))">Outdoor Structures</a>
+  <a class="bt-tag" href="#" style="--c:#FF9D00; left: calc(637.4 * var(--u)); top: calc(600.2 * var(--u))">Indoor Structures</a>
+  <a class="bt-tag" href="#" style="--c:#B19070; left: calc(1502.4 * var(--u)); top: calc(829.6 * var(--u))">Semi-permanent &amp; Meanwhile use</a>
 </section>
 <!-- Footer (James' mock assets/ref-footer.webp). src/footer.js plays its entrance once: headline rises with the skew,
      the giant Halo letters rise out of the bottom one by one, links + copy slide up out of masks, the email underline
@@ -797,12 +1018,13 @@
 <script>
   // written in (rather than <script src>) so the browser's preload scanner can't request them at the
   // wrong path before the <base> fix above applies; they still load and run in order
-  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/invert.js', 'src/smooth.js']
+  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/testimonial.js', 'src/impact.js', 'src/news.js', 'src/buildtype.js', 'src/invert.js', 'src/smooth.js']
     .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
 </script>
 <script type="module">import './src/intro3d.js';</script>
 <script type="module">import './src/kit3d.js';</script>
 <script type="module">import './src/footer-smoke.js';</script>
+<script type="module">import './src/impact3d.js';</script>
 <script type="module">
   // Menu (from iso-h): the burger opens it through the pixel transition (dark pixels in from
   // the top right), the X or Escape closes it (cream pixels back out). The 3D H loads the first time.
