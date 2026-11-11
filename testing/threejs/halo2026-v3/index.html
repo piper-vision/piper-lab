@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // lab.piper.vision serves this page at an extensionless URL with no trailing slash, which makes
+  // src/, vendor/ and assets/ resolve one level up. Injecting <base> pins every relative URL (the
+  // import map and the @font-face urls included) to this page. Must come before anything relative.
+  (function () {
+    var p = location.pathname;
+    if (!/\.[a-z0-9]+$/i.test(p) && p.charAt(p.length - 1) !== '/') document.write('<base href="' + p + '/">');
+  })();
+</script>
+<!-- inline favicon: no /favicon.ico request, so no 404 on the server -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M9%204%20L9%2028%20M23%204%20L23%2028%20M9%2016%20L23%2016'%20fill='none'%20stroke='%23222'%20stroke-width='3'/%3E%3C/svg%3E">
+<title>Halo H</title>
+<style>
+  html, body { margin: 0; background: #FFF8E6; }   /* starts cream; main.js switches to #EBEBE1 behind the first photo */
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar { display: none; }
+  /* the page scrolls (V3): the hero is one screen tall, the next section follows; scrollbar hidden */
+  html { overflow-x: hidden; overflow-y: auto; }
+  body { overflow-x: clip; }   /* clip, not hidden: hidden made body its own scroll box with a visible scrollbar */
+  @font-face { font-family: 'FK Display'; src: url('assets/fonts/FKDisplay-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Light.ttf') format('truetype'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Medium.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+  /* end layout (James' mock); positions + sizes are set by src/end.js */
+  /* hero layers scroll with the page; logo + nav + contact live in #chrome, fixed on top (sticky) */
+  #end { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; z-index: 3; color: #0b0b0b; pointer-events: none; visibility: hidden; }
+  :is(#end, #chrome) .mask { overflow: hidden; }
+  :is(#end, #chrome) .mask > .in { will-change: transform; }
+  :is(#end, #chrome) .blk { position: absolute; }
+  :is(#end, #chrome) .logo { line-height: 0; }
+  :is(#end, #chrome) .logo svg { width: 100%; height: auto; display: block; }
+  :is(#end, #chrome) .title { font-family: 'FK Display', sans-serif; line-height: 1; letter-spacing: -0.01em; white-space: nowrap; }
+  :is(#end, #chrome) .tline { padding: 0.06em 0 0.18em; margin-bottom: -0.12em; }
+  :is(#end, #chrome) .copy { font-family: 'Space Grotesk', sans-serif; line-height: 1.28; white-space: nowrap; }
+  :is(#end, #chrome) .ctas { display: flex; gap: 1.1em; font-family: 'Space Grotesk', sans-serif; pointer-events: auto; }
+  :is(#end, #chrome) .meta { font-family: 'Space Grotesk', sans-serif; font-size: clamp(10px, 0.78vw, 15px); letter-spacing: 0.08em;
+    text-transform: uppercase; white-space: nowrap; }
+  :is(#end, #chrome) .btn > .in { height: 2.9em; padding: 0 1.45em; border-radius: 99em; display: flex; align-items: center;
+    box-sizing: border-box; cursor: pointer; white-space: nowrap; }
+  :is(#end, #chrome) .btn.primary > .in { background: #1b1b1b; color: #fff; }
+  :is(#end, #chrome) .btn.secondary > .in { border: 1px solid #1b1b1b; }
+  /* the masks crop to the button box: give them 2px of room so the outline's bottom edge isn't cut off */
+  :is(#end, #chrome) .btn.mask { padding: 2px; margin: -2px; }
+  :is(#end, #chrome) .nav { display: flex; align-items: center; gap: 1.58em; font-family: 'Space Grotesk', sans-serif; white-space: nowrap; pointer-events: auto; }
+  :is(#end, #chrome) .nlink > .in { cursor: pointer; }
+  :is(#end, #chrome) .nlink.cta { margin-left: 1.3em; }
+  :is(#end, #chrome) .nlink.cta > .in { height: 2.35em; padding: 0 1.25em; border-radius: 99em; display: flex; align-items: center; background: #1b1b1b; color: #fff; }
+  /* open nav (layout 9, James' mock ref-end-6): translucent white pill, active item on a page-coloured chip */
+  :is(#end, #chrome) .pnav { pointer-events: auto; font-family: 'Space Grotesk', sans-serif; white-space: nowrap; line-height: 1; }
+  :is(#end, #chrome) .pnav-in { display: flex; align-items: center; gap: 0.6em; padding: 0.39em; border-radius: 99em; background: rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }   /* frosted: blurs whatever scrolls behind the pill */
+  :is(#end, #chrome) .pitem { display: flex; align-items: center; gap: 0.32em; height: 2em; padding: 0 0.6em; border-radius: 99em;
+    color: #1b1b1b; text-decoration: none; transition: background-color 0.3s ease; }
+  :is(#end, #chrome) .pitem.on, :is(#end, #chrome) .pitem:hover, :is(#end, #chrome) .pitem:focus-visible { background: #EBEBE1; outline: none; }
+  :is(#end, #chrome) .parrow { width: 0.56em; height: 0.72em; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  :is(#end, #chrome) .pitem:hover .parrow { transform: translateY(0.12em); }
+  /* burger: black square, two thin white lines (James' mock) */
+  :is(#end, #chrome) .burger { pointer-events: auto; line-height: 0; }
+  :is(#end, #chrome) .burger-btn { font-size: inherit; display: block; width: 1em; height: 1em; padding: 0; border: 0; background: #1b1b1b; cursor: pointer; position: relative; }
+  :is(#end, #chrome) .burger-btn i { position: absolute; left: 25%; width: 50%; height: max(1px, 0.035em); background: #fff; }
+  :is(#end, #chrome) .burger-btn i:first-child { top: 36%; }
+  :is(#end, #chrome) .burger-btn i:last-child { top: 62%; }
+  /* hover: the square fades to lime (lines go dark to stay visible) and the two lines draw together */
+  :is(#end, #chrome) .burger-btn { transition: background-color 0.35s ease; }
+  :is(#end, #chrome) .burger-btn i { transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.35s ease; }
+  :is(#end, #chrome) .burger-btn:hover, :is(#end, #chrome) .burger-btn:focus-visible { background: #e6ff00; outline: none; }
+  :is(#end, #chrome) .burger-btn:hover i, :is(#end, #chrome) .burger-btn:focus-visible i { background: #1b1b1b; }
+  :is(#end, #chrome) .burger-btn:hover i:first-child, :is(#end, #chrome) .burger-btn:focus-visible i:first-child { transform: translateY(0.045em); }
+  :is(#end, #chrome) .burger-btn:hover i:last-child, :is(#end, #chrome) .burger-btn:focus-visible i:last-child { transform: translateY(-0.045em); }
+  /* Contact us: a dark box the burger's height, just to its left; same hover (fades lime) */
+  :is(#end, #chrome) .topcta { pointer-events: auto; line-height: 0; }
+  :is(#end, #chrome) .topcta-btn { display: flex; align-items: center; height: 3.06em; padding: 0 1.3em; box-sizing: border-box;
+    background: #1b1b1b; color: #fff; text-decoration: none; font: 400 1em/1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; border-radius: 99em;
+    white-space: nowrap; transition: background-color 0.35s ease, color 0.35s ease; }
+  :is(#end, #chrome) .topcta-btn:hover, :is(#end, #chrome) .topcta-btn:focus-visible { background: #e6ff00; color: #1b1b1b; outline: none; }
+  /* layout 9: slimmer pill (James' mock ref-end-7); it sits on the lime bar, so it hovers to white, not lime */
+  :is(#end, #chrome) .topcta-btn.pill { height: 2.08em; padding: 0 0.75em; background: #191919; letter-spacing: 0; }
+  :is(#end, #chrome) .topcta-btn.pill:hover, :is(#end, #chrome) .topcta-btn.pill:focus-visible { background: #fff; color: #191919; }
+  /* gallery style switch, bottom-left: a soft chip with two options, the active one lime */
+  :is(#end, #chrome) .modes { pointer-events: auto; line-height: 1; }
+  :is(#end, #chrome) .modes.mask, :is(#end, #chrome) .modes > .mask { padding: 2px; margin: -2px; }
+  :is(#end, #chrome) .modes-in { display: inline-flex; gap: 0.25em; padding: 0.3em; border-radius: 99em; background: rgba(11, 11, 11, 0.07);
+    font: 400 1em/1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; }
+  :is(#end, #chrome) .modes-in button { font: inherit; color: #0b0b0b; background: transparent; border: 0; border-radius: 99em; padding: 0.7em 1.15em;
+    cursor: pointer; white-space: nowrap; transition: background-color 0.3s ease; }
+  :is(#end, #chrome) .modes-in button:hover { background: rgba(11, 11, 11, 0.07); }
+  :is(#end, #chrome) .modes-in button.on { background: #e6ff00; }
+  :is(#end, #chrome) .modes-row { display: inline-flex; align-items: center; gap: 0.5em; }
+  /* Mouse Follow photos */
+  .trail { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .trail-pic { position: absolute; left: 0; top: 0; background: center / cover no-repeat; transform-origin: 50% 50%;
+    transform: scale(0); will-change: transform; }   /* moved + scaled every frame by src/trail.js */
+  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; overflow: hidden; }
+  #chrome { position: fixed; inset: 0; z-index: 20; color: #0b0b0b; pointer-events: none; visibility: hidden; }
+  /* placeholder for the next section (V3, to be designed) */
+  #next { position: relative; z-index: 4; margin-top: 100vh; min-height: 100vh; background: #EBEBE1; }
+  /* "What we build" (James' mock ref-next-1, 1920 design px via --u = 1 design px) */
+  #next { background: #FFF8E6;   /* cream (James), as in the mock; the hero stays #EBEBE1 */
+    --u: calc(100vw / 1920); height: max(calc(1418 * var(--u)), 100vh); min-height: 0;   /* 1000 text + "Trusted to build for" + logo strip */ color: #191919; }
+  #next .m { display: block; overflow: hidden; padding-bottom: 0.14em; margin-bottom: -0.14em; }
+  #next .m > span { display: block; transform: translateY(105%); transition: transform 0.9s cubic-bezier(0.8, 0, 0.1, 1); }
+  #next .nx-left.in .m > span { transform: none; }
+  .nx-left { position: absolute; left: calc(52 * var(--u)); top: calc(198 * var(--u)); }
+  .nx-h { margin: 0; font: 400 calc(28.5 * var(--u)) / 1 'FK Display', sans-serif; }
+  .nx-intro { margin: calc(22 * var(--u)) 0 0; font: 300 calc(24 * var(--u)) / 1.28 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .nx-right { position: absolute; left: calc(871 * var(--u)); top: calc(196 * var(--u)); width: calc(960 * var(--u)); }   /* 960: wraps exactly like the mock */
+  .nx-words p { margin: 0 0 1.08em; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .nx-words .w { color: var(--grey, #acaca5); }   /* each word's colour is set by src/next.js as you scroll */
+  .nx-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: calc(10 * var(--u));
+    width: calc(197 * var(--u)); height: calc(53 * var(--u)); border-radius: 99em; background: #191919; color: #fff;
+    font: 400 calc(21 * var(--u)) / 1 'Space Grotesk', sans-serif; text-decoration: none; transition: background-color 0.35s ease, color 0.35s ease; }
+  .nx-btn:hover, .nx-btn:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  /* logo carousel (right to left). One set = 6 cards x 360 design px; the track holds two sets and slides by one */
+  /* "Trusted to build for" sits 146 design px above the cards (James' mock ref-logos-2), same styles as "What we build";
+     the block + strip were moved down to start where the first part ended (1000) so there's room above it */
+  .nx-trust { top: calc(1000 * var(--u)); }
+  .nx-logos { position: absolute; left: 0; right: 0; top: calc(1146.5 * var(--u)); height: calc(174 * var(--u)); overflow: hidden; }
+  .nx-track { display: flex; width: max-content; height: 100%; animation: nx-marquee 40s linear infinite; will-change: transform; }
+  .nx-set { display: flex; gap: calc(10.6 * var(--u)); padding-right: calc(10.6 * var(--u)); height: 100%; }
+  .nx-card { flex: none; width: calc(349 * var(--u)); height: 100%; border-radius: calc(22 * var(--u)); background: #ECEBE2;
+    display: flex; align-items: center; justify-content: center; }
+  .nx-card img { width: calc(197 * var(--u)); height: auto; display: block; mix-blend-mode: multiply; }
+  /* "Four ways we create space" (mock ref-services: 2000 px wide = x0.96 to design px) */
+  #services { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1136 * var(--u)); background: #EBEBE1;
+    color: #191919; overflow: clip; }
+  .sv-h { position: absolute; left: calc(52 * var(--u)); top: calc(194 * var(--u)); margin: 0;
+    font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .sv-all { position: absolute; right: calc(54 * var(--u)); top: calc(199 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(242 * var(--u)); height: calc(51 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;
+    font: 400 calc(21 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .sv-all:hover, .sv-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  .sv-cards { position: absolute; left: calc(52.8 * var(--u)); top: calc(308 * var(--u)); display: flex; gap: calc(15.3 * var(--u)); }
+  .sv-card { position: relative; width: calc(442.6 * var(--u)); height: calc(682 * var(--u)); box-sizing: border-box;
+    padding: calc(6.5 * var(--u)) calc(6 * var(--u)); will-change: transform; }
+  /* card background + border on ::before; on hover a dark grey border fades in (no resizing: James tried growing the
+     background, then scaling the card, and preferred neither) */
+  .sv-card::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: calc(21 * var(--u)); background: #FFF8E6;
+    box-shadow: inset 0 0 0 1px rgba(25, 25, 25, 0.04); transition: box-shadow 0.35s ease; }
+  .sv-card:hover::before, .sv-card:focus-within::before { box-shadow: inset 0 0 0 1px #3A3A3A; }
+  .sv-img { position: relative; display: block; height: calc(342 * var(--u)); border-radius: calc(13 * var(--u)); overflow: hidden; }
+  /* oversized photo (parallax room): 124% tall, moved by src/services.js */
+  .sv-img img { position: absolute; left: 0; top: -12%; width: 100%; height: 124%; object-fit: cover; display: block; will-change: transform; }
+  .sv-pill { position: absolute; left: 50%; bottom: calc(10.6 * var(--u)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center;
+    width: calc(180.5 * var(--u)); height: calc(40.3 * var(--u)); border-radius: calc(13 * var(--u)); background: rgba(255, 250, 240, 0.78);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #191919; font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif;
+    transition: background-color 0.35s ease; }
+  .sv-img:hover .sv-pill { background: #e6ff00; }
+  .sv-t { margin: calc(25 * var(--u)) 0 0 calc(15 * var(--u)); font: 400 calc(28.5 * var(--u)) / 1.35 'FK Display', sans-serif; }
+  .sv-d { margin: calc(9 * var(--u)) 0 0 calc(15.5 * var(--u)); width: calc(380 * var(--u)); color: #6E675A;   /* 380: wraps like the mock */
+    font: 300 calc(19 * var(--u)) / 1.6 'Space Grotesk', sans-serif; }
+  .sv-f { margin: calc(26 * var(--u)) 0 0 calc(15.5 * var(--u)); color: #7F7B6C; font: 400 calc(13.5 * var(--u)) / 1.2 'Space Grotesk', sans-serif; }
+  .sv-go { position: absolute; right: calc(12.5 * var(--u)); bottom: calc(13.4 * var(--u)); width: calc(62.4 * var(--u)); height: calc(62.4 * var(--u));
+    box-sizing: border-box; border: 1px solid #191919; border-radius: calc(13 * var(--u)); background: var(--c); color: #191919;
+    display: flex; align-items: center; justify-content: center; transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .sv-go svg { width: calc(19 * var(--u)); height: calc(19 * var(--u)); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .sv-go:hover svg, .sv-go:focus-visible svg { transform: translateX(calc(3 * var(--u))); }
+  /* slide in from the right (src/services.js adds .in to the section; per-card delay set there) */
+  .sv-card { transform: translateX(100vw); z-index: 1; transition: transform 1.3s cubic-bezier(0.8, 0, 0.1, 1) var(--d, 0s); }
+  #services.in .sv-card { transform: none; }
+  /* "The kit & the team" (mock ref-kit: 2000 px wide = x0.96 to design px) */
+  #kit { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1580 * var(--u)); background: #EBEBE1; color: #191919; overflow: clip; }
+  .kt-h { position: absolute; left: calc(52 * var(--u)); top: calc(93.7 * var(--u)); margin: 0;
+    font: 400 calc(99 * var(--u)) / 0.98 'FK Display', sans-serif; }
+  .kt-intro { position: absolute; left: calc(53 * var(--u)); top: calc(315.2 * var(--u)); margin: 0; color: #69685F;
+    font: 300 calc(24 * var(--u)) / 1.24 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .kt-all { position: absolute; right: calc(54 * var(--u)); top: calc(321.6 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(271.7 * var(--u)); height: calc(51 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;
+    font: 400 calc(21 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .kt-all:hover, .kt-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  .kt-card { position: absolute; top: calc(450 * var(--u)); height: calc(1025.5 * var(--u)); border-radius: calc(21 * var(--u)); overflow: hidden; margin: 0; }
+  .kt-kit { left: calc(51.8 * var(--u)); width: calc(1200 * var(--u)); background: #111111; color: #FFFFF5; }
+  .kt-team { left: calc(1280.6 * var(--u)); width: calc(586.6 * var(--u)); background: #FFF8E6; color: #191919; }
+  .kit-3d { position: absolute; inset: 0; }
+  .kt-badge { position: absolute; right: calc(36.4 * var(--u)); top: calc(31 * var(--u)); width: calc(333 * var(--u)); height: calc(126.7 * var(--u));
+    border-radius: 99em; background: #181818; display: flex; align-items: center; justify-content: center; }
+  /* the badge's outline is an SVG ring so it can draw itself round (like the menu dropdown's frame) */
+  .kt-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .kt-ring rect { fill: none; stroke: #828380; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .kt-badge img { position: relative; width: calc(247 * var(--u)); height: auto; display: block; }
+  .kt-img { overflow: hidden; }
+  .kt-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ---- entrance, modelled on the menu's "What we offer" dropdown (src/kit.js adds .in to #kit, sets --d per piece) ----
+     cards clip-wipe in from the right; lines rise out of their masks (headline with a skew that settles); the badge
+     ring draws round and the logo slaps on with an overshoot (the dropdown's tape); the team photo unmasks upwards
+     while settling from a zoom; the 3D build starts once the Kit card is in (kit.js -> 'reveal:done'). */
+  .km { display: block; overflow: hidden; padding-bottom: 0.14em; margin-bottom: -0.14em; }
+  .km > span { display: block; transform: translateY(110%); transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  .kt-h .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; transition-duration: 1.1s; }
+  #kit.in .km > span { transform: none; }
+  .kt-card { clip-path: inset(0 0 0 100%); transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.1, 1) var(--d, 0s); }
+  #kit.in .kt-card { clip-path: inset(0 0 0 0); }
+  .kt-ring rect { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.2, 1) var(--d, 0s); }
+  #kit.in .kt-ring rect { stroke-dashoffset: 0; }
+  .kt-badge img { transform: translateY(-30%) rotate(-14deg) scale(0.4); opacity: 0;
+    transition: transform 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), opacity 0.15s ease var(--d, 0s); }
+  #kit.in .kt-badge img { transform: none; opacity: 1; }
+  .kt-img { clip-path: inset(100% 0 0 0); transition: clip-path 1s cubic-bezier(0.8, 0, 0.1, 1) var(--d, 0s); }
+  .kt-img img { transform: scale(1.25); transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #kit.in .kt-img { clip-path: inset(0 0 0 0); }
+  #kit.in .kt-img img { transform: none; }
+  #kit :is(.kt-all, .kt-btn) { opacity: 0; translate: 0 calc(18 * var(--u));
+    transition: opacity 0.5s ease var(--d, 0s), translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), background-color 0.35s ease, color 0.35s ease; }
+  #kit.in :is(.kt-all, .kt-btn) { opacity: 1; translate: none; }
+  /* "The Kit" / "The Team": a serif in the mock; no serif in the brand fonts yet, so Georgia stands in */
+  .kt-label { position: absolute; margin: 0; font: 400 calc(21 * var(--u)) / 1 Georgia, 'Times New Roman', serif; }
+  .kt-t { position: absolute; margin: 0; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .kt-p { position: absolute; margin: 0; font: 400 calc(18.6 * var(--u)) / 1.6 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .kt-kit .kt-label { left: calc(58.6 * var(--u)); top: calc(69.7 * var(--u)); }
+  .kt-kit .kt-t { left: calc(58 * var(--u)); top: calc(116.6 * var(--u)); }
+  .kt-kit .kt-p { left: calc(58.6 * var(--u)); top: calc(232.8 * var(--u)); color: #EFEFED; }
+  .kt-img { position: absolute; left: calc(9.6 * var(--u)); top: calc(9.6 * var(--u)); width: calc(565.4 * var(--u)); height: calc(535.7 * var(--u));
+    border-radius: calc(12 * var(--u)); }
+  .kt-team .kt-label { left: calc(42.3 * var(--u)); top: calc(596.8 * var(--u)); }
+  .kt-team .kt-t { left: calc(42 * var(--u)); top: calc(643.7 * var(--u)); }
+  /* About us: same pill as the "What we build" one, under the paragraph */
+  .kt-team .kt-btn { position: absolute; left: calc(42.3 * var(--u)); top: calc(914 * var(--u)); margin: 0; }
+  /* The Halo Structure: same pill, inverted for the black card (cream, dark text), same gap under its paragraph;
+     sized to its label with the About us pill's side padding */
+  .kt-kit .kt-btn { position: absolute; left: calc(58.6 * var(--u)); top: calc(415 * var(--u)); margin: 0; width: auto;
+    padding: 0 calc(53 * var(--u)); background: #FFF8E6; color: #191919; }
+  .kt-kit .kt-btn:hover, .kt-kit .kt-btn:focus-visible { background: #e6ff00; color: #191919; }
+  .kt-team .kt-p { left: calc(42.3 * var(--u)); top: calc(761.8 * var(--u)); color: #1B1608; }
+  /* "Every build raises the bar" (mock ref-projects: 2000 px wide = x0.96). Text tops are cap-height corrected. */
+  #projects { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1295 * var(--u)); background: #FFF8E6; color: #191919; overflow: clip; }
+  .pj-h { position: absolute; left: calc(52 * var(--u)); top: calc(142.3 * var(--u)); margin: 0; font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .pj-all { position: absolute; right: calc(51 * var(--u)); top: calc(138.2 * var(--u)); display: flex; align-items: center; justify-content: center;
+    width: calc(272.6 * var(--u)); height: calc(52.8 * var(--u)); border-radius: 99em; background: #191919; color: #fff; text-decoration: none;
+    font: 400 calc(21 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .pj-all:hover, .pj-all:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  .pj-col { position: absolute; top: calc(242.9 * var(--u)); margin: 0; }
+  .pj-frame { position: relative; display: block; height: calc(var(--h) * var(--u)); overflow: hidden; }
+  .pj-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pj-tag { position: absolute; left: calc(13.4 * var(--u)); top: calc(12.5 * var(--u)); display: flex; align-items: center;
+    height: calc(34.6 * var(--u)); padding: 0 calc(19.5 * var(--u)); border-radius: 99em; background: var(--c); color: #191919;
+    font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .pj-body { position: relative; }
+  .pj-body > * { position: absolute; left: 0; margin: 0; }
+  .pj-t { top: calc(29.5 * var(--u)); font: 400 calc(28.5 * var(--u)) / 1.2 'FK Display', sans-serif; white-space: nowrap; }
+  .pj-s { top: calc(69.4 * var(--u)); font: 400 calc(18.4 * var(--u)) / 1.3 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .pj-line { top: calc(113.3 * var(--u)); left: calc(3.4 * var(--u)); width: 1px; height: calc(92 * var(--u));
+    background: repeating-linear-gradient(to bottom, #3A3A3A 0 1px, transparent 1px 4px); }
+  .pj-dot { top: calc(207.4 * var(--u)); left: calc(1 * var(--u)); width: calc(5.8 * var(--u)); height: calc(5.8 * var(--u)); border-radius: 50%; background: #191919; }
+  /* serif label: Georgia stands in (as for "The Kit" / "The Team") */
+  .pj-label { top: calc(228.6 * var(--u)); font: 400 calc(13.67 * var(--u)) / 1 Georgia, 'Times New Roman', serif; color: #3A3A3A; white-space: nowrap; }
+  .pj-stat { top: calc(252.8 * var(--u)); font: 400 calc(44.5 * var(--u)) / 1.12 'FK Display', sans-serif; white-space: nowrap; }
+  .pj-stat b { font-weight: inherit; }   /* proportional digits, as in the mock (tabular made "12"/"21" wider) */
+  /* ---- animation (src/projects.js adds .in to #projects and sets each element's transition-delay) ---- */
+  .pj-m { display: block; overflow: hidden; padding-bottom: 0.14em; margin-bottom: -0.14em; }
+  .pj-m > span { display: block; transform: translateY(105%); transition: transform 0.9s cubic-bezier(0.8, 0, 0.1, 1); transition-delay: inherit; }
+  .pj-frame { clip-path: inset(0 0 100% 0); transition: clip-path var(--dur, 1s) cubic-bezier(0.65, 0, 0.35, 1); }
+  .pj-frame img { transform: scale(1.18); transform-origin: 50% 0; transition: transform 1.9s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: inherit; }
+  .pj-tag { opacity: 0; transform: translateX(calc(-14 * var(--u))); transition: opacity 0.5s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .pj-line { transform: scaleY(0); transform-origin: 50% 0; transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1); }
+  .pj-dot { transform: scale(0); transition: transform 0.45s cubic-bezier(0.34, 1.7, 0.64, 1); }
+  #projects.in .pj-frame { clip-path: inset(0 0 0 0); }
+  #projects.in .pj-frame img { transform: none; }
+  #projects.in .pj-tag { opacity: 1; transform: none; }
+  #projects.in .pj-m > span { transform: none; }
+  #projects.in .pj-line { transform: none; }
+  #projects.in .pj-dot { transform: none; }
+  /* Footer (mock ref-footer: 2000 px wide = x0.96). Text tops are cap-height corrected. */
+  #footer { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1171 * var(--u)); background: #181818; color: #F5F6EC; overflow: clip; }
+  .ft-logo { position: absolute; left: calc(49.9 * var(--u)); top: calc(384 * var(--u)); width: calc(1818.2 * var(--u)); height: auto; fill: #111111; overflow: hidden; }
+  .ft-h { position: absolute; left: 0; right: 0; top: calc(115.4 * var(--u)); margin: 0; text-align: center;
+    font: 400 calc(44.5 * var(--u)) / 1.08 'FK Display', sans-serif; }
+  .ft-sub { position: absolute; left: 0; right: 0; top: calc(191.9 * var(--u)); margin: 0; text-align: center; color: #717171;
+    font: 300 calc(26.5 * var(--u)) / 1.41 'Space Grotesk', sans-serif; }
+  .ft-cta { position: absolute; left: calc(851.5 * var(--u)); top: calc(293.8 * var(--u)); width: calc(218.9 * var(--u)); height: calc(48 * var(--u));
+    display: flex; align-items: center; justify-content: center; border-radius: 99em; background: #E6FF00; color: #191919; text-decoration: none;
+    font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.35s ease, color 0.35s ease; }
+  .ft-cta:hover, .ft-cta:focus-visible { background: #FFF8E6; outline: none; }
+  .ft-links { position: absolute; left: calc(54.7 * var(--u)); top: calc(482.8 * var(--u)); display: flex; gap: 0; }
+  .ft-links ul { list-style: none; margin: 0; padding: 0; width: calc(245.8 * var(--u)); font: 300 calc(26 * var(--u)) / 1.44 'Space Grotesk', sans-serif; }
+  .ft-links a { display: inline-block; color: #E9E9E1; text-decoration: none; transition: color 0.3s ease; }
+  .ft-links a:hover, .ft-links a:focus-visible { color: #E6FF00; outline: none; }
+  .ft-sign-t { position: absolute; left: calc(52.8 * var(--u)); top: calc(932.4 * var(--u)); margin: 0; color: #E9E9E1;
+    font: 400 calc(18.6 * var(--u)) / 1.6 'Space Grotesk', sans-serif; white-space: nowrap; }
+  .ft-email { position: absolute; left: calc(52.8 * var(--u)); top: calc(1024.3 * var(--u)); width: calc(337.9 * var(--u)); height: calc(38.4 * var(--u)); }
+  .ft-email input { width: 100%; height: 100%; box-sizing: border-box; padding: 0; border: 0; background: none; outline: none; color: #E9E9E1;
+    font: 400 calc(13.5 * var(--u)) / 1 'Space Grotesk', sans-serif; caret-color: #E6FF00; }
+  .ft-email input::placeholder { color: #5A5A5A; }
+  .ft-rule { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #8A8A84; transform-origin: left; }
+  .ft-email:focus-within .ft-rule { background: #E6FF00; }
+  .ft-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ft-go { position: absolute; left: calc(422.4 * var(--u)); top: calc(1024.3 * var(--u)); width: calc(72 * var(--u)); height: calc(38.4 * var(--u));
+    padding: 0; border: 0; border-radius: 99em; background: #E9E9E1; color: #191919; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.35s ease; }
+  .ft-go svg { width: calc(18 * var(--u)); height: calc(18 * var(--u)); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .ft-go:hover, .ft-go:focus-visible { background: #E6FF00; outline: none; }
+  .ft-go:hover svg, .ft-go:focus-visible svg { transform: translateX(calc(3 * var(--u))); }
+  .ft-legal { position: absolute; right: calc(78.7 * var(--u)); top: calc(1034.4 * var(--u)); margin: 0; display: flex; gap: calc(21 * var(--u));
+    font: 400 calc(15.7 * var(--u)) / 1.2 'Space Grotesk', sans-serif; }
+  .ft-legal a { color: #E9E9E1; text-decoration: none; transition: color 0.3s ease; }
+  .ft-legal a:hover, .ft-legal a:focus-visible { color: #E6FF00; outline: none; }
+  /* ---- footer entrance (src/footer.js adds .in, sets --d): same vocabulary as the kit section ---- */
+  #footer .km > span, #footer .ft-links .km > a { display: inline-block; transform: translateY(110%); transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), color 0.3s ease; }
+  #footer .ft-h .km > span { transform: translateY(105%) skewY(6deg); transform-origin: left bottom; transition-duration: 1.1s; }
+  #footer.in .km > span, #footer.in .ft-links .km > a { transform: none; }
+  .ft-logo path { transform-box: fill-box; transform: translateY(110%); transition: transform 1.3s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
+  #footer.in .ft-logo path { transform: none; }
+  #footer :is(.ft-cta, .ft-legal) { opacity: 0; translate: 0 calc(18 * var(--u));
+    transition: opacity 0.5s ease var(--d, 0s), translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s), background-color 0.35s ease, color 0.35s ease; }
+  #footer.in :is(.ft-cta, .ft-legal) { opacity: 1; translate: none; }
+  .ft-rule { transform: scaleX(0); transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0s), background-color 0.3s ease; }
+  #footer.in .ft-rule { transform: none; }
+  .ft-email input { opacity: 0; transition: opacity 0.6s ease var(--d, 0s); }
+  #footer.in .ft-email input { opacity: 1; }
+  .ft-go { scale: 0; transition: scale 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), background-color 0.35s ease; }
+  #footer.in .ft-go { scale: 1; }
+  @keyframes nx-marquee { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .nx-track { animation-duration: 160s; } }
+  .bar { position: absolute; left: 0; top: 0; z-index: 2; will-change: transform; transform-origin: 0 0; }
+
+  /* Full-screen menu, ported from iso-h (Negative space H to isometric 3D): near-black,
+     links big bottom-left (lime + arrow on hover), contact bottom-right, the H turning
+     on the right (src/menu.js). Opens/closes through the pixel transition below. */
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+  #menu { position: fixed; inset: 0; z-index: 31; display: none; background: #191919; color: #ebebe1; overflow: hidden; }
+  #menu.open { display: block; }
+  /* the open menu sits ABOVE the pixel canvas (z 30), so nothing it shows can be covered and
+     uncovered again (that was the flicker); while the pixels finish it has no background of its own */
+  #menu.over { background: transparent; }
+  #menu.under { z-index: 25; }   /* closing: the flat cover fades in over it */
+  #menu.over #menu-h { visibility: hidden; }
+  html.menu-open { background: #191919 !important; }
+  #menu-h { position: absolute; inset: 0; }
+  #menu-h canvas { display: block; width: 100% !important; height: 100% !important; }
+  .menu-nav { position: absolute; left: 6.1vw; bottom: 6vw; display: flex; flex-direction: column; pointer-events: none; }
+  .menu-nav a { font-family: 'FK Display', system-ui, sans-serif; font-size: clamp(28px, 3.22vw, 64px); line-height: 1.42;
+    letter-spacing: -0.02em; color: inherit; text-decoration: none; white-space: nowrap; pointer-events: auto;
+    align-self: flex-start; opacity: 0; position: relative; transition: color 0.3s ease; }
+  .menu-nav .label { display: inline-block; transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .menu-nav .arrow { position: absolute; left: 0; top: 52%; width: 0.86em; height: 0.74em; transform: translateY(-50%);
+    fill: currentColor; clip-path: inset(0 100% 0 0); transition: clip-path 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .menu-nav a:hover, .menu-nav a:focus-visible { color: #e6ff00; }
+  .menu-nav a:hover .label, .menu-nav a:focus-visible .label { transform: translateX(1.12em); }
+  .menu-nav a:hover .arrow, .menu-nav a:focus-visible .arrow { clip-path: inset(0 0 0 0); transition-delay: 0.06s; }
+  .menu-nav a:focus-visible { outline: none; }
+  #menu.play .menu-nav a { animation: menu-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+  #menu.play .menu-nav a:nth-child(1) { animation-delay: 0.02s; }
+  #menu.play .menu-nav a:nth-child(2) { animation-delay: 0.07s; }
+  #menu.play .menu-nav a:nth-child(3) { animation-delay: 0.12s; }
+  #menu.play .menu-nav a:nth-child(4) { animation-delay: 0.17s; }
+  #menu.play .menu-nav a:nth-child(5) { animation-delay: 0.22s; }
+  #menu.play .menu-nav a:nth-child(6) { animation-delay: 0.27s; }
+  #menu.play .menu-nav a:nth-child(7) { animation-delay: 0.32s; }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(0.45em); } to { opacity: 1; transform: none; } }
+  .menu-contact { position: absolute; right: 5.4vw; bottom: 6vw; display: flex; align-items: center; gap: 2.8vw;
+    font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: clamp(13px, 1.3vw, 26px);
+    line-height: 1.75; pointer-events: none; opacity: 0; }
+  #menu.play .menu-contact { animation: menu-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s forwards; }
+  .menu-contact svg { width: 7vw; height: auto; flex: none; }
+  .menu-contact a { color: inherit; text-decoration: none; pointer-events: auto; display: block; }
+  .menu-contact address { font-style: normal; margin-top: 0.75em; }
+  .menu-close { position: absolute; top: max(18px, 2.4vw); right: max(18px, 2.4vw); width: clamp(28px, 2.3vw, 48px);
+    aspect-ratio: 1; padding: 0; border: 0; background: none; cursor: pointer; color: #e6ff00; }
+  .menu-close span { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: currentColor;
+    transform: rotate(45deg); transition: transform 0.25s ease; }
+  .menu-close span + span { transform: rotate(-45deg); }
+  .menu-close:hover span { transform: rotate(135deg); }
+  .menu-close:hover span + span { transform: rotate(45deg); }
+  #pixels { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 30; pointer-events: none; }
+
+  /* ---- Menu dropdown panels (James' mock: assets/ref-menu-offer.webp) --------------------------
+     A link with data-sub opens a grey panel over the right half: cream border, its name huge
+     behind in cream (first + last word fill the border's width), sub-links, and a photo with lime
+     tape that swaps as you hover the sub-links. */
+  .menu-nav a { isolation: isolate; }
+  .menu-nav a::before { content: ''; position: absolute; z-index: -1; inset: 0.04em -0.2em 0.02em -0.2em; background: #e6ff00;
+    transform: scaleX(0); transform-origin: left; transition: transform 0.55s cubic-bezier(0.8, 0, 0.1, 1); }
+  .menu-nav a { transition: color 0.3s ease, padding 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .menu-nav a.active { color: #191919; padding-right: 1.12em; }   /* room for the words once the arrow pushes them over */
+  .menu-nav a.active::before { transform: scaleX(1); }
+  .menu-nav a.active .label { transform: translateX(1.12em); }
+  .menu-nav a.active .arrow { clip-path: inset(0 0 0 0); transition-delay: 0.12s; }
+  .menu-nav a.active:hover, .menu-nav a.active:focus-visible { color: #191919; }
+  .menu-close { z-index: 3; transition: color 0.4s ease; }
+  #menu.sub-open .menu-close { color: #1b1b1b; transition-delay: 0.25s; }
+
+  .sub { position: absolute; top: 0; right: 0; bottom: 0; width: 50%; z-index: 2; background: #ebebe1; color: #0b0b0b;
+    overflow: hidden; pointer-events: none; visibility: hidden;
+    clip-path: inset(0 0 0 100%); transition: clip-path 0.5s cubic-bezier(0.8, 0, 0.1, 1), visibility 0s 0.5s; }
+  .sub.open { pointer-events: auto; visibility: visible; clip-path: inset(0 0 0 0);
+    transition: clip-path 0.8s cubic-bezier(0.8, 0, 0.1, 1), visibility 0s; }
+  /* the cream frame draws itself round from the top-right corner */
+  .sub-frame { position: absolute; inset: 1.5vw 1.4vw 1.4vw 2vw; }
+  .sub-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .sub-frame rect { fill: none; stroke: #fff8e6; stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.3s ease; }
+  .sub.open .sub-frame rect { stroke-dashoffset: 0; transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.2, 1) 0.35s; }
+  /* the huge words: each rises out of its own mask, with a slight skew that settles */
+  .sub-words { position: absolute; inset: 0; font-family: 'FK Display', sans-serif; color: #fff8e6; line-height: 1;
+    letter-spacing: -0.045em; white-space: nowrap; pointer-events: none; }
+  .sub-words .w { position: absolute; left: 0; overflow: hidden; }
+  .sub-words .w > img { display: block; width: 100%; height: 100%; transform: translateY(105%) skewY(6deg); transform-origin: left bottom;
+    transition: transform 0.4s cubic-bezier(0.6, 0, 0.8, 0.4); }
+  .sub.open .sub-words .w > img { transform: none; transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1) calc(0.3s + var(--i) * 0.09s); }
+  /* sub-links: same size as the menu, slide up one after another */
+  .sub-links { position: absolute; left: 10.2%; top: 41%; display: flex; flex-direction: column;
+    font-family: 'FK Display', system-ui, sans-serif; font-size: clamp(28px, 3.22vw, 64px); line-height: 1.42; letter-spacing: -0.02em; }
+  /* masks are padded sideways so the hover highlight isn't clipped; margins keep the text where it was */
+  .sub-links .m { overflow: hidden; padding: 0 0.3em 0.06em 0.3em; margin: 0 0 -0.06em -0.3em; }
+  .sub-links a { position: relative; isolation: isolate; display: inline-block; color: inherit; text-decoration: none; white-space: nowrap;
+    transform: translateY(110%); transition: transform 0.35s cubic-bezier(0.6, 0, 0.8, 0.4); }
+  .sub.open .sub-links a { transform: none; transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) calc(0.5s + var(--i) * 0.06s); }
+  /* hover: a neon lime block swipes in behind the words from the left, and out to the right on leave */
+  .sub-links a::before { content: ''; position: absolute; z-index: -1; inset: 0.08em -0.2em 0.04em -0.2em; background: #e6ff00;
+    transform: scaleX(0); transform-origin: right; transition: transform 0.45s cubic-bezier(0.8, 0, 0.1, 1); }
+  .sub-links a:hover::before, .sub-links a:focus-visible::before { transform: scaleX(1); transform-origin: left; }
+  .sub-links a:focus-visible { outline: none; }
+  /* the photo: unmasks upwards while the picture inside settles from a zoom; new photos wipe up over the old */
+  .sub-photo { position: absolute; left: 50.5%; top: 16.5%; width: 38.5%; aspect-ratio: 4 / 5; }
+  .sub-photo .frame { position: absolute; inset: 0; overflow: hidden; clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.4s cubic-bezier(0.6, 0, 0.8, 0.4); }
+  .sub.open .sub-photo .frame { clip-path: inset(0 0 0 0); transition: clip-path 1s cubic-bezier(0.8, 0, 0.1, 1) 0.45s; }
+  .sub-photo .pic { position: absolute; inset: 0; background: center / cover no-repeat; transform: scale(1.25);
+    transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.45s; }
+  .sub.open .sub-photo .pic { transform: scale(1); }
+  .sub-photo .pic.enter { clip-path: inset(100% 0 0 0); transform: scale(1.12); animation: pic-in 0.75s cubic-bezier(0.8, 0, 0.1, 1) forwards; }
+  @keyframes pic-in { to { clip-path: inset(0 0 0 0); transform: scale(1); } }
+  .sub-photo .pic .ph { position: absolute; left: 6%; bottom: 5%; font: 700 clamp(10px, 0.8vw, 14px) 'Space Grotesk', sans-serif;
+    letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0, 0, 0, 0.45); }
+  /* lime tape: slaps on after the photo lands, and gives a little tug each time the photo changes */
+  .sub-photo .tape { position: absolute; z-index: 2; left: 50%; top: 0; width: 17.2%; height: 5.8%; margin-left: -8.6%;
+    background: #e6ff00; transform: translateY(-80%) rotate(-14deg) scale(0.4); opacity: 0;
+    transition: transform 0.3s ease, opacity 0.2s ease; }
+  .sub.open .sub-photo .tape { transform: translateY(-50%); opacity: 1;
+    transition: transform 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) 1.15s, opacity 0.15s ease 1.15s; }
+  .sub.open .sub-photo .tape.tug { animation: tape-tug 0.55s cubic-bezier(0.34, 1.6, 0.64, 1); }
+  @keyframes tape-tug { 0% { transform: translateY(-50%); } 35% { transform: translateY(-75%) rotate(-5deg); } 100% { transform: translateY(-50%); } }
+</style>
+<script type="importmap">
+  { "imports": { "three": "./vendor/three/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<section id="next" aria-labelledby="build-h">
+  <!-- "What we build" (James' mock assets/ref-next-1.webp); behaviour in src/next.js -->
+  <div class="nx-left">
+    <h2 id="build-h" class="nx-h"><span class="m"><span>What we build</span></span></h2>
+    <p class="nx-intro"><span class="m"><span>Halo was founded in 2014, since</span></span><span class="m"><span>then we’ve grown in our size and</span></span><span class="m"><span>our projects.</span></span></p>
+  </div>
+  <div class="nx-right">
+    <div class="nx-words">
+      <p>We believe temporary structures deserve permanent thinking – not just in how they’re built, but in the experience they create.</p>
+      <p>But we’re not just here to build. Everything we do is about creating memorable spaces – for ideas, energy, and connection.</p>
+      <p>From brand activations to hospitality, every beam and bolt supports the experience it&nbsp;enables.</p>
+    </div>
+    <a class="nx-btn" href="#">About us</a>
+  </div>
+  <!-- client logos: a strip of grey cards drifting right to left on a loop (James' mock assets/ref-logos.webp);
+       logos multiply onto the cards so their white backgrounds disappear. The set is written twice for a seamless loop. -->
+  <div class="nx-left nx-trust">
+    <h2 class="nx-h"><span class="m"><span>Trusted to build for</span></span></h2>
+    <p class="nx-intro"><span class="m"><span>We’re lucky to have partnered</span></span><span class="m"><span>with some of the best out there.</span></span></p>
+  </div>
+  <div class="nx-logos" aria-label="Clients">
+    <div class="nx-track">
+      <div class="nx-set">
+        <div class="nx-card"><img data-src="assets/logos/camden-market.png" alt="Camden Market"></div>
+        <div class="nx-card"><img data-src="assets/logos/bbc-introducing.png" alt="BBC Music Introducing"></div>
+        <div class="nx-card"><img data-src="assets/logos/aeltc.png" alt="AELTC, The Championships Wimbledon"></div>
+        <div class="nx-card"><img data-src="assets/logos/ticketmaster.png" alt="Ticketmaster"></div>
+        <div class="nx-card"><img data-src="assets/logos/sky-studios.png" alt="Sky Studios"></div>
+        <div class="nx-card"><img data-src="assets/logos/rncm.png" alt="Royal Northern College of Music"></div>
+      </div>
+      <div class="nx-set" aria-hidden="true">
+        <div class="nx-card"><img data-src="assets/logos/camden-market.png" alt=""></div>
+        <div class="nx-card"><img data-src="assets/logos/bbc-introducing.png" alt=""></div>
+        <div class="nx-card"><img data-src="assets/logos/aeltc.png" alt=""></div>
+        <div class="nx-card"><img data-src="assets/logos/ticketmaster.png" alt=""></div>
+        <div class="nx-card"><img data-src="assets/logos/sky-studios.png" alt=""></div>
+        <div class="nx-card"><img data-src="assets/logos/rncm.png" alt=""></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- "Four ways we create space" (James' mock assets/ref-services.webp); cards slide in from the right and the
+     photos drift inside their frames (parallax), both in src/services.js -->
+<section id="services" aria-labelledby="sv-h" data-bg-pixels="#EBEBE1" data-bg-from="#FFF8E6">
+  <h2 id="sv-h" class="sv-h">Four ways we create space</h2>
+  <a class="sv-all" href="#">View all services</a>
+  <div class="sv-cards">
+    <article class="sv-card">
+      <a class="sv-img" href="#"><img data-src="assets/services/outdoor.jpg" alt=""><span class="sv-pill">View Project</span></a>
+      <h3 class="sv-t">Outdoor Structures</h3>
+      <p class="sv-d">Elegant, engineered, demountable structures for sport, hospitality and brand events.</p>
+      <p class="sv-f">Featured: Wimbledon</p>
+      <a class="sv-go" href="#" style="--c:#9ECDEB" aria-label="Outdoor Structures"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a>
+    </article>
+    <article class="sv-card">
+      <a class="sv-img" href="#"><img data-src="assets/services/indoor.jpg" alt=""><span class="sv-pill">View Project</span></a>
+      <h3 class="sv-t">Indoor Structures</h3>
+      <p class="sv-d">Raised platforms, exhibition systems<br>and structural builds that transform interior environments.</p>
+      <p class="sv-f">Featured: Project</p>
+      <a class="sv-go" href="#" style="--c:#FF9D00" aria-label="Indoor Structures"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a>
+    </article>
+    <article class="sv-card">
+      <!-- the mock reuses the Wimbledon photo here: placeholder until there's a semi-permanent image -->
+      <a class="sv-img" href="#"><img data-src="assets/services/outdoor.jpg" alt=""><span class="sv-pill">View Project</span></a>
+      <h3 class="sv-t">Semi-permanent<br>&amp; meanwhile use</h3>
+      <p class="sv-d">Spaces built to stay a season or a few years, bringing underused sites to life.</p>
+      <p class="sv-f">Featured: Wimbledon</p>
+      <a class="sv-go" href="#" style="--c:#B19070" aria-label="Semi-permanent and meanwhile use"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a>
+    </article>
+    <article class="sv-card">
+      <a class="sv-img" href="#"><img data-src="assets/services/bespoke.jpg" alt=""><span class="sv-pill">View Project</span></a>
+      <h3 class="sv-t">Bespoke applications</h3>
+      <p class="sv-d">Beyond the usual? We adapt our modular thinking to meet unconventional needs.</p>
+      <p class="sv-f">Featured: Wimbledon</p>
+      <a class="sv-go" href="#" style="--c:#CC89E4" aria-label="Bespoke applications"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a>
+    </article>
+  </div>
+</section>
+<!-- "The kit & the team" (James' mock assets/ref-kit.webp). The Kit card's line drawing is the rotating, self-building
+     3D structure from V1 (src/kit3d.js, three.js), cream lines on the black card. -->
+<section id="kit" aria-labelledby="kit-h">
+  <h2 id="kit-h" class="kt-h"><span class="km"><span>The kit &amp;</span></span><span class="km"><span>the team</span></span></h2>
+  <p class="kt-intro"><span class="km"><span>Every great build needs two things: a system</span></span><span class="km"><span>made to adapt, and the people who know</span></span><span class="km"><span>exactly what to do with it.</span></span></p>
+  <a class="kt-all" href="#">View all build types</a>
+  <article class="kt-card kt-kit" data-reveal-wait>
+    <div class="kit-3d" aria-hidden="true"></div>
+    <div class="kt-badge"><svg class="kt-ring" viewBox="0 0 333 126.7" aria-hidden="true"><rect x="0.5" y="0.5" width="332" height="125.7" rx="62.85" pathLength="1"/></svg><img data-src="assets/kit/halo-structure.svg" alt="Halo Structure"></div>
+    <p class="kt-label"><span class="km"><span>The Kit</span></span></p>
+    <h3 class="kt-t"><span class="km"><span>The modular system.</span></span><span class="km"><span>Built to adapt.</span></span></h3>
+    <p class="kt-p"><span class="km"><span>The Halo Structure is our modular system</span></span><span class="km"><span>engineered for flexibility. Lightweight steel</span></span><span class="km"><span>assembled quickly to create strong, adaptable</span></span><span class="km"><span>spaces that can scale, reconfigure and respond to</span></span><span class="km"><span>the needs of each project and site.</span></span></p>
+
+    <a class="nx-btn kt-btn" href="#">The Halo Structure</a>
+  </article>
+  <article class="kt-card kt-team">
+    <div class="kt-img"><img data-src="assets/kit/team.jpg" alt="Two Halo crew members in hard hats planning on site"></div>
+    <p class="kt-label"><span class="km"><span>The Team</span></span></p>
+    <h3 class="kt-t"><span class="km"><span>The people that</span></span><span class="km"><span>make it work.</span></span></h3>
+    <p class="kt-p"><span class="km"><span>Great systems need great people. Our crew bring the</span></span><span class="km"><span>experience, organisation and on-site know-how that</span></span><span class="km"><span>turn modular components into spaces that work –</span></span><span class="km"><span>quickly, safely and reliably.</span></span></p>
+
+    <a class="nx-btn kt-btn" href="#">About us</a>
+  </article>
+</section>
+<!-- "Every build raises the bar" (James' mock assets/ref-projects.webp, photos from James). src/projects.js animates it
+     in: the three photos unroll top-down at the same speed (so their different heights build a staircase), tags slide
+     on, then the text rises, the dotted connector draws down to its dot and the Impact report stats rise with their
+     numbers counting up. -->
+<section id="projects" aria-labelledby="pj-h">
+  <h2 id="pj-h" class="pj-h">Every build raises the bar</h2>
+  <a class="pj-all" href="#">View all projects</a>
+  <article class="pj-col" style="left: calc(49.9 * var(--u)); width: calc(588.5 * var(--u)); --h: 401">
+    <a class="pj-frame" href="#"><img data-src="assets/projects/wimbledon.jpg" alt="The Amex Pavilion at Wimbledon Village, guests on the lawn" style="object-position: 50% 40%"><span class="pj-tag" style="--c:#9ECDEB">Outdoor Structures</span></a>
+    <div class="pj-body">
+      <h3 class="pj-t"><span class="pj-m"><span>Wimbledon Village</span></span></h3>
+      <p class="pj-s"><span class="pj-m"><span>Blending into the lawns</span></span></p>
+      <i class="pj-line"></i><i class="pj-dot"></i>
+      <p class="pj-label"><span class="pj-m"><span>Impact report</span></span></p>
+      <p class="pj-stat"><span class="pj-m"><span><b data-count="6">6</b> builds in ‘26,</span></span><span class="pj-m"><span><b data-count="12">12</b> activations,</span></span><span class="pj-m"><span><b data-count="5">5</b> years running</span></span></p>
+    </div>
+  </article>
+  <article class="pj-col" style="left: calc(664.3 * var(--u)); width: calc(589.4 * var(--u)); --h: 469.4">
+    <a class="pj-frame" href="#"><img data-src="assets/projects/st-tropez.jpg" alt="Club Saint-Tropez pavilion with its olive tree and stairs"><span class="pj-tag" style="--c:#FF9D00">Indoor Structures</span></a>
+    <div class="pj-body">
+      <h3 class="pj-t"><span class="pj-m"><span>Club St Tropez</span></span></h3>
+      <p class="pj-s"><span class="pj-m"><span>Room for sunshine seekers</span></span></p>
+      <i class="pj-line"></i><i class="pj-dot"></i>
+      <p class="pj-label"><span class="pj-m"><span>Impact report</span></span></p>
+      <p class="pj-stat"><span class="pj-m"><span><b data-count="21">21</b>% increase</span></span><span class="pj-m"><span>in footfall in</span></span><span class="pj-m"><span>retail areas</span></span></p>
+    </div>
+  </article>
+  <article class="pj-col" style="left: calc(1273.9 * var(--u)); width: calc(595.2 * var(--u)); --h: 535.7">
+    <a class="pj-frame" href="#"><img data-src="assets/projects/redbull.jpg" alt="Red Bull bike ramp build trackside at Formula E"><span class="pj-tag" style="--c:#CC89E4">Bespoke Applications</span></a>
+    <div class="pj-body">
+      <h3 class="pj-t"><span class="pj-m"><span>FE x Redbull</span></span></h3>
+      <p class="pj-s"><span class="pj-m"><span>Action within the action</span></span></p>
+      <i class="pj-line"></i><i class="pj-dot"></i>
+      <p class="pj-label"><span class="pj-m"><span>Impact report</span></span></p>
+      <p class="pj-stat"><span class="pj-m"><span><b data-count="4">4</b> garage builds,</span></span><span class="pj-m"><span><b data-count="6">6</b> gaming arenas,</span></span><span class="pj-m"><span>Podium in <b data-count="6">6</b> cities</span></span></p>
+    </div>
+  </article>
+</section>
+<!-- Footer (James' mock assets/ref-footer.webp). src/footer.js plays its entrance once: headline rises with the skew,
+     the giant Halo letters rise out of the bottom one by one, links + copy slide up out of masks, the email underline
+     draws across and the arrow button pops in. -->
+<footer id="footer" aria-labelledby="ft-h">
+  <svg class="ft-logo" viewBox="0 0 80 34" aria-hidden="true">
+    <path d="M23.4679 33.3116L18.5155 33.3215L18.5141 18.525H4.95385V33.3201L0 33.3173V0.0312371L4.95385 0.0340769V13.9403H18.5141L18.5155 0.032657H23.4679V33.3116Z"/>
+    <path d="M27.5701 20.4518C29.1087 19.4622 31.1975 18.978 33.028 18.8971L41.6637 18.5179L41.612 16.6267C41.5967 16.0772 41.4124 15.5717 41.2141 15.0691C40.6081 13.7174 39.4004 13.0174 37.9748 12.7732C36.788 12.5715 35.604 12.5715 34.4214 12.7831C32.6049 13.1082 31.097 14.1305 30.7898 16.0417L30.7074 17.0129H25.896C25.9281 13.9843 27.1498 11.5009 29.7175 9.95613C32.334 8.39143 35.9629 8.14579 38.9215 8.62429C41.9737 9.11841 44.5232 10.7413 45.5787 13.7685C45.985 14.9342 46.2029 16.1269 46.2043 17.392L46.2126 33.3158H41.7084L41.7 30.5698C40.657 32.0309 39.2566 33.0404 37.5657 33.5402C36.4627 33.8753 35.3555 33.9917 34.1938 33.9903C31.9124 33.9874 29.5611 33.5288 27.6943 32.1728C26.34 31.1903 25.3947 29.7988 24.9982 28.1489C24.6882 26.8611 24.6631 25.5605 24.9368 24.267C25.2775 22.6583 26.2101 21.3265 27.5715 20.449L27.5701 20.4518ZM37.3116 29.4013C40.3833 28.4244 41.6469 25.7863 41.6609 22.6469L33.2416 23.0133C32.4485 23.0473 31.7141 23.212 31.0202 23.5131C30.054 23.9319 29.4857 24.7767 29.4341 25.8331C29.3754 27.0187 29.8459 28.112 30.8191 28.7822C32.5519 29.9777 35.3248 29.9877 37.313 29.3984L37.3116 29.4013Z"/>
+    <path d="M53.6881 0H48.9479V33.3641H53.6881V0Z"/>
+    <path d="M73.1781 32.897C69.9347 34.3183 65.739 34.3481 62.4816 33.0901C59.7449 32.0337 57.5822 29.972 56.387 27.2572C55.2393 24.6475 54.9726 21.636 55.3594 18.8119C55.9625 14.423 58.4576 10.818 62.5933 9.27175C65.6426 8.1316 69.4502 8.12024 72.5051 9.23626C76.5068 10.6973 79.0465 14.1064 79.7572 18.3348C80.1035 20.4007 80.0839 22.4765 79.6692 24.5297C78.9111 28.2852 76.6869 31.3593 73.1767 32.897H73.1781ZM70.0129 29.3615C72.7341 28.6075 74.4529 26.4295 75.0198 23.6891C75.3591 22.0435 75.3591 20.3666 75.0198 18.721C74.4641 16.0247 72.7928 13.8764 70.1595 13.0884C68.5412 12.6042 66.8169 12.5971 65.1889 13.0415C63.3361 13.5484 61.8393 14.7766 60.9569 16.4932C59.9306 18.4881 59.7282 20.9658 60.0759 23.1737C60.5436 26.1469 62.2763 28.5664 65.1889 29.3643C66.7624 29.796 68.4086 29.8059 70.0129 29.3615Z"/>
+  </svg>
+  <h2 id="ft-h" class="ft-h"><span class="km"><span>Let’s build something together</span></span></h2>
+  <p class="ft-sub"><span class="km"><span>Tell us about your event, venue or idea, and we’ll</span></span><span class="km"><span>help you work out what’s possible.</span></span></p>
+  <a class="ft-cta" href="#">Get in touch</a>
+  <nav class="ft-links" aria-label="Footer">
+    <ul><li class="km"><a href="#">Solutions</a></li><li class="km"><a href="#">Results</a></li><li class="km"><a href="#">Opinion</a></li><li class="km"><a href="#">About us</a></li></ul>
+    <ul><li class="km"><a href="#">Extra page</a></li><li class="km"><a href="#">Another link</a></li><li class="km"><a href="#">One more link</a></li></ul>
+  </nav>
+  <form class="ft-sign" onsubmit="return false">
+    <p class="ft-sign-t"><span class="km"><span>Sign up to receive free ideas &amp;</span></span><span class="km"><span>insights to shape your business</span></span></p>
+    <label class="ft-email"><span class="ft-vh">Email address</span><input type="email" placeholder="hello@landofplenty.studio" autocomplete="email"><i class="ft-rule"></i></label>
+    <button class="ft-go" type="submit" aria-label="Sign up"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></button>
+  </form>
+  <p class="ft-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></p>
+</footer>
+
+<!-- Section images use data-src and get their src here, after the <base> fix in <head> exists: the preload scanner
+     would otherwise fetch them from the wrong folder on the no-trailing-slash deploy host (404s). Still eager. -->
+<script>document.querySelectorAll('img[data-src]').forEach(function (i) { i.src = i.getAttribute('data-src'); });</script>
+<!-- Pixel transition into / out of the menu (from iso-h): the screen fills with modular
+     pixels (some 2 or 3 long, or 2 x 2), each scaling in along one axis, then they clear.
+     Here they sweep in from the TOP RIGHT corner (where the burger is) rather than at random. -->
+<canvas id="pixels" aria-hidden="true"></canvas>
+<script>
+(function () {
+  var PALETTES = {
+    menu: ['#191919', '#1d1d1d', '#151515', '#212121', '#1b1b1b', '#171717'],   // the menu's near-black
+    page: ['#ebebe1', '#e6e6dc', '#efefe6', '#e2e2d7', '#e9e9df', '#dedfd3'],   // the page's background (#EBEBE1)
+  };
+  var ACROSS = 6, COVER_MS = 420, REVEAL_MS = 520, REVEAL_DELAY = 115, STRETCH_MS = 155;
+  var ORIGIN = [1, 0];   // where the sweep starts, as a fraction of the screen (1, 0 = top right)
+  var JITTER = 0.22;     // how ragged the sweep's front is (0 = a clean diagonal wipe)
+  var SHAPES = [[1, 1, 6], [2, 1, 2], [1, 2, 2], [3, 1, 1], [1, 3, 1], [2, 2, 1]];
+  var cv = document.getElementById('pixels'), cx = cv.getContext('2d');
+  var cell = 0, tiles = [], SHADES = PALETTES.menu, gw = 1, gh = 1, BACK = false;
+  function pickShape() {
+    var total = 0, i; for (i = 0; i < SHAPES.length; i++) total += SHAPES[i][2];
+    var r = Math.random() * total;
+    for (i = 0; i < SHAPES.length; i++) { r -= SHAPES[i][2]; if (r < 0) return SHAPES[i]; }
+    return SHAPES[0];
+  }
+  function useGrid() { cx.setTransform(cell, 0, 0, cell, 0, 0); }
+  // order the pixels by distance from the origin corner, with a little randomness;
+  // BACK reverses it, so the wave travels in from the far corner and ends at the origin
+  function sweepOrder() {
+    var ox = ORIGIN[0] * gw, oy = ORIGIN[1] * gh, far = Math.hypot(gw, gh);
+    tiles.forEach(function (t) {
+      t.k = Math.hypot(t.x + t.w / 2 - ox, t.y + t.h / 2 - oy) / far + Math.random() * JITTER;
+    });
+    tiles.sort(function (a, b) { return BACK ? b.k - a.k : a.k - b.k; });
+  }
+  function setup() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.ceil(innerWidth * dpr), h = Math.ceil(innerHeight * dpr);
+    cv.width = w; cv.height = h;
+    cell = Math.max(96, Math.round(Math.max(w, h) / ACROSS));
+    var cols = Math.ceil(w / cell) + 1, rows = Math.ceil(h / cell) + 1;
+    gw = w / cell; gh = h / cell;
+    var used = new Uint8Array(cols * rows);
+    var free = function (c, r, sw, sh) {
+      if (c + sw > cols || r + sh > rows) return false;
+      for (var y = r; y < r + sh; y++) for (var x = c; x < c + sw; x++) if (used[y * cols + x]) return false;
+      return true;
+    };
+    tiles = [];
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      if (used[r * cols + c]) continue;
+      var s = pickShape();
+      if (!free(c, r, s[0], s[1])) s = SHAPES[0];
+      for (var y = r; y < r + s[1]; y++) for (var x = c; x < c + s[0]; x++) used[y * cols + x] = 1;
+      if (c * cell >= w || r * cell >= h) continue;
+      tiles.push({ x: c, y: r, w: s[0], h: s[1], shade: SHADES[Math.floor(Math.random() * SHADES.length)],
+        axisX: s[0] > s[1] || (s[0] === s[1] && Math.random() < 0.5), flip: Math.random() < 0.5 });
+    }
+    sweepOrder();
+    useGrid();
+  }
+  function draw(t, f) {
+    var w = t.axisX ? t.w * f : t.w, h = t.axisX ? t.h : t.h * f;
+    if (w <= 0 || h <= 0) return;
+    var e = 1 / cell;
+    cx.fillStyle = mixed(t.shade);
+    cx.fillRect((t.flip && t.axisX ? t.x + t.w - w : t.x) - e, (t.flip && !t.axisX ? t.y + t.h - h : t.y) - e, w + 2 * e, h + 2 * e);
+  }
+  // SOLID_MIX 0..1 blends every pixel's shade towards the solid menu colour (1 = one flat colour)
+  var SOLID = '#191919', SOLID_MIX = 0, FADE_MS = 280;
+  var UNMELT_MS = 140;   // closing: how fast the flat cover breaks back into pixel shades before they sweep out
+  var EARLY_AT = 0.85;   // the menu's links + contact start animating in this far through the pixel sweep
+  var hex = function (c) { return [1, 3, 5].map(function (i) { return parseInt(c.substr(i, 2), 16); }); };
+  function mixed(c) {
+    if (SOLID_MIX <= 0) return c;
+    var a = hex(c), b = hex(SOLID), m = SOLID_MIX;
+    return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * m); }).join(',') + ')';
+  }
+  function drawAll() { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); useGrid(); for (var i = 0; i < tiles.length; i++) draw(tiles[i], 1); }
+  // animate fn(u) for u 0..1 over ms, then done
+  function tween(ms, fn, done) {
+    var start = performance.now();
+    (function step(now) { var u = Math.min(1, (now - start) / ms); fn(u); if (u < 1) requestAnimationFrame(step); else if (done) done(); })(start);
+  }
+  function clearTile(t) { var e = 1 / cell; cx.clearRect(t.x - e, t.y - e, t.w + 2 * e, t.h + 2 * e); }
+  var easeOut = function (u) { return 1 - Math.pow(1 - u, 3); };
+  var runId = 0;
+  function run(on, ms, done) {
+    var mine = ++runId, list = tiles.slice(), n = list.length, start = performance.now();
+    (function step(now) {
+      if (mine !== runId) return;
+      var finished = 0;
+      for (var i = 0; i < n; i++) {
+        var t = list[i], g = (now - start - (i / n) * ms) / STRETCH_MS;
+        if (g < 0 || t.done) { if (t.done) finished++; continue; }
+        if (g >= 1) g = 1;
+        var f = easeOut(g);
+        clearTile(t);
+        if (on) draw(t, f); else if (g < 1) draw(t, 1 - f);
+        if (g >= 1) { t.done = true; finished++; }
+      }
+      if (finished < n) requestAnimationFrame(step);
+      else {
+        for (i = 0; i < n; i++) list[i].done = false;
+        if (!on) { cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); useGrid(); }
+        if (done) done();
+      }
+    })(start);
+  }
+  var busy = false;
+  window.pixelTransition = {
+    // open: pixels sweep in, fade to the flat menu colour, change() behind, the cover fades out.
+    // back (close): the reverse, a flat cover fades in, change() behind, it breaks into pixels
+    // that clear with the wave ending at the origin corner
+    // back: true = the wave runs the other way, finishing at the origin corner (closing the menu)
+    // early(): optional, called EARLY_AT of the way through the opening pixel sweep
+    swap: function (change, palette, back, early) {
+      if (busy) return false;
+      busy = true;
+      BACK = !!back;
+      SHADES = PALETTES[palette] || PALETTES.menu;
+      setup();
+      var finish = function () { busy = false; SOLID_MIX = 0; cv.style.opacity = ''; };
+      if (!BACK) {
+        // OPEN: pixels sweep in from the corner, their shades melt into the menu's flat colour,
+        // the menu goes in behind, and the flat cover fades away to it
+        SOLID_MIX = 0;
+        if (early) setTimeout(early, (COVER_MS + STRETCH_MS) * EARLY_AT);
+        run(true, COVER_MS, function () {
+          tween(FADE_MS, function (u) { SOLID_MIX = u; drawAll(); }, function () {
+            change();
+            tween(FADE_MS, function (u) { cv.style.opacity = 1 - u; }, function () {
+              cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); useGrid(); finish();
+            });
+          });
+        });
+      } else {
+        // CLOSE (the reverse): a flat cover fades in over the menu, the page goes in behind,
+        // the cover breaks up into pixel shades, and they clear, the wave ending at the corner
+        SOLID_MIX = 1; drawAll(); cv.style.opacity = 0;
+        tween(FADE_MS, function (u) { cv.style.opacity = u; }, function () {
+          change();
+          // break up into pixel shades quickly and go straight into the reverse sweep (no pause)
+          tween(UNMELT_MS, function (u) { SOLID_MIX = 1 - u; drawAll(); }, function () {
+            run(false, REVEAL_MS, finish);
+          });
+        });
+      }
+      return true;
+    },
+  };
+})();
+</script>
+
+<div id="menu" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
+  <div id="menu-h"></div>
+  <nav class="menu-nav" aria-label="Main">
+    <a href="#">The Halo Structure</a>
+    <a href="#" data-sub="offer">What we offer</a>
+    <a href="#">Company</a>
+    <a href="#">Projects</a>
+    <a href="#">News &amp; Views</a>
+    <a href="#">Contact</a>
+  </nav>
+  <div class="menu-contact">
+    <svg viewBox="0 0 144 124" fill="currentColor" aria-hidden="true">
+      <path d="M2.08626 68.4661L0 66.4673V57.5568L1.99034 55.5339H94.769C103.306 55.5339 111.579 56.1359 119.948 56.8343C120.955 56.9307 121.962 56.3527 122.25 55.6302C122.538 54.9077 122.37 53.5832 121.483 52.9089C115.296 48.1165 109.421 43.0833 103.809 37.4721L75.3932 8.98271L75.3452 5.82793L81.1244 0H84.3137C84.3137 0.0240823 144 59.965 144 59.965V63.9627C144.024 63.9627 84.3617 123.904 84.3617 123.904L81.1724 124L75.3932 118.22V115.09C75.3692 115.09 104.001 86.3593 104.001 86.3593C109.565 80.7963 115.416 75.8353 121.555 71.0429C122.37 70.4168 122.586 69.2367 122.298 68.442C122.01 67.6473 121.027 67.0934 119.972 67.1657C111.603 67.864 103.354 68.4661 94.6731 68.4661H2.08626Z"/>
+    </svg>
+    <div>
+      <a href="mailto:info@thehalogroup.com">info@thehalogroup.com</a>
+      <a href="tel:+4402078703210">+44 (0)40 2078 703210</a>
+      <address>Foundry, 4 New Acres Lane,<br>Wandsworth SW18 1HT</address>
+    </div>
+  </div>
+  <button class="menu-close" type="button" aria-label="Close menu"><span></span><span></span></button>
+</div>
+<script>
+  // written in (rather than <script src>) so the browser's preload scanner can't request them at the
+  // wrong path before the <base> fix above applies; they still load and run in order
+  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/smooth.js']
+    .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
+</script>
+<script type="module">import './src/intro3d.js';</script>
+<script type="module">import './src/kit3d.js';</script>
+<script type="module">
+  // Menu (from iso-h): the burger opens it through the pixel transition (dark pixels in from
+  // the top right), the X or Escape closes it (cream pixels back out). The 3D H loads the first time.
+  const menu = document.getElementById('menu');
+  const BRAND_ARROW = menu.querySelector('.menu-contact path').getAttribute('d');
+  for (const a of menu.querySelectorAll('.menu-nav a')) {
+    a.innerHTML = '<svg class="arrow" viewBox="0 0 144 124" aria-hidden="true"><path d="' + BRAND_ARROW + '"/></svg>'
+      + '<span class="label">' + a.textContent + '</span>';
+  }
+  // load the 3D H up front, so it's ready (and its canvas drawn) the moment the menu first opens
+  let art = import('./src/menu.js');
+  const burger = () => document.querySelector(':is(#end, #chrome) .burger-btn');
+  // 85% through the pixel sweep: the links + contact start animating in ON TOP of the pixels
+  // (the menu sits above them with no background of its own until the cover has gone)
+  function introMenu() {
+    menu.classList.add('open', 'play', 'over');
+    menu.setAttribute('aria-hidden', 'false');
+    burger()?.setAttribute('aria-expanded', 'true');
+  }
+  // once the pixels have melted to the flat menu colour: the menu drops behind with its own
+  // background, the 3D H starts, and the cover fades off
+  function openMenu() {
+    if (!menu.classList.contains('open')) introMenu();
+    document.documentElement.classList.add('menu-open');
+    // the H's canvas is shown only once it has drawn its first (blank) frame
+    (art ??= import('./src/menu.js')).then(m => { m.start(); menu.classList.remove('over'); });
+  }
+  function closeMenu() {
+    menu.classList.remove('open', 'play', 'over', 'under');
+    closeSub?.();   // panels reset with the menu
+    menu.setAttribute('aria-hidden', 'true');
+    burger()?.setAttribute('aria-expanded', 'false');
+    document.documentElement.classList.remove('menu-open');
+    art?.then(m => m.stop());
+    burger()?.focus();
+  }
+  // the burger is built by end.js (and rebuilt when the layout changes), so listen on the page
+  document.addEventListener('click', e => {
+    if (e.target.closest(':is(#end, #chrome) .burger-btn')) window.pixelTransition.swap(openMenu, 'menu', false, introMenu);
+  });
+  // closing: the menu breaks up into its own near-black pixels (no extra cream layer), the menu
+  // goes behind them, and they clear to reveal the page, the wave running back to the burger's corner
+  const leaveMenu = () => { if (window.pixelTransition.swap(closeMenu, 'menu', true)) menu.classList.add('under'); };
+  menu.querySelector('.menu-close').addEventListener('click', leaveMenu);
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !menu.classList.contains('open')) return;
+    if (menu.classList.contains('sub-open')) closeSub(); else leaveMenu();   // Escape backs out one level
+  });
+
+  // ---- Dropdown panels -------------------------------------------------------------------------
+  // photos: a path, or a placeholder colour until James sends the rest
+  const SUBS = {
+    offer: {
+      title: 'What we offer',
+      // James' outlined SVGs (Resources/SVGs): fill = stretch edge to edge across the frame;
+      // the others use the first word's scale. w/h = each SVG's viewBox.
+      words: [
+        { src: 'assets/menu/words/offer-what.svg', w: 684, h: 219, fill: true },
+        { src: 'assets/menu/words/offer-we.svg', w: 427, h: 180 },
+        { src: 'assets/menu/words/offer-offer.svg', w: 679, h: 241, fill: true },
+      ],
+      links: [
+        { label: 'All builds', photo: 'assets/menu/offer-all-builds.jpg' },
+        { label: 'Indoor', photo: 'assets/menu/offer-indoor.jpg' },
+        { label: 'Outdoor', photo: 'assets/menu/offer-outdoor.jpg' },
+        { label: 'Semi', photo: 'assets/menu/offer-semi.jpg' },
+        { label: 'Bespoke', photo: 'assets/menu/offer-bespoke.jpg' },
+      ],
+    },
+  };
+  const panels = {};
+  for (const [key, S] of Object.entries(SUBS)) {
+    const p = document.createElement('div');
+    p.className = 'sub';
+    p.setAttribute('aria-hidden', 'true');
+    p.innerHTML =
+      '<div class="sub-frame"><svg preserveAspectRatio="none" aria-hidden="true"><rect pathLength="1" x="1" y="1" /></svg>' +
+      '<div class="sub-words">' + S.words.map((w, i) => '<div class="w" style="--i:' + i + '"><img src="' + w.src + '" alt=""></div>').join('') + '</div></div>' +
+      '<nav class="sub-links" aria-label="' + S.title + '">' +
+      S.links.map((l, i) => '<div class="m"><a href="#" data-i="' + i + '" style="--i:' + i + '">' + l.label + '</a></div>').join('') + '</nav>' +
+      '<div class="sub-photo"><div class="frame"></div><i class="tape"></i></div>';
+    menu.insertBefore(p, menu.querySelector('.menu-close'));
+    panels[key] = { el: p, S, shown: -1 };
+    // load the photos up front so hovering swaps them instantly
+    S.links.forEach(l => { if (!l.photo.startsWith('#')) new Image().src = l.photo; });
+  }
+  const paint = (pic, photo, label) => {
+    if (photo.startsWith('#')) { pic.style.background = photo; pic.innerHTML = '<span class="ph">' + label + ' — photo to come</span>'; }
+    else pic.style.backgroundImage = 'url("' + photo + '")';
+  };
+  // show photo i: the new one wipes up over the old, and the tape gives a tug
+  function showPhoto(P, i, instant) {
+    if (P.shown === i) return;
+    P.shown = i;
+    const frame = P.el.querySelector('.frame'), pic = document.createElement('div');
+    pic.className = 'pic' + (instant ? '' : ' enter');
+    paint(pic, P.S.links[i].photo, P.S.links[i].label);
+    frame.appendChild(pic);
+    if (instant) { [...frame.children].slice(0, -1).forEach(c => c.remove()); return; }
+    // when a photo has finished wiping in, drop only the layers BENEATH it: a newer photo that's
+    // still wiping in above it (fast hovering up and down) keeps its background intact
+    pic.addEventListener('animationend', () => {
+      for (let s = pic.previousElementSibling; s; ) { const prev = s.previousElementSibling; s.remove(); s = prev; }
+      pic.classList.remove('enter');
+    }, { once: true });
+    // never stack more than a few layers mid-wipe
+    while (frame.children.length > 4) frame.firstElementChild.remove();
+    const tape = P.el.querySelector('.tape');
+    tape.classList.remove('tug'); void tape.offsetWidth; tape.classList.add('tug');
+    P.el.querySelectorAll('.sub-links a').forEach((a, k) => a.classList.toggle('on', k === i));
+  }
+  // the huge words (SVGs): the 'fill' words span the frame exactly edge to edge, the first sits on
+  // the frame's top, the last on its bottom, and any others are centred in the gap between them
+  function fitWords(P) {
+    const box = P.el.querySelector('.sub-frame');
+    const ws = [...P.el.querySelectorAll('.sub-words .w')], D = P.S.words;
+    const W = box.clientWidth, H = box.clientHeight, base = W / D[0].w;
+    const sz = D.map(d => { const s = d.fill ? W / d.w : base; return [d.w * s, d.h * s]; });
+    const n = ws.length, topY = 0, botY = H - sz[n - 1][1];
+    const gapTop = sz[0][1], gapBot = botY;
+    ws.forEach((w, i) => {
+      const [ww, hh] = sz[i];
+      const y = i === 0 ? topY : i === n - 1 ? botY : (gapTop + gapBot) / 2 - hh / 2;
+      Object.assign(w.style, { top: y + 'px', width: ww + 'px', height: hh + 'px' });
+    });
+    const r = P.el.querySelector('.sub-frame rect');
+    r.setAttribute('width', Math.max(0, W - 2)); r.setAttribute('height', Math.max(0, H - 2));
+  }
+  let openSub = null;
+  function openPanel(key, link) {
+    const P = panels[key];
+    if (openSub === P) return closeSub();
+    if (openSub) closeSub();
+    fitWords(P);
+    showPhoto(P, 0, true);
+    P.el.querySelectorAll('.sub-links a').forEach((a, k) => a.classList.toggle('on', k === 0));
+    P.el.classList.add('open'); P.el.setAttribute('aria-hidden', 'false');
+    menu.classList.add('sub-open');
+    menu.querySelectorAll('.menu-nav a').forEach(a => a.classList.toggle('active', a === link));
+    openSub = P;
+  }
+  function closeSub() {
+    if (!openSub) return;
+    openSub.el.classList.remove('open'); openSub.el.setAttribute('aria-hidden', 'true');
+    menu.classList.remove('sub-open');
+    menu.querySelectorAll('.menu-nav a.active').forEach(a => a.classList.remove('active'));
+    openSub = null;
+  }
+  menu.querySelectorAll('.menu-nav a').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    if (a.dataset.sub) openPanel(a.dataset.sub, a); else closeSub();
+  }));
+  for (const P of Object.values(panels)) {
+    P.el.querySelectorAll('.sub-links a').forEach(a => {
+      a.addEventListener('mouseenter', () => showPhoto(P, +a.dataset.i));
+      a.addEventListener('focus', () => showPhoto(P, +a.dataset.i));
+      a.addEventListener('click', e => e.preventDefault());
+    });
+  }
+  addEventListener('resize', () => { if (openSub) fitWords(openSub); });
+  window.haloMenu = { open: () => window.pixelTransition.swap(openMenu, 'menu', false, introMenu), close: leaveMenu,
+    sub: key => openPanel(key, menu.querySelector('[data-sub="' + key + '"]')), closeSub };
+</script>
+</body>
+</html>
