@@ -22,52 +22,22 @@
   set(sec.querySelector('.ft-go'), 1.25);
   set(sec.querySelector('.ft-legal'), 1.1);
 
-  // HOVER REVEAL: a lime blueprint grid inside the giant Halo letters (clipped to them in the SVG), shown through a
-  // soft round mask (.ft-glow) that follows the cursor with a little lag; fades in while the cursor is over the logo,
-  // out when it leaves. (Was a lime glow; James wanted a blueprint grid instead.)
-  const G = { radius: 16, ease: 7, fadeIn: 0.45, fadeOut: 0.8 };   // radius in logo units (logo is 80 wide); ease per s
-  const logo = sec.querySelector('.ft-logo'), glow = sec.querySelector('.ft-glow');
-  let gx = 40, gy = 17, tx = 40, ty = 17, over = false, raf = 0, last = 0;
-  glow.setAttribute('r', G.radius);
-  glow.style.transition = `opacity ${G.fadeOut}s ease`;
-  glow.style.opacity = 0;
-  function follow(now) {
-    const dt = Math.min((now - (last || now)) / 1000, 0.05); last = now;
-    const k = 1 - Math.exp(-G.ease * dt);
-    gx += (tx - gx) * k; gy += (ty - gy) * k;
-    glow.setAttribute('cx', gx.toFixed(2)); glow.setAttribute('cy', gy.toFixed(2));
-    raf = (over || Math.abs(tx - gx) + Math.abs(ty - gy) > 0.05) ? requestAnimationFrame(follow) : 0;
-    if (!raf) last = 0;
-  }
-  addEventListener('pointermove', e => {
-    const r = logo.getBoundingClientRect();
-    const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-    if (inside) {
-      tx = (e.clientX - r.left) / r.width * 80; ty = (e.clientY - r.top) / r.height * 34;
-      if (!over) { if (glow.style.opacity === '0' || glow.style.opacity === '') { gx = tx; gy = ty; } glow.style.transition = `opacity ${G.fadeIn}s ease`; }
-    } else if (over) glow.style.transition = `opacity ${G.fadeOut}s ease`;
-    if (inside !== over) { over = inside; glow.style.opacity = inside ? 1 : 0; }
-    if (over && !raf) raf = requestAnimationFrame(follow);
-  }, { passive: true });
-  document.documentElement.addEventListener('pointerleave', () => { over = false; glow.style.opacity = 0; });
+  // HOVER: lime three.js smoke inside the giant Halo letters lives in src/footer-smoke.js (module).
 
   let played = false;
   const play = () => { played = true; sec.classList.add('in'); };
+  const api = { K, play, reset: () => { played = false; sec.classList.remove('in'); } };
   // with a pixel background reveal (bgpixels.js) the content starts coming in WHILE the dark pixels sweep down
   // (James: don't wait for them to finish): afterPixels s after the sweep starts. The sweep runs top to bottom, so
   // the headline area is already dark by then and the lower pieces (logo, links) start later in their own timeline.
   K.afterPixels = 0.3;
+  window.haloFooter = api;
   if (sec.hasAttribute('data-bg-pixels')) {
     sec.addEventListener('bgpixels:start', () => setTimeout(() => { if (!played) play(); }, K.afterPixels * 1000));
-    window.haloFooter = { K, G, play, reset: () => { played = false; sec.classList.remove('in'); },
-      glowAt: (x, y) => { tx = gx = x; ty = gy = y; over = true; glow.style.opacity = 1; glow.setAttribute('cx', x); glow.setAttribute('cy', y); } };   // debug, logo units
     return;
   }
   function check() { if (!played && sec.getBoundingClientRect().top / innerHeight < K.revealAt) play(); }
   addEventListener('scroll', check, { passive: true });
   addEventListener('resize', check);
   check();
-  window.haloFooter = { K, G, play,
-    glowAt: (x, y) => { tx = gx = x; ty = gy = y; over = true; glow.style.opacity = 1; glow.setAttribute('cx', x); glow.setAttribute('cy', y); },   // debug, logo units
-    reset: () => { played = false; sec.classList.remove('in'); } };
 })();
