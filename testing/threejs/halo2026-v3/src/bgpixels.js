@@ -83,6 +83,7 @@
     };
     cx.setTransform(cell, 0, 0, cell, 0, 0);
     const n = tiles.length, start = performance.now();
+    sec.dispatchEvent(new CustomEvent('bgpixels:start'));   // the footer starts its content a moment after this
     (function sweep(now) {
       let finished = 0;
       for (let i = 0; i < n; i++) {

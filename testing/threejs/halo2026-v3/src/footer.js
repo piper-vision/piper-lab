@@ -22,9 +22,10 @@
   set(sec.querySelector('.ft-go'), 1.25);
   set(sec.querySelector('.ft-legal'), 1.1);
 
-  // HOVER GLOW: a big soft lime light inside the giant Halo letters (clipped to them in the SVG), following the
-  // cursor with a little lag; fades in while the cursor is over the logo, out when it leaves
-  const G = { radius: 22, ease: 7, fadeIn: 0.45, fadeOut: 0.8 };   // radius in logo units (logo is 80 wide); ease per s
+  // HOVER REVEAL: a lime blueprint grid inside the giant Halo letters (clipped to them in the SVG), shown through a
+  // soft round mask (.ft-glow) that follows the cursor with a little lag; fades in while the cursor is over the logo,
+  // out when it leaves. (Was a lime glow; James wanted a blueprint grid instead.)
+  const G = { radius: 16, ease: 7, fadeIn: 0.45, fadeOut: 0.8 };   // radius in logo units (logo is 80 wide); ease per s
   const logo = sec.querySelector('.ft-logo'), glow = sec.querySelector('.ft-glow');
   let gx = 40, gy = 17, tx = 40, ty = 17, over = false, raf = 0, last = 0;
   glow.setAttribute('r', G.radius);
@@ -52,10 +53,14 @@
 
   let played = false;
   const play = () => { played = true; sec.classList.add('in'); };
-  // with a pixel background reveal (bgpixels.js) the content waits until the dark pixels have covered the cream
+  // with a pixel background reveal (bgpixels.js) the content starts coming in WHILE the dark pixels sweep down
+  // (James: don't wait for them to finish): afterPixels s after the sweep starts. The sweep runs top to bottom, so
+  // the headline area is already dark by then and the lower pieces (logo, links) start later in their own timeline.
+  K.afterPixels = 0.3;
   if (sec.hasAttribute('data-bg-pixels')) {
-    sec.addEventListener('bgpixels:covered', () => { if (!played) play(); });
-    window.haloFooter = { K, G, play, reset: () => { played = false; sec.classList.remove('in'); } };
+    sec.addEventListener('bgpixels:start', () => setTimeout(() => { if (!played) play(); }, K.afterPixels * 1000));
+    window.haloFooter = { K, G, play, reset: () => { played = false; sec.classList.remove('in'); },
+      glowAt: (x, y) => { tx = gx = x; ty = gy = y; over = true; glow.style.opacity = 1; glow.setAttribute('cx', x); glow.setAttribute('cy', y); } };   // debug, logo units
     return;
   }
   function check() { if (!played && sec.getBoundingClientRect().top / innerHeight < K.revealAt) play(); }

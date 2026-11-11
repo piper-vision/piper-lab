@@ -593,12 +593,26 @@
     <path id="ft-l2" d="M27.5701 20.4518C29.1087 19.4622 31.1975 18.978 33.028 18.8971L41.6637 18.5179L41.612 16.6267C41.5967 16.0772 41.4124 15.5717 41.2141 15.0691C40.6081 13.7174 39.4004 13.0174 37.9748 12.7732C36.788 12.5715 35.604 12.5715 34.4214 12.7831C32.6049 13.1082 31.097 14.1305 30.7898 16.0417L30.7074 17.0129H25.896C25.9281 13.9843 27.1498 11.5009 29.7175 9.95613C32.334 8.39143 35.9629 8.14579 38.9215 8.62429C41.9737 9.11841 44.5232 10.7413 45.5787 13.7685C45.985 14.9342 46.2029 16.1269 46.2043 17.392L46.2126 33.3158H41.7084L41.7 30.5698C40.657 32.0309 39.2566 33.0404 37.5657 33.5402C36.4627 33.8753 35.3555 33.9917 34.1938 33.9903C31.9124 33.9874 29.5611 33.5288 27.6943 32.1728C26.34 31.1903 25.3947 29.7988 24.9982 28.1489C24.6882 26.8611 24.6631 25.5605 24.9368 24.267C25.2775 22.6583 26.2101 21.3265 27.5715 20.449L27.5701 20.4518ZM37.3116 29.4013C40.3833 28.4244 41.6469 25.7863 41.6609 22.6469L33.2416 23.0133C32.4485 23.0473 31.7141 23.212 31.0202 23.5131C30.054 23.9319 29.4857 24.7767 29.4341 25.8331C29.3754 27.0187 29.8459 28.112 30.8191 28.7822C32.5519 29.9777 35.3248 29.9877 37.313 29.3984L37.3116 29.4013Z"/>
     <path id="ft-l3" d="M53.6881 0H48.9479V33.3641H53.6881V0Z"/>
     <path id="ft-l4" d="M73.1781 32.897C69.9347 34.3183 65.739 34.3481 62.4816 33.0901C59.7449 32.0337 57.5822 29.972 56.387 27.2572C55.2393 24.6475 54.9726 21.636 55.3594 18.8119C55.9625 14.423 58.4576 10.818 62.5933 9.27175C65.6426 8.1316 69.4502 8.12024 72.5051 9.23626C76.5068 10.6973 79.0465 14.1064 79.7572 18.3348C80.1035 20.4007 80.0839 22.4765 79.6692 24.5297C78.9111 28.2852 76.6869 31.3593 73.1767 32.897H73.1781ZM70.0129 29.3615C72.7341 28.6075 74.4529 26.4295 75.0198 23.6891C75.3591 22.0435 75.3591 20.3666 75.0198 18.721C74.4641 16.0247 72.7928 13.8764 70.1595 13.0884C68.5412 12.6042 66.8169 12.5971 65.1889 13.0415C63.3361 13.5484 61.8393 14.7766 60.9569 16.4932C59.9306 18.4881 59.7282 20.9658 60.0759 23.1737C60.5436 26.1469 62.2763 28.5664 65.1889 29.3643C66.7624 29.796 68.4086 29.8059 70.0129 29.3615Z"/>
-    <!-- hover glow: a big soft lime light that follows the cursor, clipped to the letters (src/footer.js) -->
+    <!-- hover: a lime blueprint grid inside the letters, revealed around the cursor by a soft round mask that follows it
+         (src/footer.js moves .ft-glow, the mask's circle). Grid in logo units (80 wide = 1818 design px, 1 unit ~ 23 px):
+         lines every 2.4, plus a faint lime wash. -->
     <defs>
       <clipPath id="ft-clip"><use href="#ft-l1"/><use href="#ft-l2"/><use href="#ft-l3"/><use href="#ft-l4"/></clipPath>
-      <radialGradient id="ft-glow-g"><stop offset="0" stop-color="#E6FF00" stop-opacity="0.55"/><stop offset="0.35" stop-color="#E6FF00" stop-opacity="0.22"/><stop offset="1" stop-color="#E6FF00" stop-opacity="0"/></radialGradient>
+      <!-- one grid only (James: no fine grid inside), squares 2.4 units (~55 design px; was 3.2) -->
+      <pattern id="ft-grid" width="2.4" height="2.4" patternUnits="userSpaceOnUse">
+        <path d="M2.4 0H0V2.4" fill="none" stroke="#E6FF00" stroke-width="0.06" stroke-opacity="0.9"/>
+      </pattern>
+      <radialGradient id="ft-reveal-g"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="0.45" stop-color="#fff" stop-opacity="0.75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <mask id="ft-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="34">
+        <circle class="ft-glow" cx="40" cy="17" r="16" fill="url(#ft-reveal-g)"/>
+      </mask>
     </defs>
-    <g clip-path="url(#ft-clip)"><circle class="ft-glow" cx="40" cy="17" r="22" fill="url(#ft-glow-g)"/></g>
+    <g clip-path="url(#ft-clip)">
+      <g mask="url(#ft-reveal)">
+        <rect width="80" height="34" fill="#E6FF00" fill-opacity="0.05"/>
+        <rect width="80" height="34" fill="url(#ft-grid)"/>
+      </g>
+    </g>
   </svg>
   <h2 id="ft-h" class="ft-h"><span class="km"><span>Let’s build something together</span></span></h2>
   <p class="ft-sub"><span class="km"><span>Tell us about your event, venue or idea, and we’ll</span></span><span class="km"><span>help you work out what’s possible.</span></span></p>
