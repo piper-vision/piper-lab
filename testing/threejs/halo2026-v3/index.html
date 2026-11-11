@@ -316,6 +316,11 @@
   #footer.in .ft-email input { opacity: 1; }
   .ft-go { scale: 0; transition: scale 0.55s cubic-bezier(0.34, 1.8, 0.64, 1) var(--d, 0s), background-color 0.35s ease; }
   #footer.in .ft-go { scale: 1; }
+  /* sticky logo + Contact us flip to light over dark areas ([data-dark]; src/invert.js toggles .on-dark) */
+  #chrome .logo { transition: color 0.3s ease; }
+  #chrome .logo.on-dark { color: #F5F6EC; }
+  #chrome .topcta.on-dark .topcta-btn.pill { background: #FFF8E6; color: #191919; }
+  #chrome .topcta.on-dark .topcta-btn.pill:hover, #chrome .topcta.on-dark .topcta-btn.pill:focus-visible { background: #e6ff00; }
   @keyframes nx-marquee { to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .nx-track { animation-duration: 160s; } }
   .bar { position: absolute; left: 0; top: 0; z-index: 2; will-change: transform; transform-origin: 0 0; }
@@ -528,7 +533,7 @@
   <h2 id="kit-h" class="kt-h"><span class="km"><span>The kit &amp;</span></span><span class="km"><span>the team</span></span></h2>
   <p class="kt-intro"><span class="km"><span>Every great build needs two things: a system</span></span><span class="km"><span>made to adapt, and the people who know</span></span><span class="km"><span>exactly what to do with it.</span></span></p>
   <a class="kt-all" href="#">View all build types</a>
-  <article class="kt-card kt-kit" data-reveal-wait>
+  <article class="kt-card kt-kit" data-reveal-wait data-dark>
     <div class="kit-3d" aria-hidden="true"></div>
     <div class="kt-badge"><svg class="kt-ring" viewBox="0 0 333 126.7" aria-hidden="true"><rect x="0.5" y="0.5" width="332" height="125.7" rx="62.85" pathLength="1"/></svg><img data-src="assets/kit/halo-structure.svg" alt="Halo Structure"></div>
     <p class="kt-label"><span class="km"><span>The Kit</span></span></p>
@@ -587,7 +592,7 @@
 <!-- Footer (James' mock assets/ref-footer.webp). src/footer.js plays its entrance once: headline rises with the skew,
      the giant Halo letters rise out of the bottom one by one, links + copy slide up out of masks, the email underline
      draws across and the arrow button pops in. -->
-<footer id="footer" aria-labelledby="ft-h" data-bg-pixels="#181818" data-bg-from="#FFF8E6" data-bg-at="0.8">
+<footer id="footer" data-dark aria-labelledby="ft-h" data-bg-pixels="#181818" data-bg-from="#FFF8E6" data-bg-at="0.8">
   <svg class="ft-logo" viewBox="0 0 80 34" aria-hidden="true">
     <path id="ft-l1" d="M23.4679 33.3116L18.5155 33.3215L18.5141 18.525H4.95385V33.3201L0 33.3173V0.0312371L4.95385 0.0340769V13.9403H18.5141L18.5155 0.032657H23.4679V33.3116Z"/>
     <path id="ft-l2" d="M27.5701 20.4518C29.1087 19.4622 31.1975 18.978 33.028 18.8971L41.6637 18.5179L41.612 16.6267C41.5967 16.0772 41.4124 15.5717 41.2141 15.0691C40.6081 13.7174 39.4004 13.0174 37.9748 12.7732C36.788 12.5715 35.604 12.5715 34.4214 12.7831C32.6049 13.1082 31.097 14.1305 30.7898 16.0417L30.7074 17.0129H25.896C25.9281 13.9843 27.1498 11.5009 29.7175 9.95613C32.334 8.39143 35.9629 8.14579 38.9215 8.62429C41.9737 9.11841 44.5232 10.7413 45.5787 13.7685C45.985 14.9342 46.2029 16.1269 46.2043 17.392L46.2126 33.3158H41.7084L41.7 30.5698C40.657 32.0309 39.2566 33.0404 37.5657 33.5402C36.4627 33.8753 35.3555 33.9917 34.1938 33.9903C31.9124 33.9874 29.5611 33.5288 27.6943 32.1728C26.34 31.1903 25.3947 29.7988 24.9982 28.1489C24.6882 26.8611 24.6631 25.5605 24.9368 24.267C25.2775 22.6583 26.2101 21.3265 27.5715 20.449L27.5701 20.4518ZM37.3116 29.4013C40.3833 28.4244 41.6469 25.7863 41.6609 22.6469L33.2416 23.0133C32.4485 23.0473 31.7141 23.212 31.0202 23.5131C30.054 23.9319 29.4857 24.7767 29.4341 25.8331C29.3754 27.0187 29.8459 28.112 30.8191 28.7822C32.5519 29.9777 35.3248 29.9877 37.313 29.3984L37.3116 29.4013Z"/>
@@ -600,7 +605,7 @@
       <clipPath id="ft-clip"><use href="#ft-l1"/><use href="#ft-l2"/><use href="#ft-l3"/><use href="#ft-l4"/></clipPath>
       <!-- one grid only (James: no fine grid inside), squares 2.4 units (~55 design px; was 3.2) -->
       <pattern id="ft-grid" width="2.4" height="2.4" patternUnits="userSpaceOnUse">
-        <path d="M2.4 0H0V2.4" fill="none" stroke="#E6FF00" stroke-width="0.06" stroke-opacity="0.9"/>
+        <path d="M2.4 0H0V2.4" fill="none" stroke="#E6FF00" stroke-width="0.045" stroke-opacity="0.55"/>   <!-- subtler (James): was 0.06 @ 0.9 -->
       </pattern>
       <radialGradient id="ft-reveal-g"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="0.45" stop-color="#fff" stop-opacity="0.75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
       <mask id="ft-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="34">
@@ -808,7 +813,7 @@
 <script>
   // written in (rather than <script src>) so the browser's preload scanner can't request them at the
   // wrong path before the <base> fix above applies; they still load and run in order
-  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/smooth.js']
+  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/invert.js', 'src/smooth.js']
     .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
 </script>
 <script type="module">import './src/intro3d.js';</script>
