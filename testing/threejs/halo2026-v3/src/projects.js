@@ -13,10 +13,11 @@
     revealAt: 0.7,     // starts when the section's top passes this far down the screen (0 top .. 1 bottom)
     colStagger: 0.16,  // between columns (s)
     speed: 480,        // photo unroll speed, design px per second (heights 401 / 469 / 536 -> 0.84 / 0.98 / 1.12 s)
-    textAt: 0.8,       // title starts this share of the way through its photo's unroll
-    lineStagger: 0.07, // between text lines (s)
-    lineDraw: 0.7,     // connector draw time (s; matches the CSS)
-    count: 1.3,        // number count-up time (s)
+    textAt: 0.5,       // title starts this share of the way through its photo's unroll (was 0.8)
+    lineStagger: 0.06, // between text lines (s)
+    lineDraw: 0.45,    // connector draw time (s; matches the CSS; was 0.7)
+    statOverlap: 0.5,  // Impact report starts this share of the way through the connector draw (James: it lagged)
+    count: 1.1,        // number count-up time (s)
   };
   const cols = [...sec.querySelectorAll('.pj-col')];
   const counters = [];
@@ -30,13 +31,13 @@
     delay(col.querySelector('.pj-tag'), d + dur * 0.55);
     let t = d + dur * K.textAt;
     for (const m of col.querySelectorAll('.pj-t .pj-m, .pj-s .pj-m')) { delay(m, t); t += K.lineStagger; }
-    const lineAt = t + 0.1;
+    const lineAt = t - K.lineStagger;   // the connector starts with the subtitle
     delay(col.querySelector('.pj-line'), lineAt);
     delay(col.querySelector('.pj-dot'), lineAt + K.lineDraw - 0.08);
-    t = lineAt + K.lineDraw + 0.05;
+    t = lineAt + K.lineDraw * K.statOverlap;
     for (const m of col.querySelectorAll('.pj-label .pj-m, .pj-stat .pj-m')) {
       delay(m, t);
-      m.querySelectorAll('b[data-count]').forEach(b => counters.push({ b, to: +b.dataset.count, at: t + 0.15 }));
+      m.querySelectorAll('b[data-count]').forEach(b => counters.push({ b, to: +b.dataset.count, at: t + 0.05 }));
       t += K.lineStagger;
     }
   });

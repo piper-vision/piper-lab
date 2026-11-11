@@ -95,6 +95,8 @@
         draw(t, easeOut(g));
       }
       if (finished < n) return requestAnimationFrame(sweep);
+      // every pixel is in: content can start coming in while the shades melt (the footer uses this)
+      sec.dispatchEvent(new CustomEvent('bgpixels:covered'));
       // melt every shade into the flat colour, then hand over to the section's own background
       const m0 = performance.now();
       (function meltStep(now2) {
