@@ -47,6 +47,7 @@
   :is(#end, #chrome) .btn.secondary > .in { border: 1px solid #1b1b1b; }
   /* the masks crop to the button box: give them 2px of room so the outline's bottom edge isn't cut off */
   :is(#end, #chrome) .btn.mask { padding: 2px; margin: -2px; }
+  #end[data-layout="9"] .btn > .in { height: 2.47em; padding: 0 2.55em; }   /* hero pills as in ref-hero-copy: larger text, wider padding */
   :is(#end, #chrome) .nav { display: flex; align-items: center; gap: 1.58em; font-family: 'Space Grotesk', sans-serif; white-space: nowrap; pointer-events: auto; }
   :is(#end, #chrome) .nlink > .in { cursor: pointer; }
   :is(#end, #chrome) .nlink.cta { margin-left: 1.3em; }
@@ -57,9 +58,13 @@
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }   /* frosted: blurs whatever scrolls behind the pill */
   :is(#end, #chrome) .pitem { display: flex; align-items: center; gap: 0.32em; height: 2em; padding: 0 0.6em; border-radius: 99em;
     color: #1b1b1b; text-decoration: none; transition: background-color 0.3s ease; }
-  :is(#end, #chrome) .pitem.on, :is(#end, #chrome) .pitem:hover, :is(#end, #chrome) .pitem:focus-visible { background: #EBEBE1; outline: none; }
+  :is(#end, #chrome) .pitem.on { background: #EBEBE1; }
+  :is(#end, #chrome) .pitem:hover, :is(#end, #chrome) .pitem:focus-visible { background: #e6ff00; outline: none; }   /* hover lime (James) */
   :is(#end, #chrome) .parrow { width: 0.56em; height: 0.72em; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
   :is(#end, #chrome) .pitem:hover .parrow { transform: translateY(0.12em); }
+  /* Contact us inside the nav: its dark pill, hovering lime like the other items */
+  :is(#end, #chrome) .pitem.pcta { background: #191919; color: #fff; padding: 0 0.75em; transition: background-color 0.3s ease, color 0.3s ease; }
+  :is(#end, #chrome) .pitem.pcta:hover, :is(#end, #chrome) .pitem.pcta:focus-visible { background: #e6ff00; color: #191919; }
   /* burger: black square, two thin white lines (James' mock) */
   :is(#end, #chrome) .burger { pointer-events: auto; line-height: 0; }
   :is(#end, #chrome) .burger-btn { font-size: inherit; display: block; width: 1em; height: 1em; padding: 0; border: 0; background: #1b1b1b; cursor: pointer; position: relative; }
@@ -83,8 +88,12 @@
   :is(#end, #chrome) .topcta-btn.pill { height: 2.08em; padding: 0 0.75em; background: #191919; letter-spacing: 0; }
   :is(#end, #chrome) .topcta-btn.pill:hover, :is(#end, #chrome) .topcta-btn.pill:focus-visible { background: #fff; color: #191919; }
   /* gallery style switch, bottom-left: a soft chip with two options, the active one lime */
-  :is(#end, #chrome) .modes { pointer-events: auto; line-height: 1; }
-  :is(#end, #chrome) .modes.mask, :is(#end, #chrome) .modes > .mask { padding: 2px; margin: -2px; }
+  :is(#end, #chrome) :is(.modes, .intros) { pointer-events: auto; line-height: 1; }
+  :is(#end, #chrome) .modes.mask, :is(#end, #chrome) :is(.modes, .intros) > .mask { padding: 2px; margin: -2px; }
+  /* intro switch (James): just text, stacked, on the lime right bar; the one playing is full strength, the other dimmed */
+  :is(#end, #chrome) .intros-in { display: flex; flex-direction: column; align-items: flex-start; gap: 0.45em; font: 400 1em/1.1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; }
+  :is(#end, #chrome) .intros-in button { font: inherit; color: #191919; background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; opacity: 0.45; transition: opacity 0.3s ease; }
+  :is(#end, #chrome) .intros-in button.on, :is(#end, #chrome) .intros-in button:hover, :is(#end, #chrome) .intros-in button:focus-visible { opacity: 1; outline: none; }
   :is(#end, #chrome) .modes-in { display: inline-flex; gap: 0.25em; padding: 0.3em; border-radius: 99em; background: rgba(11, 11, 11, 0.07);
     font: 400 1em/1 'Space Grotesk', sans-serif; letter-spacing: 0.01em; }
   :is(#end, #chrome) .modes-in button { font: inherit; color: #0b0b0b; background: transparent; border: 0; border-radius: 99em; padding: 0.7em 1.15em;
@@ -96,7 +105,7 @@
   .trail { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
   .trail-pic { position: absolute; left: 0; top: 0; background: center / cover no-repeat; transform-origin: 50% 50%;
     transform: scale(0); will-change: transform; }   /* moved + scaled every frame by src/trail.js */
-  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; overflow: hidden; }
+  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100vh; overflow: hidden; isolation: isolate; }   /* own stacking context: edge bars drop to z -1 under the gallery (main.js) */
   #chrome { position: fixed; inset: 0; z-index: 20; color: #0b0b0b; pointer-events: none; visibility: hidden; }
   /* placeholder for the next section (V3, to be designed) */
   #next { position: relative; z-index: 4; margin-top: 100vh; min-height: 100vh; background: #EBEBE1; }
@@ -1022,6 +1031,7 @@
     .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
 </script>
 <script type="module">import './src/intro3d.js';</script>
+<script type="module">import './src/structure-intro.js';</script>
 <script type="module">import './src/kit3d.js';</script>
 <script type="module">import './src/footer-smoke.js';</script>
 <script type="module">import './src/impact3d.js';</script>

@@ -36,6 +36,48 @@ window.HALO_CONFIG = {
     pan: [null, [-5, 2], [5, 0], [0, -5]],
   },
 
+  // "Structure Intro" (src/structure-intro.js, ?intro=structure or the bottom-left switch; James' transition.mp4):
+  // the Halo mark as a solid (H top face on an inverted pyramid) turns on the dark grey, swings face-on as a cream card
+  // opens behind it, the dark H stretches to the frame and splits into the final lime bars, then the gallery fades in.
+  structure: {
+    bg: '#1b1b1b',          // the dark grey it starts on
+    ink: '#1b1b1b',         // the H's top face (same as the bg, so the mark reads like the logo: cream sides, dark top)
+    side: '#EBEBE1',        // the pyramid sides
+    // shape + view fitted to the logo's corner points (halo-structure.svg, rms error ~1.5% of its width). The logo itself is
+    // drawn slightly stylised (its lower-left edge has a kink no single solid gives), at the start each corner of the solid
+    // is nudged sideways onto the logo's corner (logoFit maps svg units to the view), easing back as it turns
+    aspect: 1.0,            // H face width / height (the logo's top is square)
+    cross: 0.181,           // crossbar width, as a share of the H's width
+    notch: 0.403,           // notch depth (top + bottom), as a share of its height
+    depth: 1.05,            // how far the apex sits below the face (face height = 1)
+    apex: [-0.095, -0.083],    // apex offset under the face centre (x, y)
+    elevation: 36.4,          // the logo view: degrees above the top face
+    azimuth: -46.35,           // and turned (deg) so the notches sit on the near-left + far-right edges
+    spin: 8,                // extra turn (deg) during the swing (the logo holds still before it)
+    logoFit: { s: 46.974, tx: 33.223, ty: 12.013 },   // svg units per face unit + where the face centre sits in the svg
+    startSize: 0.09,        // the small mark: face height as a share of the viewport width
+    faceSize: 0.6, faceWidthMax: 0.8,   // the face-on H: height as a share of the viewport height (max width share)
+    // the H stretched to the frame, just before it splits (design px, edge mapping; crossbar + notches keep their shares)
+    // order: left leg, crossbar top half, crossbar bottom half, right leg (they become the four final bars)
+    full: [[28, 28, 764.5, 1026], [792.5, 438.4, 335, 102.6], [792.5, 541, 335, 102.6], [1127.5, 28, 764.5, 1026]],
+    slow: 2,                // plays the whole intro at 1/slow speed (2 = half speed, for reviewing; 1 = normal)
+    // timings (s, at normal speed)
+    delay: 0.35, fadeIn: 0.35,   // the mark fades up
+    hold: 0.5,              // from the end of the fade-in to the swing: the swing starts while the spin is still easing out
+                            // (spin ends at 0.65), so there's no pause between them (James)
+    flatten: false,         // true = the solid folds flat with the background fade; false = stays a rigid solid (James: trying without)
+    spinEase: [0.85, 0, 0.15, 1],   // strong ease in + out on the spin (James)
+    spinAt: -0.35, spinDur: 1.0,   // the full 360 spin about its own axis, relative to the end of the fade-in (-fadeIn = as it starts fading in), lasts (s)
+    turn: 0.55,             // swings face-on + grows (site ease)
+    cardAt: 0.5, cardDur: 0.3,     // late in the swing: the background fades dark -> page grey (starts this share into the swing, lasts s), and the solid
+                                   // folds flat over the same start, landing as the H comes face-on (James)
+    grow: 0, growEase: [0.3, 0.7, 0.2, 1],   // the H stretching to the frame first (s); 0 = off, it goes straight to the bars (James)
+    split: 0.65,            // the face-on H splits into the final bars + turns lime (was 0.8)
+    splitEase: [0.9, 0, 0.08, 1],   // snappier than the site ease (0.8, 0, 0.1, 1): holds a touch longer, then breaks fast (James)
+    limeAt: 0.55,           // how far through the split (eased) the dark starts turning lime
+    fade: 0.6,              // the overlay fades: the gallery comes in behind the bars, the headline over them
+  },
+
   // 3D pre-intro (from iso-h, src/intro3d.js): floor lines draw, the bars pop up out of the floor as
   // the negative-space H in an isometric view, then the camera swings snappily round to look straight
   // down and the H lands as the flat artwork exactly on scene 1, where the DOM timeline takes over.
@@ -243,16 +285,26 @@ window.HALO_CONFIG = {
       { name: '9 Open nav (logo in the bar)',   // James' mock: assets/ref-end-6.webp
         logo: { x: 56, y: 49, w: 124.5, keepOut: 0 },   // sits inside the left bar
         // open nav: white pill top-right, over the right bar (items in end.pillnav)
-        pillnav: { x: 958, y: 54, size: 18, align: 'center', keepOut: 0 },   // centred (James' 2nd mock, ref-end-7)
+        // moved over to the right where Contact us was, with Contact us as its last item (James); was centred at x 958
+        pillnav: { x: 1864, y: 54, size: 18, align: 'right', keepOut: 0, cta: 'Contact us' },
         // dark Contact us pill top-right, over the right bar
-        contact: { x: 1864, y: 59, size: 18, align: 'right', label: 'Contact us', pill: true, keepOut: 0 },
-        // no gallery switch, paragraph or buttons (James, V3); headline on two lines as in the mock
+        // contact: { x: 1864, y: 59, size: 18, align: 'right', label: 'Contact us', pill: true, keepOut: 0 },   // now inside the nav
+        // paragraph + buttons back (James, assets/ref-hero-copy.webp): bottom-right between the middle and right bars, the
+        // buttons sitting on the bars' bottom line, the paragraph's left edge just right of the middle bar. No gallery switch.
+        copy: { x: 1107, y: 942, anchor: 'bottom', size: 24, lh: 1.28,   /* same size + spacing as the 'Trusted to build for' intro (James) */ keepOut: 0.6, lines: ['People often think of us like architects of',
+          'adaptable space – a team of highly skilled', 'designers, planners and problem-solvers', 'treating temporary structures like they’re',
+          'built to last.'] },
+        buttons: { x: 1107, y: 1022, anchor: 'bottom', size: 21, gap: 1.0 },   // up 32, closer to the paragraph (James); bigger, roomier pills (index.html #end[data-layout="9"] .btn)
+        // intro switch: a plain text stack, bottom-left over the lime left bar (James)
+        intros: { x: 56, y: 1028, anchor: 'bottom', size: 14, keepOut: 0 },   // on the left bar, lined up with the logo above (James)
+        // headline on two lines as in the mock
         title: { x: 960, y: 445, size: 96, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5,
           lines: ['Raising the bar for', 'temporary structures.'],
           depth: { z: [0, 0], perspective: 1500, turn: [16, 10], smooth: 3 } },
         // final bars, thicker (traced from the mock: 182 wide, 28 px margin, middle stubs 258 tall)
         bars: [[28, 28, 182, 1026], [869, 28, 182, 258], [869, 794, 182, 258], [1710, 28, 182, 1026]] },
     ],
+    intros: [{ key: 'structure', label: 'Structure Intro' }, { key: 'original', label: 'Original Intro' }],   // structure first + default (James)
     // open nav items (layout 9); drop: true adds the down arrow
     pillnav: [{ label: 'The Halo Structure', drop: true }, { label: 'What we offer', drop: true },
       { label: 'Company', drop: true }, { label: 'Projects' }, { label: 'News & Views' }],

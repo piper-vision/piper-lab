@@ -20,6 +20,15 @@ window.HaloEnd = function (C) {
     <path d="M73.1781 32.897C69.9347 34.3183 65.739 34.3481 62.4816 33.0901C59.7449 32.0337 57.5822 29.972 56.387 27.2572C55.2393 24.6475 54.9726 21.636 55.3594 18.8119C55.9625 14.423 58.4576 10.818 62.5933 9.27175C65.6426 8.1316 69.4502 8.12024 72.5051 9.23626C76.5068 10.6973 79.0465 14.1064 79.7572 18.3348C80.1035 20.4007 80.0839 22.4765 79.6692 24.5297C78.9111 28.2852 76.6869 31.3593 73.1767 32.897H73.1781ZM70.0129 29.3615C72.7341 28.6075 74.4529 26.4295 75.0198 23.6891C75.3591 22.0435 75.3591 20.3666 75.0198 18.721C74.4641 16.0247 72.7928 13.8764 70.1595 13.0884C68.5412 12.6042 66.8169 12.5971 65.1889 13.0415C63.3361 13.5484 61.8393 14.7766 60.9569 16.4932C59.9306 18.4881 59.7282 20.9658 60.0759 23.1737C60.5436 26.1469 62.2763 28.5664 65.1889 29.3643C66.7624 29.796 68.4086 29.8059 70.0129 29.3615Z"/>
     <path d="M53.6881 0H48.9479V33.3641H53.6881V0Z"/></svg>`;
 
+  const INTRO = new URLSearchParams(location.search).get('intro') === 'original' ? 'original' : 'structure';   // structure is the default (James)
+  root.addEventListener('click', e => {
+    const b = e.target.closest('.intros button');
+    if (!b) return;
+    if (b.dataset.intro === INTRO) { scrollTo(0, 0); location.reload(); return; }   // already on it: replay it (James)
+    const u = new URL(location.href);
+    if (b.dataset.intro === 'original') u.searchParams.set('intro', 'original'); else u.searchParams.delete('intro');
+    location.href = u.toString();   // replays the hero with the chosen intro
+  });
   const mask = (cls, inner, style = '') => `<div class="mask ${cls}" style="${style}"><div class="in">${inner}</div></div>`;
   const line = l => (typeof l === 'string' ? [l, 0] : l);   // 'text' or ['text', indent in design px]
   let L, blocks, pieces, depthScale = 1;
@@ -34,20 +43,24 @@ window.HaloEnd = function (C) {
       (L.buttons ? `<div class="blk ctas">${mask('btn primary', E.buttons[0])}${mask('btn secondary', E.buttons[1])}</div>` : '') +
       (L.meta || []).map(m => `<div class="blk meta">${mask('', m.text)}</div>`).join('') +
       (L.modes ? `<div class="blk modes">${mask('', '<div class="modes-row"><div class="modes-in" role="group" aria-label="Gallery style">' + E.modes.map((m, i) => '<button type="button" data-mode="' + m.key + '"' + (i ? '' : ' class="on"') + '>' + m.label + '</button>').join('') + '</div>' + '</div>')}</div>` : '') +
+      // intro switch (bottom-left): Original Intro / Structure Intro, reloads the page with ?intro=
+      (L.intros ? `<div class="blk intros">${mask('', '<div class="intros-in" role="group" aria-label="Intro">' + E.intros.map(m => '<button type="button" data-intro="' + m.key + '"' + (m.key === INTRO ? ' class="on"' : '') + '>' + m.label + '</button>').join('') + '</div>')}</div>` : '') +
       (L.contact ? `<div class="blk topcta">${mask('', '<a class="topcta-btn' + (L.contact.pill ? ' pill' : '') + '" href="#">' + (L.contact.label || 'Contact us') + '</a>')}</div>` : '') +
       (L.burger ? `<div class="blk burger">${mask('', '<button class="burger-btn" type="button" aria-label="Open menu"><i></i><i></i></button>')}</div>` : '') +
       (L.pillnav ? `<nav class="blk pnav" aria-label="Main">${mask('', '<div class="pnav-in">' + E.pillnav.map(it =>
         '<a href="#" class="pitem' + (it.active ? ' on' : '') + '"' + (it.active ? ' aria-current="page"' : '') + '>' + it.label +
         (it.drop ? '<svg class="parrow" viewBox="0 0 10 13" aria-hidden="true"><path d="M5 0.5V12M1 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>' : '') +
-        '</a>').join('') + '</div>')}</nav>` : '') +
+        '</a>').join('') +
+        // Contact us as the last item, in its dark pill (James: moved into the nav)
+        (L.pillnav.cta ? '<a href="#" class="pitem pcta">' + L.pillnav.cta + '</a>' : '') + '</div>')}</nav>` : '') +
       (L.nav ? `<nav class="blk nav">${E.nav.links.map(t => mask('nlink', t)).join('')}${mask('nlink cta', E.nav.cta)}</nav>` : '');
     chrome.innerHTML = '';
     root.querySelectorAll(':scope > ' + STICKY.split(', ').join(', :scope > ')).forEach(el => chrome.appendChild(el));
     const q = s => [...root.querySelectorAll(s), ...chrome.querySelectorAll(s)];
     const [logo, titleEl, copyEl, ctas] = ['.logo', '.title', '.copy', '.ctas'].map(s => q(s)[0] || null);
-    blocks = [[logo, L.logo], [titleEl, L.title], [copyEl, L.copy], [ctas, L.buttons]].filter(b => b[0]).concat([...q('.meta').map((el, i) => [el, L.meta[i]]), ...q('.nav').map(el => [el, L.nav]), ...q('.pnav').map(el => [el, L.pillnav]), ...q('.burger').map(el => [el, L.burger]), ...q('.topcta').map(el => [el, L.contact]), ...q('.modes').map(el => [el, L.modes])]);
+    blocks = [[logo, L.logo], [titleEl, L.title], [copyEl, L.copy], [ctas, L.buttons]].filter(b => b[0]).concat([...q('.meta').map((el, i) => [el, L.meta[i]]), ...q('.nav').map(el => [el, L.nav]), ...q('.pnav').map(el => [el, L.pillnav]), ...q('.burger').map(el => [el, L.burger]), ...q('.topcta').map(el => [el, L.contact]), ...q('.modes').map(el => [el, L.modes]), ...q('.intros').map(el => [el, L.intros])]);
     // reveal order: logo, nav links, meta, title lines, copy lines, buttons
-    pieces = [logo.firstElementChild, ...q('.topcta > .mask'), ...q('.burger > .mask'), ...q('.pnav > .mask'), ...q('.nlink'), ...q('.meta > .mask'), ...q('.tline'), ...q('.cline'), ...q('.btn'), ...q('.modes > .mask')].map(m => m.firstElementChild);
+    pieces = [logo.firstElementChild, ...q('.topcta > .mask'), ...q('.burger > .mask'), ...q('.pnav > .mask'), ...q('.nlink'), ...q('.meta > .mask'), ...q('.tline'), ...q('.cline'), ...q('.btn'), ...q('.modes > .mask'), ...q('.intros > .mask')].map(m => m.firstElementChild);
     root.dataset.layout = n;
     place();
   }

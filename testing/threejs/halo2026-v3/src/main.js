@@ -15,6 +15,18 @@
     stage.appendChild(el);
     return el;
   });
+  // "Structure Intro" (the default; ?intro=original or the bottom-left switch for the old one): src/structure-intro.js plays the 3D mark over the hero
+  // in its own overlay (made here, before that module loads, so the normal intro never flashes). The normal timeline
+  // waits, with the scene photos hidden, until the overlay calls haloStructureDone(); then its clock jumps to the
+  // moment the headline comes in, with the bars already in their final place.
+  const STRUCT = C.structure && new URLSearchParams(location.search).get('intro') !== 'original' ? C.structure : null;   // default (James); ?intro=original for the old one
+  if (STRUCT) {
+    bgLayers.forEach(el => { if (el) el.style.display = 'none'; });
+    const ov = document.createElement('div');
+    ov.id = 'sintro';
+    ov.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100vh;z-index:2;overflow:hidden;pointer-events:none;background:' + STRUCT.bg;
+    document.body.appendChild(ov);
+  }
   const gallery = C.gallery.mode === 'carousel' ? window.HaloCarousel(stage, C) : window.HaloGallery(stage, C, t => ease(t));
   // gallery style, picked with the switch bottom-left: 'gallery' (3D, photos fly at the camera)
   // or 'follow' (photos trail the cursor)
@@ -23,7 +35,7 @@
   window.haloGalleryLayout = () => gallery.layoutData?.();
   let galleryMode = 'gallery';
   document.addEventListener('click', e => {
-    const b = e.target.closest('#end .modes-in button');
+    const b = e.target.closest('#end .modes-in button[data-mode]');
     if (!b) return;
     galleryMode = b.dataset.mode;
     gallery.setModular?.(galleryMode === 'modular');
@@ -119,7 +131,7 @@
 
   const SG = C.scrollGrow || {};
   let growK = 0;
-  let barK = -1, curBg = null;
+  let barK = -1, curBg = null, edgeZ = false;
   const hexRGB = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const mixHex = (a, b, k) => { const A = hexRGB(a), B = hexRGB(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`; };
   function render(tRaw) {
@@ -190,6 +202,11 @@
       // scale a 100px box via transform: GPU-only, no layout per frame
       bars[i].style.transform = `translate(${r[0]}px, ${r[1]}px) scale(${r[2] / 100}, ${r[3] / 100})`;
     }
+    // gallery photos pass IN FRONT of the two edge bars but stay behind the middle ones (James). Only once the last
+    // hero photo has fully faded: until then the bars must sit above the photo backgrounds (z 1). -1 keeps them under
+    // the gallery (z 0) inside #stage (isolation: isolate, so they never drop behind the page itself).
+    const edgeBack = !C.loop && outK >= 1;
+    if (edgeBack !== edgeZ) { edgeZ = edgeBack; [bars[0], bars[N - 1]].forEach(b => { b.style.zIndex = edgeBack ? "-1" : ""; }); }
   }
 
   const clamp01 = v => Math.min(Math.max(v, 0), 1);
@@ -201,7 +218,12 @@
   // the flat bars stay hidden until then: the 3D canvas only covers them once three.js has loaded
   // and drawn, so without this the flat H could flash for a moment before the 3D animation starts
   const showBars = v => bars.forEach(b => { b.style.visibility = v ? '' : 'hidden'; });
-  window.haloBeginTimeline = () => { showBars(true); if (frozen == null) start = performance.now(); };
+  window.haloBeginTimeline = () => { showBars(true); if (frozen == null && !STRUCT) start = performance.now(); };   // the structure intro starts the clock itself
+  if (STRUCT) {
+    start = Infinity;   // holds at t = 0 (under the overlay) until the structure intro hands over
+    window.haloStructureDone = () => { if (frozen == null) start = performance.now() - (galleryStart + C.end.at) * 1000; };
+    setTimeout(() => { if (start === Infinity) window.haloStructure ? 0 : (document.getElementById('sintro')?.remove(), window.haloStructureDone()); }, 6000);   // three.js never loaded
+  }
   if (PRE) {
     start += 3000;
     showBars(false);
@@ -239,7 +261,7 @@
     mode: k => document.querySelector('#end .modes-in [data-mode="' + k + '"]')?.click(),
     trail: (x, y) => trail?.test(x, y),
     mouse: (x, y) => { gallery.mouse?.(x, y); end.mouse?.(x, y); window.haloGallery3d?.mouse(x, y); },
-    freeze: s => { frozen = s; window.haloPre3d?.finish(); showBars(true); },
+    freeze: s => { frozen = s; window.haloPre3d?.finish(); window.haloStructure?.finish(); showBars(true); },
     gallery: () => ({ galleryStart }),
     end: () => galleryStart + C.end.at,   // haloDebug.freeze(haloDebug.end() + 2) = settled end layout
     boxes: () => end.boxes(),
@@ -247,7 +269,7 @@
     // overlay James' mock to line the end layout up: haloDebug.ref(0.5), haloDebug.ref(0) to hide
     ref: (o, src = 'assets/ref-end-2.webp') => { let r = document.getElementById('ref'); if (!r) { r = document.createElement('img'); r.id = 'ref'; } r.src = src; {
       r.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:9;pointer-events:none'; document.body.appendChild(r); } r.style.opacity = o; },
-    play: () => { if (PRE && frozen != null) return location.reload(); frozen = null; start = performance.now(); },
+    play: () => { if ((PRE || STRUCT) && frozen != null) return location.reload(); frozen = null; start = performance.now(); },
     scene: i => { const s = segs.find(x => x.type === 'hold' && x.scene === i); frozen = s.t0 + 0.01; },
     total, segs,
   };

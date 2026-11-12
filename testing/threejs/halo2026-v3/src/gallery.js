@@ -5,7 +5,9 @@
 window.HaloGallery = function (stage, C, ease) {
   const G = C.gallery;
   const root = document.createElement('div');
-  root.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;';
+  // no overflow:hidden here: the cursor tilt (setTilt) turns this layer in 3D, and its own clip box turned with it, cutting
+  // photos off on a slant inside the page (James). #stage already crops everything to the viewport.
+  root.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0;';
   stage.appendChild(root);
 
   const files = Array.from({ length: G.images }, (_, i) => `assets/gallery/${String(i + 1).padStart(2, '0')}.jpg`);

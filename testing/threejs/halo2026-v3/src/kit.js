@@ -5,7 +5,7 @@
 //   0.18  intro lines slide up (0.06 apart), then the "View all build types" pill
 //   0.30  Kit card clip-wipes in from the right (0.8 s); 0.45 Team card does the same
 //   0.65  Kit card: badge ring draws round, label/title/paragraph lines slide up, button; logo slaps on at ~1.15
-//   1.10  the 3D build starts (kit3d.js waits for 'reveal:done' on the card)
+//   0.65  the 3D build starts with the card's title (kit3d.js waits for 'reveal:done' on the card)
 //   0.90  Team card: photo unmasks upwards + settles from its zoom, then its text lines and button
 (() => {
   const sec = document.getElementById('kit');
@@ -34,8 +34,8 @@
   function play() {
     played = true;
     sec.classList.add('in');
-    // the Kit card has finished wiping in: let the 3D build start
-    setTimeout(() => kit.dispatchEvent(new CustomEvent('reveal:done')), 1100);
+    // the 3D build starts with the card's title lines (James: was 1.1 s, once the card had finished wiping in)
+    setTimeout(() => kit.dispatchEvent(new CustomEvent('reveal:done')), 650);
   }
   function check() { if (!played && sec.getBoundingClientRect().top / innerHeight < K.revealAt) play(); }
   addEventListener('scroll', check, { passive: true });
