@@ -66,6 +66,7 @@ window.HALO_CONFIG = {
     hold: 0.5,              // from the end of the fade-in to the swing: the swing starts while the spin is still easing out
                             // (spin ends at 0.65), so there's no pause between them (James)
     flatten: false,         // true = the solid folds flat with the background fade; false = stays a rigid solid (James: trying without)
+    notchFloor: 0.45,       // the front notch is cut this deep (face height = 1); below it the solid is whole (no slot by the tip)
     spinEase: [0.85, 0, 0.15, 1],   // strong ease in + out on the spin (James)
     spinAt: -0.35, spinDur: 1.0,   // the full 360 spin about its own axis, relative to the end of the fade-in (-fadeIn = as it starts fading in), lasts (s)
     turn: 0.55,             // swings face-on + grows (site ease)

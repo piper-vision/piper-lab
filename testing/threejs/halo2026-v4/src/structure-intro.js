@@ -75,6 +75,9 @@ if (ov && S) {
     [plane(1, 0, 0, -c)],                                                         // left leg  (x <= -c)
     [plane(-1, 0, 0, -c)],                                                        // right leg (x >= c)
     [plane(-1, 0, 0, c), plane(1, 0, 0, c), plane(0, 1, 0, h - n), plane(0, -1, 0, h - n)],   // crossbar
+    // the front notch is only cut part-way down: below S.notchFloor it's solid again, so there's no slot beside the tip
+    // (the apex sits just behind that notch; cut all the way down it showed as a jagged notch in the spin: James)
+    [plane(-1, 0, 0, c), plane(1, 0, 0, c), plane(0, 1, 0, -(h - n)), plane(0, 0, 1, -S.notchFloor)],
   ];
   pieces.forEach(extra => {
     const P = pyramid.concat(extra), pts = [];
@@ -91,7 +94,7 @@ if (ov && S) {
       const u = new THREE.Vector3().subVectors(on[0], cen).normalize(), v = new THREE.Vector3().crossVectors(q.n, u);
       const ang = p => Math.atan2(v.dot(p.clone().sub(cen)), u.dot(p.clone().sub(cen)));
       on.sort((a, b) => ang(a) - ang(b));
-      polys.push({ idx: on.map(vid), top: q.n.z > 0.999, n: q.n.clone() });
+      polys.push({ idx: on.map(vid), top: q.n.z > 0.999 && Math.abs(q.d) < 1e-6, n: q.n.clone() });   // only the z = 0 face is the dark top
     }
   });
   // put an extra corner on the edge a-b in every face that has that edge
