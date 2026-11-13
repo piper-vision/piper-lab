@@ -285,20 +285,21 @@ window.HALO_CONFIG = {
       { name: '9 Open nav (logo in the bar)',   // James' mock: assets/ref-end-6.webp
         logo: { x: 56, y: 49, w: 124.5, keepOut: 0 },   // sits inside the left bar
         // open nav: white pill top-right, over the right bar (items in end.pillnav)
-        // moved over to the right where Contact us was, with Contact us as its last item (James); was centred at x 958
-        pillnav: { x: 1864, y: 54, size: 18, align: 'right', keepOut: 0, cta: 'Contact us' },
+        // centred again with Contact us back on the right bar (James; the trial with Contact us inside the nav, right-aligned:
+        // pillnav { x: 1864, align: 'right', cta: 'Contact us' } with the contact block below removed)
+        pillnav: { x: 958, y: 54, size: 18, align: 'center', keepOut: 0 },
         // dark Contact us pill top-right, over the right bar
-        // contact: { x: 1864, y: 59, size: 18, align: 'right', label: 'Contact us', pill: true, keepOut: 0 },   // now inside the nav
+        contact: { x: 1864, y: 59, size: 18, align: 'right', label: 'Contact us', pill: true, keepOut: 0 },
         // paragraph + buttons back (James, assets/ref-hero-copy.webp): bottom-right between the middle and right bars, the
         // buttons sitting on the bars' bottom line, the paragraph's left edge just right of the middle bar. No gallery switch.
-        copy: { x: 1107, y: 942, anchor: 'bottom', size: 24, lh: 1.28,   /* same size + spacing as the 'Trusted to build for' intro (James) */ keepOut: 0.6, lines: ['People often think of us like architects of',
-          'adaptable space – a team of highly skilled', 'designers, planners and problem-solvers', 'treating temporary structures like they’re',
-          'built to last.'] },
-        buttons: { x: 1107, y: 1022, anchor: 'bottom', size: 21, gap: 1.0 },   // up 32, closer to the paragraph (James); bigger, roomier pills (index.html #end[data-layout="9"] .btn)
+        // paragraph + buttons centred under the headline (James, ref-hero-stack); was bottom-right between the middle and right bars
+        copy: { x: 960, y: 554, size: 24, lh: 1.28, align: 'center', keepOut: 0.6, lines: ['People often think of us like architects of adaptable space – a team of highly',
+          'skilled designers, planners and problem-solvers treating temporary structures', 'like they’re built to last.'] },
+        buttons: { x: 960, y: 684, size: 21, gap: 0.5, align: 'center' },
         // intro switch: a plain text stack, bottom-left over the lime left bar (James)
         intros: { x: 56, y: 1028, anchor: 'bottom', size: 14, keepOut: 0 },   // on the left bar, lined up with the logo above (James)
         // headline on two lines as in the mock
-        title: { x: 960, y: 445, size: 96, ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5,
+        title: { x: 960, y: 340, size: 96,   /* up from 445 so the stack sits between the middle bars */ ls: -0.05, lh: 0.87, align: 'center', keepOut: 0.5,
           lines: ['Raising the bar for', 'temporary structures.'],
           depth: { z: [0, 0], perspective: 1500, turn: [16, 10], smooth: 3 } },
         // final bars, thicker (traced from the mock: 182 wide, 28 px margin, middle stubs 258 tall)

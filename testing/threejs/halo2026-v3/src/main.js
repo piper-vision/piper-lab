@@ -206,7 +206,7 @@
     // hero photo has fully faded: until then the bars must sit above the photo backgrounds (z 1). -1 keeps them under
     // the gallery (z 0) inside #stage (isolation: isolate, so they never drop behind the page itself).
     const edgeBack = !C.loop && outK >= 1;
-    if (edgeBack !== edgeZ) { edgeZ = edgeBack; [bars[0], bars[N - 1]].forEach(b => { b.style.zIndex = edgeBack ? "-1" : ""; }); }
+    if (edgeBack !== edgeZ) { edgeZ = edgeBack; bars.forEach(b => { b.style.zIndex = edgeBack ? "-1" : ""; }); }   // ALL bars now (James: photos pass over the middle ones too; it was only the two edge bars)
   }
 
   const clamp01 = v => Math.min(Math.max(v, 0), 1);
