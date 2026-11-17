@@ -311,7 +311,7 @@ window.HALO_CONFIG = {
         // headline on two lines as in the mock
         // H1 56/56, -1% tracking, centred (Figma); info: the small (i) after the first line with its pop-up
         title: { x: 957, y: 465, size: 74.67, ls: -0.01, lh: 1, align: 'center', keepOut: 0.5,
-          info: 'Easy to put-up and takedown, Temporary structures can help set the stage for your event or provide extra spaces to enable your ideas.',
+          info: '<b>Temporary, on your timeline.</b> A weekend, a season or several years: we build for as long as you need the space.',
           lines: ['Raising the bar for', 'temporary structures.'] },   // no cursor turn (James: depth removed)
         // final bars, thicker (traced from the mock: 182 wide, 28 px margin, middle stubs 258 tall)
         bars: [[28, 28, 182, 1026], [869, 28, 182, 258], [869, 794, 182, 258], [1710, 28, 182, 1026]] },

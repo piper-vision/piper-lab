@@ -18,7 +18,7 @@
   const arrow = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>';
   const K = {
     ENTER: 0.7778,   // share of the section's scroll spent on the first card coming up over the title (210vh of 270vh; each service then gets 15vh)
-    LOCK: 1040,      // ms the page is held after a step: until the new card's text is fully revealed (0.2 s wait + 0.8 s mask)
+    LOCK: 900,       // ms the page is held after a step: the card move (0.2 s wait + 0.68 s); no mask reveal any more (James)
     GESTURE: 180,    // ms pause in wheel input that counts as a new swipe
     TILT: 7,         // degrees: the arrival angle, and the side cards' angle (matches the CSS)
     SWAP_MS: 376,    // stacking swap during a step (the moment the two cards are clear of each other)

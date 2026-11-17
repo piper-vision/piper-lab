@@ -1,23 +1,26 @@
-// Homepage services: Option A / Option B switch (James), fixed bottom left.
+// Homepage services: Option A-E switch (James), fixed bottom left.
 // - A = the original "Four ways we create space" four cream cards (#services-a): cards slide in from the right once
 //   the section's top passes 80% down the screen, and the photos drift inside their frames (parallax)
 // - B = the card carousel (#services, src/services-m.js)
+// - C, D, E = stacked deck, full-bleed, rail (#svc-c, #svc-d, #svc-e, src/services-x.js)
 // A is the default; the choice is remembered in this browser.
 (() => {
   const A = document.getElementById('services-a'), B = document.getElementById('services');
   if (!A || !B) return;
+  const SEC = { a: A, b: B, c: document.getElementById('svc-c'), d: document.getElementById('svc-d'), e: document.getElementById('svc-e') };
+  Object.keys(SEC).forEach(k => { if (!SEC[k]) delete SEC[k]; });
 
   // ---- the switch ------------------------------------------------------------------------------------------------
   const sw = document.createElement('div');
   sw.className = 'opt-switch';
   sw.setAttribute('role', 'group'); sw.setAttribute('aria-label', 'Services section layout');
-  sw.innerHTML = '<button type="button" data-o="a">Option A</button><button type="button" data-o="b">Option B</button>';
+  sw.innerHTML = Object.keys(SEC).map(k => '<button type="button" data-o="' + k + '" aria-label="Option ' + k.toUpperCase() + '">' + k.toUpperCase() + '</button>').join('');
   document.body.appendChild(sw);
   let cur = 'a';
-  try { if (localStorage.getItem('haloSvcOpt') === 'b') cur = 'b'; } catch (e) {}
+  try { const v = localStorage.getItem('haloSvcOpt'); if (SEC[v]) cur = v; } catch (e) {}
   function show(o) {
     cur = o;
-    A.hidden = o !== 'a'; B.hidden = o !== 'b';
+    Object.keys(SEC).forEach(k => { SEC[k].hidden = k !== o; });
     sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.o === o)));
     try { localStorage.setItem('haloSvcOpt', o); } catch (e) {}
     dispatchEvent(new Event('resize'));   // page height changed: let everything re-measure

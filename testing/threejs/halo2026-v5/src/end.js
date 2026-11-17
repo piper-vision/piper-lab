@@ -38,8 +38,8 @@ window.HaloEnd = function (C) {
     const title = L.title.lines || E.title, copy = L.copy ? L.copy.lines || E.copy : null;
     root.innerHTML =
       `<div class="blk logo">${mask('', LOGO)}</div>` +
-      `<div class="blk title">${title.map(l => mask('tline', line(l)[0], `--ind:${line(l)[1]}`)).join('')}` +
-      // info (i): a small pill after the first line; hover / focus shows a frosted pop-up (Figma 'Info - Pop')
+      `<div class="blk title">${title.map((l, i) => mask('tline', line(l)[0] + (L.title.info && i === title.length - 1 ? '<span class="iend"></span>' : ''), `--ind:${line(l)[1]}`)).join('')}` +
+      // info (i): a small pill after the last line's full stop (marked by an empty .iend span); hover / focus shows a frosted pop-up (Figma 'Info - Pop')
       (L.title.info ? `<button class="ipip" type="button" aria-label="About temporary structures"><b>i</b><span class="ipop" role="tooltip">${L.title.info}</span></button>` : '') + `</div>` +
       (copy ? `<div class="blk copy">${copy.map(l => mask('cline', l)).join('')}</div>` : '') +   // a layout may drop the paragraph / buttons
       (L.buttons ? `<div class="blk ctas">${mask('btn primary', E.buttons[0])}${mask('btn secondary', E.buttons[1])}</div>` : '') +
@@ -93,15 +93,17 @@ window.HaloEnd = function (C) {
       const c = root.querySelector('.copy').getBoundingClientRect();
       Object.assign(el.style, { right: '', left: `${c.left}px`, transform: '', justifyContent: 'flex-start' });
     }
-    // the (i) sits just after the first line's last word, level with its top
-    const pip = root.querySelector('.ipip');
-    if (pip) {
-      const tEl = root.querySelector('.title'), first = root.querySelector('.tline .in'), rg = document.createRange();
-      rg.selectNodeContents(first);
-      const lr = rg.getBoundingClientRect(), tr = tEl.getBoundingClientRect(), fs = parseFloat(getComputedStyle(tEl).fontSize);
-      pip.style.left = `${lr.right - tr.left + fs * 0.22}px`; pip.style.top = `${lr.top - tr.top - fs * 0.12}px`;
-    }
     root.querySelectorAll('.tline').forEach(t => { t.style.paddingLeft = `${(+t.style.getPropertyValue('--ind') || 0) * kx}px`; });
+    // the (i) sits just after the last line's full stop (James). Layout offsets, not screen rects: the lines may be
+    // mid-slide (transformed) when this runs, which used to drop the pip wherever the text happened to be
+    const pip = root.querySelector('.ipip'), end = root.querySelector('.iend');
+    if (pip && end) {
+      const tEl = root.querySelector('.title'), fs = parseFloat(getComputedStyle(tEl).fontSize);
+      let x = end.offsetLeft, y = end.offsetTop;
+      for (let n = end.offsetParent; n && n !== tEl; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+      // .iend is a 0x0 inline-block, so its top is the baseline: the pill's bottom sits 0.32em above it, near the top of the lowercase (James)
+      pip.style.left = `${x + fs * 0.14}px`; pip.style.top = `${y - pip.offsetHeight - fs * 0.32}px`;
+    }
     // 3D title: every line pivots about the block's centre, so the stack turns as one object
     if (L.title.depth) {
       const tl = [...root.querySelectorAll('.tline')], tEl = root.querySelector('.title');

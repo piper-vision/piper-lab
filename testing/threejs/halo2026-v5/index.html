@@ -35,7 +35,9 @@
     opacity: 0; transition: opacity 0.6s ease 0.6s, background-color 0.3s ease; }
   #end .title.in-view .ipip, #end[style*="visible"] .ipip { opacity: 1; }
   #end .ipip:hover, #end .ipip:focus-visible { background: #e6ff00; outline: none; }
-  #end .ipip b { font: 400 0.247em / 1 'Space Grotesk', sans-serif; }
+  #end .iend { display: inline-block; width: 0; height: 0; vertical-align: baseline; }   /* marks where the (i) goes: src/end.js */
+  #end .ipop b { font: inherit; font-weight: 500; }   /* the pop-up's bold lead-in */
+  #end .ipip > b { font: 400 0.247em / 1 'Space Grotesk', sans-serif; }
   #end .ipop { position: absolute; left: calc(100% + 0.5em); bottom: calc(100% + 0.5em);   /* opens to the top right of the (i) */ font: 300 0.214em / 1.375 'Space Grotesk', sans-serif; width: 23.125em; box-sizing: border-box;
     padding: 1.25em; border-radius: 0.94em; border: 1px solid #fff; background: rgba(255, 255, 249, 0.8); -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
     color: #191919; text-align: left; white-space: normal; opacity: 0; transform: translate(-0.4em, 0.4em); pointer-events: none; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -162,14 +164,108 @@
   .nx-card { flex: none; width: calc(349 * var(--u)); height: 100%; border-radius: calc(22 * var(--u)); background: #ECEBE2;
     display: flex; align-items: center; justify-content: center; }
   .nx-card img { width: calc(197 * var(--u)); height: auto; display: block; mix-blend-mode: multiply; }
+  /* breadcrumb labels (eyebrows): a small dark dot in front (James; tried lime, then #9DCDEA). On the masked ones the dot rides the inner span, so it slides in with the words */
+  .nx-h .m > span::before, .kt-eyebrow .km > span::before, .im-eyebrow .km > span::before, .nw-eyebrow .km > span::before,
+  .pj-eyebrow::before, .svm-eyebrow::before, .svx .eyebrow::before {
+    content: ''; display: inline-block; width: 0.5em; height: 0.5em; margin: 0 0.6em 0 0; border-radius: 50%; background: #191919; vertical-align: 0.12em; }
   /* ---- Option A / Option B switch for the services section (src/services-a.js), fixed bottom left */
-  .opt-switch { position: fixed; left: 20px; bottom: 20px; z-index: 1000; display: flex; gap: 4px; padding: 4px; border-radius: 99em;
+  .opt-switch { position: fixed; left: 16px; bottom: 16px; z-index: 1000; display: flex; gap: 2px; padding: 3px; border-radius: 99em;
     background: rgba(255, 248, 230, 0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 2px 12px rgba(25, 25, 25, 0.12); }
-  .opt-switch button { appearance: none; border: 0; margin: 0; padding: 9px 16px; border-radius: 99em; background: transparent; color: #191919; cursor: pointer;
-    font: 400 14px / 1 'Space Grotesk', sans-serif; transition: background-color 0.25s, color 0.25s; }
+  .opt-switch button { appearance: none; border: 0; margin: 0; padding: 6px 9px; min-width: 26px; border-radius: 99em; background: transparent; color: #191919; cursor: pointer;
+    font: 400 12px / 1 'Space Grotesk', sans-serif; transition: background-color 0.25s, color 0.25s; }
   .opt-switch button:hover { background: rgba(25, 25, 25, 0.08); }
   .opt-switch button[aria-pressed="true"] { background: #191919; color: #FFF8E6; }
   #services-a[hidden], #services[hidden] { display: none; }
+  /* ---- services Options C, D, E (ported from services.html: C = its D "Stacked deck", D = its B "Full-bleed",
+     E = its C "Rail"). Each is a tall track whose .svx-pin sticks to the screen; driven by src/services-x.js */
+  .svx { --u: calc(100vw / 1920); --bg: #EBEBE1; --cream: #FFF8E6; --ink: #191919; --lime: #E6FF00; --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --nav: calc(140 * var(--u)); position: relative; z-index: 4; background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+  .svx[hidden] { display: none; }
+  .svx * { box-sizing: border-box; }
+  .svx a { color: inherit; text-decoration: none; }
+  .svx-track { position: relative; height: 420vh; }
+  .svx-pin { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+  .svx .mask { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+  .svx .mask > span { display: block; transform: translateY(130%); opacity: 0; transition: transform 0.9s var(--ease), opacity 0.35s ease; }
+  .svx .on .mask > span, .svx .mask.on > span { transform: none; opacity: 1; transition-delay: var(--d, 0s); }
+  .svx .pill { display: inline-flex; align-items: center; gap: 0.6em; height: 2.6em; padding: 0 1.4em; border-radius: 99em; background: var(--ink); color: #fff;
+    font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.3s, color 0.3s; }
+  .svx .pill:hover { background: var(--lime); color: var(--ink); }
+  .svx .pill svg, .svx .go svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .svx .feat { font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.6; }
+  .svx .dot { display: inline-block; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--c); }
+  #svc-d .svx-pin { --bw: calc(20 * var(--u)); background: var(--bgc, #9ECDEB); color: #fff; transition: background-color 0.9s var(--ease); }
+  .svx .b-head { display: flex; align-items: flex-end; justify-content: space-between; padding: calc(60 * var(--u)) calc(60 * var(--u)) calc(40 * var(--u)); background: #EBEBE1; color: #191919; }
+  .svx .b-head .eyebrow { margin: 0 0 calc(22 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .svx .b-head h2 { margin: 0; font: 400 calc(48 * var(--u)) / 1.05 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .svx .b-head .all { display: inline-flex; align-items: center; gap: 0.3em; padding-bottom: calc(8 * var(--u)); margin-bottom: calc(2 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; color: inherit; transition: opacity 0.3s ease; }
+  .svx .b-head .all svg { width: 0.85em; height: 0.85em; fill: none; stroke: currentColor; stroke-width: 1.6; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .svx .b-head .all:hover svg { transform: translateX(0.2em); }
+  .svx .b-bg, .svx .b-shade { position: absolute; inset: var(--bw); border-radius: calc(36 * var(--u)); overflow: hidden; }
+  .svx .b-bg { background: #111; }
+  .svx .b-bg figure { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 0.9s var(--ease); }
+  .svx .b-bg figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); transition: transform 2.4s var(--ease); }
+  .svx .b-bg figure.on { opacity: 1; }
+  .svx .b-bg figure.on img { transform: scale(1); }
+  .svx .b-shade { background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.72) 100%); }
+  .svx .b-tabs { position: absolute; left: calc(60 * var(--u)); right: calc(60 * var(--u)); top: var(--nav); display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(14 * var(--u)); }
+  .svx .b-tabs a { display: block; padding-top: calc(16 * var(--u)); font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.55; transition: opacity 0.4s; }
+  .svx .b-tabs a:hover, .svx .b-tabs a.on { opacity: 1; }
+  .svx .b-tabs a .seg { display: block; height: 3px; margin-bottom: calc(14 * var(--u)); background: rgba(255, 255, 255, 0.3); border-radius: 2px; overflow: hidden; }
+  .svx .b-tabs a .seg i { display: block; height: 100%; transform-origin: left; transform: scaleX(var(--p, 0)); background: var(--bgc, #fff); transition: background-color 0.9s var(--ease); }
+  .svx .b-copy { position: absolute; left: calc(60 * var(--u)); right: calc(60 * var(--u)); bottom: calc(60 * var(--u)); }
+  .svx .b-copy > div { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: calc(40 * var(--u)); }
+  .svx .b-num { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; margin-bottom: calc(18 * var(--u)); display: flex; align-items: center; gap: 0.7em; }
+  .svx .b-title { margin: 0; font: 400 calc(74.67 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.01em; }   /* same as the hero H1 (config.js title: 74.67 design px, lh 1, -1%) */
+  .svx .b-side { width: calc(520 * var(--u)); padding-bottom: calc(14 * var(--u)); }
+  .svx .b-side p { margin: 0 0 calc(26 * var(--u)); font: 300 calc(24 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .svx .b-side .pill { background: var(--bgc, var(--cream)); color: var(--ink); transition: background-color 0.9s var(--ease); }
+  .svx .b-side .pill:hover { background: var(--lime); }
+  #svc-e .svx-pin { background: var(--bg); display: flex; flex-direction: column; justify-content: flex-start; padding-top: calc(160 * var(--u)); }
+  /* E: "Our offer / Four ways we create space" above the cards (James), lined up with the card's left edge */
+  .svx .e-head { margin: 0 calc(60 * var(--u)) calc(36 * var(--u)); }
+  .svx .e-head .eyebrow { margin: 0 0 calc(22 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .svx .e-head h2 { margin: 0; font: 400 calc(56 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.03em; }
+  .svx .c-rail { display: flex; gap: calc(40 * var(--u)); padding-left: calc(60 * var(--u)); will-change: transform; }
+  .svx .c-panel { flex: 0 0 calc(1800 * var(--u)); height: min(calc(760 * var(--u)), calc(100vh - 434 * var(--u)));   /* heading on one line (James): the card takes the line back */   /* full content width (60 margins, James); fits under the heading */ display: grid; grid-template-columns: 1.45fr 1fr; gap: calc(14 * var(--u));
+    padding: calc(14 * var(--u)); border-radius: calc(26 * var(--u)); background: var(--cream); transition: opacity 0.5s; }
+  .svx .c-panel figure { margin: 0; border-radius: calc(16 * var(--u)); overflow: hidden; }
+  .svx .c-panel figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--s, 1.1)); }
+  .svx .c-text { position: relative; display: flex; flex-direction: column; padding: calc(40 * var(--u)) calc(40 * var(--u)) calc(10 * var(--u)); }
+  .svx .c-text .n { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; display: flex; gap: 0.7em; align-items: center; }
+  .svx .c-text h3 { margin: calc(40 * var(--u)) 0 calc(26 * var(--u)); font: 400 calc(76 * var(--u)) / 0.95 'FK Display', sans-serif; letter-spacing: -0.035em; }
+  .svx .c-text p { margin: 0; font: 300 calc(26 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .svx .c-text .feat { margin-top: calc(26 * var(--u)); }
+  .svx .go { position: absolute; right: 0; bottom: 0; width: calc(74 * var(--u)); height: calc(74 * var(--u)); border-radius: calc(14 * var(--u));
+    display: grid; place-items: center; background: var(--c); border: 1px solid rgba(25, 25, 25, 0.35); font-size: calc(22 * var(--u)); }
+  .svx .go svg { transition: transform 0.4s var(--ease); }
+  .svx .go:hover svg { transform: translateX(calc(4 * var(--u))); }
+  .svx .c-tabs { display: flex; gap: calc(50 * var(--u)); margin: calc(40 * var(--u)) calc((100vw - 1800 * var(--u)) / 2) 0;   /* lined up with the centred card (1800 wide; James) */ position: relative; padding-top: calc(18 * var(--u));
+    border-top: 1px solid rgba(25, 25, 25, 0.15); }
+  .svx .c-tabs a { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.45; transition: opacity 0.4s; display: flex; gap: 0.6em; align-items: center; }
+  .svx .c-tabs a.on, .svx .c-tabs a:hover { opacity: 1; }
+  .svx .c-line { position: absolute; top: -1px; left: 0; height: 2px; background: var(--ink); transition: transform 0.6s var(--ease), width 0.6s var(--ease); }
+  #svc-c .svx-pin { background: var(--bg); display: grid; grid-template-columns: calc(460 * var(--u)) 1fr; gap: calc(40 * var(--u)); padding: var(--nav) calc(60 * var(--u)) calc(60 * var(--u)); }
+  .svx .d-index { display: flex; flex-direction: column; justify-content: space-between; padding: calc(10 * var(--u)) 0; }
+  .svx .d-head .eyebrow { margin: 0 0 calc(22 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }   /* Our offer, as on D */
+  #svc-c .svx-track { height: 431vh; }
+  #svc-e .svx-track { height: 310vh; }   /* rail: 3 slots of 70vh + the screen; wheel steps one card per swipe (src/services-x.js E_SLOTS) */   /* 3.15 slots of 105vh (slow rises, James) + the screen; no long hold on the last card (src/services-x.js C_SLOTS) */
+  .svx .d-index h3 { margin: 0; font: 400 calc(56 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.03em; }
+  .svx .d-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(25, 25, 25, 0.15); }
+  .svx .d-list a { display: grid; grid-template-columns: calc(54 * var(--u)) 1fr auto; align-items: center; padding: calc(22 * var(--u)) 0;
+    border-bottom: 1px solid rgba(25, 25, 25, 0.15); font: 400 calc(24 * var(--u)) / 1.1 'Space Grotesk', sans-serif; letter-spacing: -0.03em; opacity: 0.45;   /* tighter (James): room for the dot after the longest name */ transition: opacity 0.4s; }
+  .svx .d-list a small { font-size: calc(16 * var(--u)); }
+  .svx .d-list a .dot { transform: scale(0); transition: transform 0.5s var(--ease); }
+  .svx .d-list a.on, .svx .d-list a:hover { opacity: 1; }
+  .svx .d-list a.on .dot { transform: scale(1); }
+  .svx .d-deck { position: relative; }
+  .svx .d-card { position: absolute; inset: 0; display: grid; grid-template-columns: 1.25fr 1fr; gap: calc(14 * var(--u)); padding: calc(14 * var(--u));
+    border-radius: calc(28 * var(--u)); background: var(--cream); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.06); transform-origin: 50% 0; will-change: transform; }
+  .svx .d-card figure { margin: 0; border-radius: calc(18 * var(--u)); overflow: hidden; }
+  .svx .d-card figure img { width: 100%; height: 100%; object-fit: cover; }
+  .svx .d-card .c-text h3 { font-size: calc(62 * var(--u)); }
+  .svx .d-card .shade { position: absolute; inset: 0; border-radius: inherit; background: var(--ink);   /* colour set per card (src/services-x.js) */ opacity: 0; pointer-events: none; }
   /* Option A: "Four ways we create space", the original four cream cards (mock ref-services: 2000 px wide = x0.96 to
      design px). Cards slide in from the right, photos drift in their frames: src/services-a.js */
   #services-a { --u: calc(100vw / 1920); position: relative; z-index: 4; height: calc(1136 * var(--u)); background: #EBEBE1; color: #191919; overflow: clip; }
@@ -223,7 +319,7 @@
     #services-a .sv-go { right: calc(10 * var(--m)); bottom: calc(10 * var(--m)); width: calc(46 * var(--m)); height: calc(46 * var(--m)); border-radius: calc(10 * var(--m)); }
     #services-a .sv-go svg { width: calc(16 * var(--m)); height: calc(16 * var(--m)); }
     .opt-switch { left: 12px; bottom: 12px; }
-    .opt-switch button { padding: 8px 12px; font-size: 13px; }
+    .opt-switch button { padding: 6px 8px; font-size: 12px; }
   }
   /* "Four ways we create space" (services.html option M, James): a tall section whose pin sticks to the screen. The title
      sits in the middle; the first card comes up over it at a slight angle and straightens, the next card fans out to the
@@ -244,7 +340,6 @@
      comes forward (they swap stacking at the moment they are clear of each other) */
   .svm-card[data-role="out"] { transition: transform 0.64s cubic-bezier(0.45, 0, 0.25, 1), filter 0.64s ease, opacity 0.48s ease; }
   .svm-card[data-role="in"] { transition: transform 0.68s cubic-bezier(0.55, 0, 0.35, 1) 0.2s, filter 0.68s ease 0.2s, opacity 0.48s ease; }
-  .svm-card[data-role="in"] .svm-img { transition-delay: 0.2s; }
   .svm-card::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 var(--b) var(--c); }
   /* places in the row: 0 middle, 1 right (next), -1 left (previous), +-2 further out, hidden (not a loop) */
   .svm-card[data-p="0"] { transform: translateZ(0); cursor: default; }
@@ -252,10 +347,10 @@
   .svm-card[data-p="-1"] { transform: translateX(calc(var(--cw) * -0.66)) translateZ(calc(var(--cw) * -0.75)) rotate(-7deg); filter: brightness(0.92); }
   .svm-card[data-p="2"] { transform: translateX(calc(var(--cw) * 1.1)) translateZ(calc(var(--cw) * -1.3)) rotate(12deg); opacity: 0; pointer-events: none; }
   .svm-card[data-p="-2"] { transform: translateX(calc(var(--cw) * -1.1)) translateZ(calc(var(--cw) * -1.3)) rotate(-12deg); opacity: 0; pointer-events: none; }
-  /* the photo frame is always full height; only its mask changes shape (the middle card leaves room for its text, --mb) */
-  .svm-img { position: absolute; inset: var(--b); overflow: hidden; transition: clip-path 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+  /* the photo's mask always leaves room for the card's text (--mb), on every card: no mask animation, the text + button show
+     on the cards either side too (James) */
+  .svm-img { position: absolute; inset: var(--b); overflow: hidden;
     clip-path: inset(0 0 var(--mb, 27%) 0 round calc(18 * var(--u)) calc(18 * var(--u)) 0 0); }
-  .svm-card:not([data-p="0"]) .svm-img { clip-path: inset(0 0 0 0 round calc(18 * var(--u))); }
   .svm-img img { position: absolute; left: 0; top: -10%; width: 100%; height: 120%; object-fit: cover; transform: translateY(var(--py, 0%)); }
   .svm-tag { position: absolute; left: calc(32 * var(--u)); top: calc(32 * var(--u)); z-index: 5; display: flex; align-items: center; height: calc(40 * var(--u)); padding: 0 calc(20 * var(--u));
     border-radius: 99em; background: #FFF8E6; color: #191919; font: 400 calc(15 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; text-decoration: none; }
@@ -271,8 +366,8 @@
   .svm-img { z-index: 2; }
   .svm-text, .svm-go { z-index: 1; }
   .svm-card:not([data-p="0"]) :is(.svm-text, .svm-go) { pointer-events: none; }
-  .svm-card[data-p="0"] .svm-tag { transition: opacity 0.45s ease 1s, background-color 0.3s; }
-  .svm-card:not([data-p="0"]) .svm-tag { opacity: 0; pointer-events: none; transition: opacity 0.12s ease, background-color 0.3s; }
+  .svm-tag { transition: background-color 0.3s; }
+  .svm-card:not([data-p="0"]) .svm-tag { pointer-events: none; }   /* the project pill shows on every card, no fade (James); only the middle one is clickable */
   .svm-all { position: absolute; right: calc(60 * var(--u)); bottom: calc(26 * var(--u)); z-index: 3; padding-bottom: calc(10 * var(--u)); border-bottom: 1px solid currentColor;
     font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; color: inherit; text-decoration: none; }
   .svm-prog { position: absolute; left: 50%; bottom: calc(26 * var(--u)); transform: translateX(-50%); display: flex; gap: calc(6 * var(--u)); }
@@ -293,7 +388,6 @@
     .svm-slot { perspective: calc(900 * var(--m)); }
     .svm-card { border-radius: calc(18 * var(--m)); }
     .svm-img { clip-path: inset(0 0 var(--mb, 34%) 0 round calc(12 * var(--m)) calc(12 * var(--m)) 0 0); }
-    .svm-card:not([data-p="0"]) .svm-img { clip-path: inset(0 0 0 0 round calc(12 * var(--m))); }
     .svm-tag { left: calc(18 * var(--m)); top: calc(18 * var(--m)); height: calc(28 * var(--m)); padding: 0 calc(12 * var(--m)); font-size: calc(11 * var(--m)); }
     .svm-text { left: calc(20 * var(--m)); right: calc(70 * var(--m)); bottom: calc(24 * var(--m)); }
     .svm-text h3 { margin-bottom: calc(10 * var(--m)); font-size: calc(24 * var(--m)); }
@@ -357,7 +451,7 @@
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-kit { width: calc(586.7 * var(--u)); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-badge { opacity: 0; }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team { left: calc(666.7 * var(--u)); width: calc(1200 * var(--u)); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-img { width: calc(1178.6 * var(--u)); height: calc(var(--kh) - 514.6 * var(--u)); }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-img { width: calc(1178.6 * var(--u)); height: calc(var(--kh) - 498.3 * var(--u)); }   /* 49 clear above The Team, as closed */
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-pill { left: calc(29.3 * var(--u)); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tint { background-color: #E6FF00; }
     #kit.in:has(.kt-team:is(:hover, :focus-within)) .kt-img .kt-pic { transform: translateY(0) scale(1); transition: transform 0.8s var(--kt-ease); }
@@ -388,7 +482,7 @@
   .kt-kit .kt-label { left: calc(58 * var(--u)); top: calc(65.3 * var(--u)); }
   .kt-kit .kt-t { left: calc(58 * var(--u)); top: calc(106 * var(--u)); }
   .kt-kit .kt-p { left: calc(58 * var(--u)); top: calc(222 * var(--u)); color: #EBEBE1; }
-  .kt-img { position: absolute; left: calc(10.7 * var(--u)); top: calc(9.3 * var(--u)); width: calc(565.3 * var(--u)); height: calc(var(--kh) - 306.6 * var(--u));   /* 65.3 clear above The Team, as above The Kit */
+  .kt-img { position: absolute; left: calc(10.7 * var(--u)); top: calc(9.3 * var(--u)); width: calc(565.3 * var(--u)); height: calc(var(--kh) - 290.3 * var(--u));   /* 49 clear above The Team (James: 25% less than the 65.3 above The Kit) */
     border-radius: calc(13.3 * var(--u)); background: #fff; }   /* white like the picture's own ground, under the tint */ 
   .kt-img .kt-art { position: absolute; left: 50%; width: calc(802.6 * var(--u)); margin-left: calc(-401.3 * var(--u)); top: calc(-5.3 * var(--u)); aspect-ratio: 1576 / 1494; mix-blend-mode: multiply; }   /* fixed size, centred: stays put while the card opens */
   .kt-img .kt-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -875,6 +969,28 @@
     <a class="svm-all" href="#">View all →</a>
   </div>
 </section>
+<!-- Options C, D, E (ported from services.html; built and driven by src/services-x.js). C: stacked deck, D: full-bleed, E: rail -->
+<section id="svc-c" class="svx" aria-label="Four ways we create space" hidden>
+  <div class="svx-track"><div class="svx-pin">
+    <div class="d-index"><div class="d-head"><p class="eyebrow">Our offer</p><h3>Four ways we<br>create space</h3></div><ul class="d-list"></ul><a class="pill" href="#">View all services <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></div>
+    <div class="d-deck"></div>
+  </div></div>
+</section>
+<section id="svc-d" class="svx" aria-label="Four ways we create space" hidden>
+  <header class="b-head"><div><p class="eyebrow">Our offer</p><h2>Four ways we create space</h2></div><a class="all" href="#">View all <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></header>
+  <div class="svx-track"><div class="svx-pin" data-dark>
+    <div class="b-bg"></div><div class="b-shade"></div>
+    <nav class="b-tabs" aria-label="Services"></nav>
+    <div class="b-copy"></div>
+  </div></div>
+</section>
+<section id="svc-e" class="svx" aria-label="Four ways we create space" hidden>
+  <div class="svx-track"><div class="svx-pin">
+    <div class="e-head"><p class="eyebrow">Our offer</p><h2>Four ways we create space</h2></div>
+    <div class="c-rail"></div>
+    <nav class="c-tabs" aria-label="Services"><span class="c-line"></span></nav>
+  </div></div>
+</section>
 <!-- "The kit & the team" (James' mock assets/ref-kit.webp). The Kit card's line drawing is the rotating, self-building
      3D structure from V1 (src/kit3d.js, three.js), cream lines on the black card. -->
 <section id="kit" aria-labelledby="kit-h">
@@ -1231,7 +1347,7 @@
 <script>
   // written in (rather than <script src>) so the browser's preload scanner can't request them at the
   // wrong path before the <base> fix above applies; they still load and run in order
-  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services-m.js', 'src/services-a.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/testimonial.js', 'src/impact.js', 'src/news.js', 'src/buildtype.js', 'src/invert.js', 'src/smooth.js']
+  ['src/config.js', 'src/gallery.js', 'src/carousel.js', 'src/trail.js', 'src/end.js', 'src/main.js', 'src/next.js', 'src/services-m.js', 'src/services-x.js', 'src/services-a.js', 'src/projects.js', 'src/bgpixels.js', 'src/kit.js', 'src/footer.js', 'src/testimonial.js', 'src/impact.js', 'src/news.js', 'src/buildtype.js', 'src/invert.js', 'src/smooth.js']
     .forEach(function (s) { document.write('<script src="' + s + '"><\/script>'); });
 </script>
 <script type="module">import './src/intro3d.js';</script>
