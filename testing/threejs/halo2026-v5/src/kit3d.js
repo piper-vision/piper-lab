@@ -566,7 +566,10 @@ function frameCamera(zoom = 1, slide = 1) {
   const [w, h] = size(), aspect = w / h;
   const half = zoom * radius * C.fill / Math.min(1, aspect);   // fit the structure's sphere, landscape or portrait
   // slide the frame left/up so the structure sits right of and below centre, clear of the card's text
-  const shift = aspect > 1 ? slide * C.offsetX * 2 * half * aspect : 0;
+  // eased out as the card narrows (aspect 1.3 -> 0.7) rather than snapping off at 1, so the Team card opening (the Kit
+  // card squeezing) doesn't make the structure jump sideways
+  const wide = Math.min(1, Math.max(0, (aspect - 0.7) / 0.6));
+  const shift = slide * C.offsetX * 2 * half * aspect * wide;
   const shiftY = C.offsetY * 2 * half;
   camera.top = half + shiftY; camera.bottom = -half + shiftY;
   camera.left = -half * aspect - shift; camera.right = half * aspect - shift;
@@ -584,6 +587,9 @@ function resize() {
   renderer.domElement.style.width = renderer.domElement.style.height = '100%';
   frameCamera();
   sizeLines();
+  // resizing wipes the canvas, and this runs after the frame's draw: redraw now, or while the Kit card animates its width
+  // (the Team card opening) it is blank every frame and the structure blinks out until the card stops (James)
+  if (started) renderer.render(scene, camera);
 }
 new ResizeObserver(resize).observe(container);
 
