@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // this page can be served as /services (no extension, by the dev server and lab.piper.vision): pin relative URLs to
+  // the folder it sits in, so assets/ resolves next to it (index.html's version assumes the page IS the folder)
+  (function () {
+    var p = location.pathname;
+    if (!/\.[a-z0-9]+$/i.test(p)) document.write('<base href="' + p.replace(/[^/]*$/, '') + '">');
+  })();
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M9%204%20L9%2028%20M23%204%20L23%2028%20M9%2016%20L23%2016'%20fill='none'%20stroke='%23222'%20stroke-width='3'/%3E%3C/svg%3E">
+<title>Halo — Service pillars, layout options</title>
+<style>
+  @font-face { font-family: 'FK Display'; src: url('assets/fonts/FKDisplay-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Light.ttf') format('truetype'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Space Grotesk'; src: url('assets/fonts/SpaceGrotesk-Medium.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+
+  :root { --bg: #EBEBE1; --cream: #FFF8E6; --ink: #191919; --lime: #E6FF00; --ease: cubic-bezier(0.16, 1, 0.3, 1); --snap: cubic-bezier(0.8, 0, 0.1, 1);
+    --u: calc(100vw / 1920); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; }
+
+  /* ---- sticky header (as on the homepage: logo, frosted pill nav, Contact us; src/invert.js flips them over [data-dark]) */
+  :root { --nav: calc(140 * var(--u)); }
+  #chrome { position: fixed; left: 0; right: 0; top: 0; z-index: 40; pointer-events: none; color: #0b0b0b; }
+  #chrome .logo { position: absolute; left: calc(56 * var(--u)); top: calc(49 * var(--u)); width: calc(124.5 * var(--u)); line-height: 0; pointer-events: auto; transition: color 0.3s ease; }
+  #chrome .logo svg { width: 100%; height: auto; display: block; }
+  #chrome .logo.on-dark { color: #F5F6EC; }
+  #chrome .pnav { position: absolute; left: 50%; top: calc(54 * var(--u)); transform: translateX(-50%); font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; pointer-events: auto; }
+  #chrome .pnav-in { display: flex; align-items: center; gap: 0.6em; padding: 0.39em; border-radius: 99em; background: rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  #chrome .pitem { display: flex; align-items: center; gap: 0.32em; height: 2em; padding: 0 0.6em; border-radius: 99em; color: #1b1b1b; transition: background-color 0.3s ease; }
+  #chrome .pitem.on { background: #EBEBE1; }
+  #chrome .pitem:hover, #chrome .pitem:focus-visible { background: #EBEBE1; outline: none; }
+  #chrome .parrow { width: 0.56em; height: 0.72em; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  #chrome .pitem:hover .parrow { transform: translateY(0.12em); }
+  #chrome .topcta { position: absolute; right: calc(56 * var(--u)); top: calc(59 * var(--u)); font-size: calc(18 * var(--u)); line-height: 0; pointer-events: auto; }
+  #chrome .topcta-btn { display: flex; align-items: center; height: 2.08em; padding: 0 0.75em; border-radius: 99em; background: #191919; color: #fff;
+    font: 400 1em/1 'Space Grotesk', sans-serif; white-space: nowrap; transition: background-color 0.35s ease, color 0.35s ease; }
+  #chrome .topcta-btn:hover, #chrome .topcta-btn:focus-visible { background: #e6ff00; color: #191919; outline: none; }
+  #chrome .topcta.on-dark .topcta-btn { background: #FFF8E6; color: #191919; }
+  #chrome .topcta.on-dark .topcta-btn:hover { background: #e6ff00; }
+
+  /* ---- page header + option switcher ------------------------------------------------------------------------------ */
+  .top { display: flex; align-items: center; justify-content: space-between; padding: calc(40 * var(--u)) calc(60 * var(--u)) 0; }
+  .logo { font: 400 calc(64 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.03em; }
+  .intro { padding: calc(260 * var(--u)) calc(60 * var(--u)) calc(90 * var(--u)); max-width: calc(1300 * var(--u)); }
+  .intro h1 { margin: 0 0 calc(28 * var(--u)); font: 400 calc(96 * var(--u)) / 0.95 'FK Display', sans-serif; letter-spacing: -0.03em; }
+  .intro p { margin: 0; font: 300 calc(26 * var(--u)) / 1.35 'Space Grotesk', sans-serif; max-width: calc(980 * var(--u)); }
+  .switch { position: fixed; right: calc(28 * var(--u)); bottom: calc(28 * var(--u)); z-index: 50; display: flex; gap: 4px; padding: 5px;
+    border-radius: 99px; background: rgba(25, 25, 25, 0.86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .switch a { font: 500 13px/1 'Space Grotesk', sans-serif; color: #fff; padding: 9px 12px; min-width: 34px; text-align: center; border-radius: 99px; transition: background-color 0.3s, color 0.3s; white-space: nowrap; }
+  .switch a.on { background: var(--lime); color: var(--ink); }
+
+  /* each option: a label strip, then a tall track whose child pins to the screen while you scroll through it */
+  .opt-label { display: flex; align-items: baseline; gap: calc(30 * var(--u)); padding: calc(160 * var(--u)) calc(60 * var(--u)) calc(50 * var(--u));
+    border-top: 1px solid rgba(25, 25, 25, 0.15); }
+  .opt-label b { font: 400 calc(150 * var(--u)) / 0.8 'FK Display', sans-serif; letter-spacing: -0.04em; }
+  .opt-label h2 { margin: 0 0 calc(10 * var(--u)); font: 400 calc(44 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.02em; }
+  .opt-label p { margin: 0; font: 300 calc(22 * var(--u)) / 1.35 'Space Grotesk', sans-serif; max-width: calc(900 * var(--u)); }
+  .track { position: relative; height: 420vh; }
+  .pin { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+
+  /* shared bits */
+  .mask { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+  .mask > span { display: block; transform: translateY(130%); opacity: 0; transition: transform 0.9s var(--ease), opacity 0.35s ease; }
+  .on .mask > span, .mask.on > span { transform: none; opacity: 1; transition-delay: var(--d, 0s); }
+  .pill { display: inline-flex; align-items: center; gap: 0.6em; height: 2.6em; padding: 0 1.4em; border-radius: 99em; background: var(--ink); color: #fff;
+    font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.3s, color 0.3s; }
+  .pill:hover { background: var(--lime); color: var(--ink); }
+  .pill svg, .go svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .feat { font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.6; }
+  .dot { display: inline-block; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--c); }
+
+  /* ================================================================================================================
+     OPTION A: split index. The four names are the navigation (left); the image wipes up on the right.
+     ================================================================================================================ */
+  #a .pin { display: grid; grid-template-columns: 44% 1fr; gap: calc(40 * var(--u)); padding: var(--nav) calc(60 * var(--u)) calc(40 * var(--u)); background: var(--bg); }
+  .a-left { display: flex; flex-direction: column; justify-content: space-between; padding: calc(30 * var(--u)) 0 calc(10 * var(--u)); }
+  .a-kicker { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; display: flex; gap: 0.8em; align-items: center; }
+  .a-names { list-style: none; margin: 0; padding: 0; }
+  .a-names a { position: relative; display: flex; align-items: baseline; gap: calc(22 * var(--u)); padding: calc(8 * var(--u)) 0;
+    font: 400 calc(68 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.035em; white-space: nowrap; color: rgba(25, 25, 25, 0.2); transition: color 0.5s var(--ease); }
+  .a-names a small { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0; width: calc(40 * var(--u)); }
+  .a-names a:hover { color: rgba(25, 25, 25, 0.5); }
+  .a-names a.on { color: var(--ink); }
+  .a-names a .bar { position: absolute; left: calc(62 * var(--u)); right: 0; bottom: 0; height: 2px; background: rgba(25, 25, 25, 0.1); }
+  .a-names a .bar i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--p, 0)); background: var(--c); }
+  .a-copy { position: relative; height: calc(230 * var(--u)); }
+  .a-copy > div { position: absolute; inset: 0; }
+  .a-copy p { margin: 0 0 calc(26 * var(--u)); font: 300 calc(28 * var(--u)) / 1.3 'Space Grotesk', sans-serif; max-width: calc(700 * var(--u)); }
+  .a-copy .row { display: flex; align-items: center; gap: calc(28 * var(--u)); }
+  .a-img { position: relative; border-radius: calc(24 * var(--u)); overflow: hidden; }
+  .a-img figure { position: absolute; inset: 0; margin: 0; clip-path: inset(100% 0 0 0); transition: clip-path 1.1s var(--snap); }
+  .a-img figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); transition: transform 1.6s var(--ease); }
+  .a-img figure.on { clip-path: inset(0 0 0 0); z-index: 2; }
+  .a-img figure.on img { transform: scale(1.02); }
+  .a-img figure.was { clip-path: inset(0 0 0 0); z-index: 1; }
+  .a-tag { position: absolute; left: calc(24 * var(--u)); bottom: calc(24 * var(--u)); z-index: 5; display: inline-flex; align-items: center; gap: 0.6em;
+    padding: 0.7em 1.1em; border-radius: 99em; background: rgba(255, 248, 230, 0.9); font: 400 calc(17 * var(--u)) / 1 'Space Grotesk', sans-serif; }
+
+  /* ================================================================================================================
+     OPTION B: full-bleed stories. Each service fills the screen; a segmented progress bar up top is the navigation.
+     ================================================================================================================ */
+  #b .pin { --bw: calc(20 * var(--u)); background: var(--bgc, #9ECDEB); color: #fff; transition: background-color 0.9s var(--ease); }
+  /* the photo sits in a rounded mask, framed by the service colour */
+  /* section header above the pinned component (James' mock: eyebrow, heading, View all link) */
+  .b-head { display: flex; align-items: flex-end; justify-content: space-between; padding: calc(60 * var(--u)) calc(60 * var(--u)) calc(40 * var(--u)); background: #EBEBE1; color: #191919; }
+  .b-head .eyebrow { margin: 0 0 calc(22 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .b-head h2 { margin: 0; font: 400 calc(48 * var(--u)) / 1.05 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .b-head .all { display: inline-flex; align-items: center; gap: 0.3em; padding-bottom: calc(8 * var(--u)); margin-bottom: calc(2 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; color: inherit; transition: opacity 0.3s ease; }
+  .b-head .all svg { width: 0.85em; height: 0.85em; fill: none; stroke: currentColor; stroke-width: 1.6; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .b-head .all:hover svg { transform: translateX(0.2em); }
+  .b-bg, .b-shade { position: absolute; inset: var(--bw); border-radius: calc(36 * var(--u)); overflow: hidden; }
+  .b-bg { background: #111; }
+  .b-bg figure { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 0.9s var(--ease); }
+  .b-bg figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); transition: transform 2.4s var(--ease); }
+  .b-bg figure.on { opacity: 1; }
+  .b-bg figure.on img { transform: scale(1); }
+  .b-shade { background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.72) 100%); }
+  .b-tabs { position: absolute; left: calc(60 * var(--u)); right: calc(60 * var(--u)); top: var(--nav); display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(14 * var(--u)); }
+  .b-tabs a { display: block; padding-top: calc(16 * var(--u)); font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.55; transition: opacity 0.4s; }
+  .b-tabs a:hover, .b-tabs a.on { opacity: 1; }
+  .b-tabs a .seg { display: block; height: 3px; margin-bottom: calc(14 * var(--u)); background: rgba(255, 255, 255, 0.3); border-radius: 2px; overflow: hidden; }
+  .b-tabs a .seg i { display: block; height: 100%; transform-origin: left; transform: scaleX(var(--p, 0)); background: var(--bgc, #fff); transition: background-color 0.9s var(--ease); }
+  .b-copy { position: absolute; left: calc(60 * var(--u)); right: calc(60 * var(--u)); bottom: calc(60 * var(--u)); }
+  .b-copy > div { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: calc(40 * var(--u)); }
+  .b-num { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; margin-bottom: calc(18 * var(--u)); display: flex; align-items: center; gap: 0.7em; }
+  .b-title { margin: 0; font: 400 calc(150 * var(--u)) / 0.9 'FK Display', sans-serif; letter-spacing: -0.04em; }
+  .b-side { width: calc(520 * var(--u)); padding-bottom: calc(14 * var(--u)); }
+  .b-side p { margin: 0 0 calc(26 * var(--u)); font: 300 calc(24 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .b-side .pill { background: var(--bgc, var(--cream)); color: var(--ink); transition: background-color 0.9s var(--ease); }
+  .b-side .pill:hover { background: var(--lime); }
+
+  /* ================================================================================================================
+     OPTION C: horizontal rail. The four services sit side by side and slide past as you scroll; tabs below.
+     ================================================================================================================ */
+  #c .pin { background: var(--bg); display: flex; flex-direction: column; justify-content: center; }
+  .c-rail { display: flex; gap: calc(40 * var(--u)); padding-left: calc(60 * var(--u)); will-change: transform; }
+  .c-panel { flex: 0 0 calc(1560 * var(--u)); height: calc(760 * var(--u)); max-height: 72vh; display: grid; grid-template-columns: 1.45fr 1fr; gap: calc(14 * var(--u));
+    padding: calc(14 * var(--u)); border-radius: calc(26 * var(--u)); background: var(--cream); transition: opacity 0.5s; }
+  .c-panel figure { margin: 0; border-radius: calc(16 * var(--u)); overflow: hidden; }
+  .c-panel figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--s, 1.1)); }
+  .c-text { position: relative; display: flex; flex-direction: column; padding: calc(40 * var(--u)) calc(40 * var(--u)) calc(10 * var(--u)); }
+  .c-text .n { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; display: flex; gap: 0.7em; align-items: center; }
+  .c-text h3 { margin: calc(40 * var(--u)) 0 calc(26 * var(--u)); font: 400 calc(76 * var(--u)) / 0.95 'FK Display', sans-serif; letter-spacing: -0.035em; }
+  .c-text p { margin: 0; font: 300 calc(26 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .c-text .feat { margin-top: calc(26 * var(--u)); }
+  .go { position: absolute; right: 0; bottom: 0; width: calc(74 * var(--u)); height: calc(74 * var(--u)); border-radius: calc(14 * var(--u));
+    display: grid; place-items: center; background: var(--c); border: 1px solid rgba(25, 25, 25, 0.35); font-size: calc(22 * var(--u)); }
+  .go svg { transition: transform 0.4s var(--ease); }
+  .go:hover svg { transform: translateX(calc(4 * var(--u))); }
+  .c-tabs { display: flex; gap: calc(50 * var(--u)); margin: calc(44 * var(--u)) calc(60 * var(--u)) 0; position: relative; padding-top: calc(18 * var(--u));
+    border-top: 1px solid rgba(25, 25, 25, 0.15); }
+  .c-tabs a { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.45; transition: opacity 0.4s; display: flex; gap: 0.6em; align-items: center; }
+  .c-tabs a.on, .c-tabs a:hover { opacity: 1; }
+  .c-line { position: absolute; top: -1px; left: 0; height: 2px; background: var(--ink); transition: transform 0.6s var(--ease), width 0.6s var(--ease); }
+
+  /* ================================================================================================================
+     OPTION D: stacked deck. Each service card slides up over the last (which sinks back); a numbered index on the left.
+     ================================================================================================================ */
+  #d .pin { background: var(--bg); display: grid; grid-template-columns: calc(460 * var(--u)) 1fr; gap: calc(40 * var(--u)); padding: var(--nav) calc(60 * var(--u)) calc(60 * var(--u)); }
+  .d-index { display: flex; flex-direction: column; justify-content: space-between; padding: calc(10 * var(--u)) 0; }
+  .d-index h3 { margin: 0; font: 400 calc(56 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.03em; }
+  .d-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(25, 25, 25, 0.15); }
+  .d-list a { display: grid; grid-template-columns: calc(54 * var(--u)) 1fr auto; align-items: center; padding: calc(22 * var(--u)) 0;
+    border-bottom: 1px solid rgba(25, 25, 25, 0.15); font: 400 calc(24 * var(--u)) / 1.1 'Space Grotesk', sans-serif; opacity: 0.45; transition: opacity 0.4s; }
+  .d-list a small { font-size: calc(16 * var(--u)); }
+  .d-list a .dot { transform: scale(0); transition: transform 0.5s var(--ease); }
+  .d-list a.on, .d-list a:hover { opacity: 1; }
+  .d-list a.on .dot { transform: scale(1); }
+  .d-deck { position: relative; }
+  .d-card { position: absolute; inset: 0; display: grid; grid-template-columns: 1.25fr 1fr; gap: calc(14 * var(--u)); padding: calc(14 * var(--u));
+    border-radius: calc(28 * var(--u)); background: var(--cream); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.06); transform-origin: 50% 0; will-change: transform; }
+  .d-card figure { margin: 0; border-radius: calc(18 * var(--u)); overflow: hidden; }
+  .d-card figure img { width: 100%; height: 100%; object-fit: cover; }
+  .d-card .c-text h3 { font-size: calc(62 * var(--u)); }
+  .d-card .shade { position: absolute; inset: 0; border-radius: inherit; background: var(--ink); opacity: 0; pointer-events: none; }
+
+  .a-copy > div:not(.on), .b-copy > div:not(.on), .e-copy > div:not(.on), .e-title > div:not(.on), .h-copy > div:not(.on) { pointer-events: none; }
+
+  /* ================================================================================================================
+     OPTION E: colour field. The whole background becomes the service's colour; the photo is a big framed card.
+     ================================================================================================================ */
+  #e .pin { background: var(--bgc, #9ECDEB); transition: background-color 0.9s var(--ease); display: grid;
+    grid-template-columns: 1fr calc(620 * var(--u)) 1fr; align-items: center; gap: calc(60 * var(--u)); padding: calc(60 * var(--u)); }
+  .e-title, .e-copy { position: relative; height: calc(520 * var(--u)); }
+  .e-title > div, .e-copy > div { position: absolute; left: 0; right: 0; }
+  .e-title > div { bottom: 0; }
+  .e-copy > div { top: calc(220 * var(--u)); }
+  .e-n { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; margin-bottom: calc(26 * var(--u)); }
+  .e-title h3 { margin: 0; font: 400 calc(104 * var(--u)) / 0.92 'FK Display', sans-serif; letter-spacing: -0.04em; }
+  .e-copy p { margin: 0 0 calc(30 * var(--u)); font: 300 calc(26 * var(--u)) / 1.35 'Space Grotesk', sans-serif; max-width: calc(480 * var(--u)); }
+  .e-card { position: relative; height: calc(820 * var(--u)); max-height: 78vh; border-radius: calc(26 * var(--u)); overflow: hidden;
+    box-shadow: 0 30px 60px rgba(25, 25, 25, 0.18); }
+  .e-card figure { position: absolute; inset: 0; margin: 0; clip-path: inset(100% 0 0 0); transition: clip-path 1s var(--snap); }
+  .e-card figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.18); transition: transform 1.6s var(--ease); }
+  .e-card figure.on { clip-path: inset(0 0 0 0); z-index: 2; }
+  .e-card figure.on img { transform: scale(1.02); }
+  .e-card figure.was { clip-path: inset(0 0 0 0); z-index: 1; }
+  .e-chips { position: absolute; left: 50%; bottom: calc(40 * var(--u)); transform: translateX(-50%); display: flex; gap: calc(10 * var(--u)); }
+  .e-chips a { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; padding: 0.75em 1.2em; border-radius: 99em; border: 1px solid rgba(25, 25, 25, 0.5);
+    transition: background-color 0.4s, color 0.4s, border-color 0.4s; white-space: nowrap; }
+  .e-chips a:hover { background: rgba(25, 25, 25, 0.08); }
+  .e-chips a.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* ================================================================================================================
+     OPTION F: split slot. A colour half and a photo half, scrolling past each other in opposite directions.
+     ================================================================================================================ */
+  #f .pin { display: grid; grid-template-columns: 1fr 1fr; background: var(--ink); }
+  .f-col { position: relative; overflow: hidden; }
+  .f-strip { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+  .f-strip > * { height: 100vh; }
+  .f-panel { position: relative; background: var(--c); padding: var(--nav) calc(70 * var(--u)) calc(150 * var(--u)); display: flex; flex-direction: column; justify-content: flex-end; }
+  .f-panel .big { position: absolute; top: var(--nav); right: calc(50 * var(--u)); font: 400 calc(300 * var(--u)) / 0.8 'FK Display', sans-serif; letter-spacing: -0.05em; opacity: 0.18; }
+  .f-panel h3 { margin: 0 0 calc(30 * var(--u)); font: 400 calc(96 * var(--u)) / 0.92 'FK Display', sans-serif; letter-spacing: -0.04em; }
+  .f-panel p { margin: 0 0 calc(30 * var(--u)); font: 300 calc(26 * var(--u)) / 1.35 'Space Grotesk', sans-serif; max-width: calc(600 * var(--u)); }
+  .f-strip figure { margin: 0; }
+  .f-strip figure img { width: 100%; height: 100%; object-fit: cover; }
+  .f-nav { position: absolute; left: calc(70 * var(--u)); bottom: calc(50 * var(--u)); z-index: 3; display: flex; gap: calc(26 * var(--u)); }
+  .f-nav a { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.45; transition: opacity 0.4s; padding-bottom: 6px; border-bottom: 2px solid transparent; }
+  .f-nav a.on { opacity: 1; border-color: var(--ink); }
+  .f-nav a:hover { opacity: 1; }
+
+  /* ================================================================================================================
+     OPTION G: accordion. Four full-height colour columns; the active one opens out to show the photo and copy.
+     ================================================================================================================ */
+  #g .pin { display: flex; gap: calc(12 * var(--u)); padding: var(--nav) calc(12 * var(--u)) calc(12 * var(--u)); background: var(--bg); }
+  .g-col { position: relative; flex: 1 1 0; min-width: 0; border-radius: calc(22 * var(--u)); overflow: hidden; background: var(--c); cursor: pointer;
+    transition: flex-grow 1s var(--snap); }
+  .g-col.on { flex-grow: 5.5; cursor: default; }
+  .g-col figure { position: absolute; left: calc(14 * var(--u)); right: calc(14 * var(--u)); top: calc(14 * var(--u)); bottom: calc(300 * var(--u)); margin: 0;
+    border-radius: calc(14 * var(--u)); overflow: hidden; opacity: 0; transition: opacity 0.5s; }
+  .g-col.on figure { opacity: 1; transition: opacity 0.7s 0.35s; }
+  .g-col figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); transition: transform 1.6s var(--ease); }
+  .g-col.on figure img { transform: scale(1); }
+  .g-label { position: absolute; left: 50%; bottom: calc(34 * var(--u)); transform: translateX(-50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap;
+    font: 400 calc(30 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.02em; transition: opacity 0.4s; }
+  .g-label small { font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; margin-bottom: 1em; }
+  .g-col.on .g-label { opacity: 0; transition: opacity 0.15s; }
+  .g-copy { position: absolute; left: calc(40 * var(--u)); right: calc(40 * var(--u)); bottom: calc(36 * var(--u)); min-width: calc(760 * var(--u));
+    display: flex; flex-direction: column; gap: calc(22 * var(--u)); opacity: 0; transition: opacity 0.25s; }
+  .g-copy > span { display: flex; align-items: flex-end; justify-content: space-between; gap: calc(40 * var(--u)); }
+  .g-col.on .g-copy { opacity: 1; transition: opacity 0.6s 0.45s; }
+  .g-copy h3 { margin: 0; font: 400 calc(72 * var(--u)) / 0.92 'FK Display', sans-serif; letter-spacing: -0.04em; white-space: nowrap; }
+  .g-copy p { margin: 0; font: 300 calc(23 * var(--u)) / 1.35 'Space Grotesk', sans-serif; max-width: calc(560 * var(--u)); }
+  .g-copy .pill { flex: none; }
+
+  /* ================================================================================================================
+     OPTION H: growing window. On the service's colour, the photo grows from a small window to (almost) full screen.
+     ================================================================================================================ */
+  #h .pin { background: var(--bgc, #9ECDEB); transition: background-color 0.6s; }
+  .h-win { position: absolute; left: 50%; top: 44%; width: var(--w, 30vw); height: var(--hh, 36vh); transform: translate(-50%, -50%);
+    border-radius: var(--r, 26px); overflow: hidden; z-index: 2; }
+  .h-win figure { position: absolute; inset: 0; margin: 0; opacity: 0; }
+  .h-win figure.on { opacity: 1; }
+  .h-win figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--is, 1.25)); }
+  .h-title { position: absolute; inset: 0; z-index: 3; text-align: center; pointer-events: none; }   /* in front of the photo */
+  .h-title.light { color: #fff; clip-path: var(--clip, inset(50%)); }   /* a white copy clipped to the window, so the name reads over the photo */
+  .h-title > div { position: absolute; left: 0; right: 0; top: 44%; transform: translateY(-50%); }
+  .h-title h3 { margin: 0; font: 400 calc(210 * var(--u)) / 0.86 'FK Display', sans-serif; letter-spacing: -0.05em; white-space: nowrap; }
+  .h-nav { position: absolute; left: calc(60 * var(--u)); top: var(--nav); z-index: 3; display: flex; flex-direction: column; gap: calc(10 * var(--u)); }
+  .h-nav a { font: 400 calc(20 * var(--u)) / 1.2 'Space Grotesk', sans-serif; opacity: 0.5; transition: opacity 0.4s; display: flex; gap: 0.8em; }
+  .h-nav a.on, .h-nav a:hover { opacity: 1; }
+  .h-copy { position: absolute; right: calc(60 * var(--u)); bottom: calc(60 * var(--u)); width: calc(520 * var(--u)); z-index: 3; height: calc(220 * var(--u)); }
+  .h-copy > div { position: absolute; left: 0; right: 0; bottom: 0; }
+  .h-copy p { margin: 0 0 calc(24 * var(--u)); font: 300 calc(24 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .h-copy .feat { opacity: 0.75; }   /* the hidden services' buttons can't be clicked */
+  /* ================================================================================================================
+     OPTION I: fanned deck. Four portrait photo cards, each framed in its service colour, fanned like a hand of cards;
+     the active one straightens and comes to the front, the rest fan out behind (seen ones left, to come right).
+     ================================================================================================================ */
+  #i .pin { background: var(--bgc, #C7D9E5); transition: background-color 0.9s var(--ease); }
+  .i-deck { position: absolute; left: 50%; top: calc(50% + 10 * var(--u)); height: min(calc(840 * var(--u)), 78vh); aspect-ratio: 3 / 4; transform: translate(-50%, -50%); }
+  .i-card { position: absolute; inset: 0; padding: calc(16 * var(--u)); border-radius: calc(32 * var(--u)); background: var(--c); cursor: pointer;
+    box-shadow: 0 18px 50px rgba(25, 25, 25, 0.22); transform-origin: 50% 100%; transition: transform 0.9s var(--ease), box-shadow 0.9s var(--ease), opacity 0.35s ease; }
+  .i-card.on { cursor: default; box-shadow: 0 30px 70px rgba(25, 25, 25, 0.3); }
+  .i-card figure { margin: 0; width: 100%; height: 100%; border-radius: calc(20 * var(--u)); overflow: hidden; }
+  .i-card figure img { width: 100%; height: 100%; object-fit: cover; }
+  .i-title, .i-copy { position: absolute; top: calc(50% + 10 * var(--u)); width: calc(560 * var(--u)); height: 0; }
+  .i-title { left: calc(60 * var(--u)); width: calc(470 * var(--u)); z-index: 20; }
+  .i-copy { z-index: 20; }
+  .i-copy { right: calc(60 * var(--u)); width: calc(420 * var(--u)); }
+  .i-title > div, .i-copy > div { position: absolute; left: 0; right: 0; top: 0; transform: translateY(-50%); }
+  .i-title > div:not(.on), .i-copy > div:not(.on) { pointer-events: none; }
+  .i-title .n { font: 400 calc(20 * var(--u)) / 1 'Space Grotesk', sans-serif; margin-bottom: calc(24 * var(--u)); }
+  .i-title h3 { margin: 0; font: 400 calc(64 * var(--u)) / 0.92 'FK Display', sans-serif; letter-spacing: -0.04em; }
+  .i-copy p { margin: 0 0 calc(28 * var(--u)); font: 300 calc(25 * var(--u)) / 1.35 'Space Grotesk', sans-serif; }
+  .i-nav { position: absolute; left: 50%; bottom: calc(36 * var(--u)); transform: translateX(-50%); display: flex; gap: calc(34 * var(--u)); }
+  .i-nav a { font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif; opacity: 0.5; transition: opacity 0.4s; padding-bottom: 6px; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .i-nav a.on { opacity: 1; border-color: var(--ink); }
+  .i-nav a:hover { opacity: 1; }
+
+  /* ================================================================================================================
+     OPTION J: centred photo card (James' mock v2). Pale service-colour background; heading + View all top left; the
+     big card in the middle (framed in the service colour) with the previous service as a small square bottom left and
+     the next one top right. All three change through a mask wipe (up going forward, down going back); the name, copy
+     and Find out more change on the right. The small squares jump to their service.
+     ================================================================================================================ */
+  #j .pin { --ch: min(calc(888 * var(--u)), 74vh); --cy: calc(50% + 4 * var(--u)); --cb: calc(var(--cy) + var(--ch) / 2); background: #C8DDE5; }   /* set per service by the pixel sweep (jPixels in the script) */
+  .j-px { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  .j-head { position: absolute; left: calc(54 * var(--u)); top: max(calc(50% - 433 * var(--u)), calc(150 * var(--u))); z-index: 3; }
+  .j-head .eyebrow { margin: 0 0 calc(28 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .j-head h2 { margin: 0 0 calc(34 * var(--u)); font: 400 calc(50 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .j-all { display: inline-flex; align-items: center; gap: 0.3em; padding-bottom: calc(8 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; }
+  .j-all svg { width: 0.85em; height: 0.85em; fill: none; stroke: currentColor; stroke-width: 1.6; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .j-all:hover svg { transform: translateX(0.2em); }
+  .j-card { position: absolute; left: 50%; top: var(--cy); height: var(--ch); aspect-ratio: 651 / 888; transform: translate(-50%, -50%); }
+  .j-img { position: relative; width: 100%; height: 100%; border-radius: calc(30 * var(--u)); overflow: hidden; --bw: calc(13 * var(--u)); }
+  /* a border in the active service colour framing each photo: a ring over the photo's edge */
+  .j-img::after, .j-sm::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 var(--bw) var(--bgc, #9ECDEB); transition: box-shadow 0.9s var(--ease); }
+  .j-sm { --bw: calc(10 * var(--u)); position: absolute; width: calc(312 * var(--u)); height: calc(312 * var(--u)); border-radius: calc(24 * var(--u)); overflow: hidden; }
+  .j-sm.j-prev { left: calc(253 * var(--u)); top: calc(var(--cb) - 381 * var(--u)); }
+  /* project caption above the top-right (next) square: placeholder project info per service (James' mock) */
+  .j-cap { position: absolute; left: calc(1359 * var(--u)); width: calc(520 * var(--u)); top: max(calc(50% - 416 * var(--u)), calc(170 * var(--u))); color: rgba(25, 25, 25, 0.55);
+    font: 400 calc(19 * var(--u)) / 1.3 'Space Grotesk', sans-serif; }
+  .j-cap > div { position: absolute; left: 0; bottom: 0; white-space: nowrap; }
+  .j-cap .mask > span { transition-delay: 0.25s; }
+  .j-cap > div:not(.on) .mask > span { transition-delay: 0s; }
+  .j-sm.j-next { left: calc(1359 * var(--u)); top: max(calc(50% - 382 * var(--u)), calc(204 * var(--u))); }
+  .j-sm img { transition: transform 1.6s var(--ease), filter 0.4s ease; }
+  .j-sm:hover img { filter: brightness(1.08); }
+  .j-slot figure { position: absolute; inset: 0; margin: 0; clip-path: inset(100% 0 0 0); transition: clip-path 1.1s var(--snap); }
+  .j-slot figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); transition: transform 1.6s var(--ease); }
+  .j-slot figure.on { clip-path: inset(0 0 0 0); z-index: 2; }
+  .j-slot figure.on img { transform: scale(1.02); }   /* 2% oversize: no hairline at the rounded edges */
+  .j-slot figure.was { clip-path: inset(0 0 0 0); z-index: 1; }
+  .j-view { position: absolute; left: 50%; bottom: calc(26 * var(--u)); transform: translateX(-50%); z-index: 5; display: flex; align-items: center; justify-content: center;
+    width: calc(182 * var(--u)); height: calc(42 * var(--u)); border-radius: calc(13 * var(--u)); background: rgba(240, 238, 228, 0.85);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font: 400 calc(16 * var(--u)) / 1 'Space Grotesk', sans-serif; transition: background-color 0.3s; }
+  .j-view:hover { background: var(--lime); }
+  /* progress through the four services, bottom left: a thin segment per service fills as you scroll through it */
+  .j-prog { position: absolute; left: calc(253 * var(--u)); width: calc(312 * var(--u)); top: var(--cb); transform: translateY(-100%); display: flex; align-items: center; gap: calc(8 * var(--u)); }
+  .j-prog .seg { position: relative; display: block; flex: 1; height: 2px; border-radius: 2px; background: rgba(25, 25, 25, 0.15); overflow: hidden; }
+  .j-prog .seg i { position: absolute; inset: 0; background: var(--ink); transform-origin: left; transform: scaleX(var(--p, 0)); }
+  .j-prog b { margin-left: calc(10 * var(--u)); font: 400 calc(15 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.04em; color: rgba(25, 25, 25, 0.55); font-variant-numeric: tabular-nums; }
+  .j-copy { position: absolute; left: calc(1359 * var(--u)); top: var(--cb); width: calc(520 * var(--u)); }
+  .j-copy > div { position: absolute; left: 0; right: 0; bottom: 0; }
+  .j-copy > div:not(.on) { pointer-events: none; }
+  .j-copy h3 { margin: 0 0 calc(26 * var(--u)); font: 400 calc(50 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .j-copy p { margin: 0 0 calc(30 * var(--u)); font: 300 calc(26 * var(--u)) / 1.45 'Space Grotesk', sans-serif; }
+  .j-copy .pill { height: calc(55 * var(--u)); width: calc(250 * var(--u)); justify-content: center; padding: 0; font-size: calc(21 * var(--u));
+    background: var(--bgc, #9ECDEB); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); transition: background-color 0.9s var(--ease), color 0.3s; }
+  .j-copy .pill:hover { background: var(--lime); transition-duration: 0.3s; }
+
+  /* ================================================================================================================
+     OPTION K: wide card (James' mock; the homepage version). Heading + View all fixed top left, level with the photo;
+     the name, copy and Find out more change bottom left above a progress line (four segments, each filling in its
+     service's colour); a 3D carousel on the right (services page only): the current photo card faces you, the previous and next
+     turned away either side round a shallow drum, each framed in its service colour; the four services as tabs along the bottom, the current one in a colour pill. The background colour wipes
+     across left to right. Entrance: cream until it comes into view, then the first colour wipes in while the content
+     comes in one after another.
+     ================================================================================================================ */
+  #k .pin { --ch: min(calc(818 * var(--u)), 68vh); --cb: calc(50% + 366 * var(--u)); background: #C7D9E5; }
+  /* background change: a flat layer of the new colour wipes across (left to right going forward, right to left going
+     back) with the same easing as the photo, then becomes the background */
+  .k-wash { position: absolute; inset: 0; pointer-events: none; clip-path: inset(0 100% 0 0); }
+  .k-head { position: absolute; left: calc(54 * var(--u)); top: calc(var(--cb) - var(--ch)); z-index: 3; }   /* top lined up with the photo card */
+  .k-head .eyebrow { margin: 0 0 calc(28 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .k-head h2 { margin: 0 0 calc(34 * var(--u)); font: 400 calc(50 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .k-all { display: inline-flex; align-items: center; gap: 0.3em; padding-bottom: calc(8 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; }
+  .k-all svg { width: 0.85em; height: 0.85em; fill: none; stroke: currentColor; stroke-width: 1.6; transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .k-all:hover svg { transform: translateX(0.2em); }
+  /* the carousel: a stage the card's size; each slide is the card (photo framed in its own service colour), placed on
+     a shallow ring by data-p: 0 in front, -1 / 1 turned in either side, 2 behind (hidden) */
+  .k-stage { --kw: calc(var(--ch) * 1.08); position: absolute; left: calc(640 * var(--u)); right: calc(48 * var(--u)); top: calc(var(--cb) - var(--ch)); height: var(--ch);
+    perspective: calc(1900 * var(--u)); perspective-origin: 50% 50%; transform-style: preserve-3d; }
+  .k-slide { position: absolute; left: 50%; top: 0; width: var(--kw); height: 100%; margin-left: calc(var(--kw) / -2); border-radius: calc(30 * var(--u)); overflow: hidden;
+    transform-style: preserve-3d; backface-visibility: hidden; cursor: pointer; transition: transform 1.1s var(--snap), opacity 0.8s ease, filter 1.1s var(--snap); }
+  .k-slide::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 calc(14 * var(--u)) var(--c); }
+  .k-slide img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); }
+  .k-slide[data-p="0"] { transform: translateZ(0) rotateY(0deg); z-index: 3; cursor: default; }
+  .k-slide[data-p="1"] { transform: translateX(calc(var(--kw) * 0.6)) translateZ(calc(var(--kw) * -0.5)) rotateY(40deg); z-index: 2; filter: brightness(0.82); }
+  .k-slide[data-p="-1"] { transform: translateX(calc(var(--kw) * -0.6)) translateZ(calc(var(--kw) * -0.5)) rotateY(-40deg); z-index: 2; filter: brightness(0.82); }
+  .k-slide[data-p="2"] { transform: translateZ(calc(var(--kw) * -1.1)); z-index: 1; opacity: 0; pointer-events: none; }
+  .k-slide:not([data-p="0"]):hover { filter: brightness(0.95); }
+  .k-slide .k-view { opacity: 0; pointer-events: none; transition: opacity 0.4s ease, background-color 0.3s; }
+  .k-slide[data-p="0"] .k-view { opacity: 1; pointer-events: auto; transition-delay: 0.5s, 0s; }
+  .k-view { position: absolute; right: calc(40 * var(--u)); bottom: calc(40 * var(--u)); z-index: 5; display: flex; align-items: center; justify-content: center;
+    width: calc(176 * var(--u)); height: calc(46 * var(--u)); border-radius: 99em; background: var(--cream); font: 400 calc(18 * var(--u)) / 1 'Space Grotesk', sans-serif;
+    transition: background-color 0.3s; }
+  .k-view:hover { background: var(--lime); }
+  .k-copy { position: absolute; left: calc(54 * var(--u)); width: calc(560 * var(--u)); top: calc(var(--cb) - 42 * var(--u)); }
+  .k-copy > div { position: absolute; left: 0; right: 0; bottom: 0; }
+  .k-copy > div:not(.on) { pointer-events: none; }
+  .k-copy h3 { margin: 0 0 calc(24 * var(--u)); font: 400 calc(50 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+  .k-copy p { margin: 0 0 calc(26 * var(--u)); font: 300 calc(20 * var(--u)) / 1.5 'Space Grotesk', sans-serif; }
+  .k-copy .pill { width: calc(250 * var(--u)); height: calc(56 * var(--u)); justify-content: center; padding: 0; font-size: calc(21 * var(--u)); }
+  /* progress: four short black lines with small gaps, one per service; each fills in its own service's colour as you
+     scroll through it (the ones passed stay full) */
+  .k-prog { position: absolute; left: calc(58 * var(--u)); width: calc(508 * var(--u)); top: calc(var(--cb) - 2 * var(--u)); height: calc(6 * var(--u)); transform: translateY(-50%); }
+  .k-prog { display: flex; align-items: center; gap: calc(8 * var(--u)); }
+  .k-prog span { position: relative; flex: 1; height: 100%; }
+  .k-prog span::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); background: var(--ink); }
+  .k-prog span i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); border-radius: 99em; background: var(--c); }
+  .k-tabs { position: absolute; left: calc(58 * var(--u)); right: calc(48 * var(--u)); top: calc(var(--cb) + 84 * var(--u)); transform: translateY(-50%);
+    display: flex; justify-content: space-between; align-items: center; }
+  .k-tabs a { padding: calc(12 * var(--u)) calc(26 * var(--u)); border-radius: calc(12 * var(--u)); font: 400 calc(29 * var(--u)) / 1 'Space Grotesk', sans-serif;
+    color: rgba(25, 25, 25, 0.35); white-space: nowrap; transition: background-color 0.5s var(--ease), color 0.5s var(--ease); }
+  .k-tabs a:hover { color: rgba(25, 25, 25, 0.7); }
+  .k-tabs a.on { background: var(--kc, #9DCDEA); color: var(--ink); }
+  /* entrance (.k-wait until the section comes into view): heading lines rise, the photo wipes in from the left, the
+     copy's lines rise, then the progress line and tabs */
+  .k-head > *, .k-prog, .k-tabs { transition: transform 1s var(--ease), opacity 0.6s ease; }
+  .k-wait .k-head > * { transform: translateY(calc(40 * var(--u))); opacity: 0; }
+  .k-wait .k-prog, .k-wait .k-tabs { transform: translateY(calc(40 * var(--u) - 50%)); opacity: 0; }
+  .k-wait .k-copy .mask > span { transform: translateY(130%); opacity: 0; transition: none; }
+  .k-head > :nth-child(2) { transition-delay: 0.08s; }
+  .k-head > :nth-child(3) { transition-delay: 0.16s; }
+  .k-stage { transition: opacity 0.9s ease 0.12s, transform 1.2s var(--ease) 0.12s; }
+  .k-wait .k-stage { opacity: 0; transform: translateX(calc(120 * var(--u))); }
+  .k-prog { transition-delay: 0.35s; }
+  .k-tabs { transition-delay: 0.45s; }
+
+  /* ================================================================================================================
+     OPTION L: pinned title, then the component scrolls up over it (see the build script notes in the page script)
+     ================================================================================================================ */
+  #l { height: 560vh; }
+  #l .pin { --ly: calc(50% + 40 * var(--u)); --ch: min(calc(1017 * var(--u)), calc(100vh - 230 * var(--u))); background: #EBEBE1; transition: background-color 0.9s var(--ease); }
+  .l-title { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; }
+  .l-title .eyebrow { margin: 0 0 calc(34 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: 0.15em; text-transform: uppercase; }
+  .l-title h2 { margin: 0; font: 400 calc(84 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.02em; }
+  /* the component layer: slides up from below the screen over the pinned title (--in 0..1) */
+  .l-comp { position: absolute; inset: 0; transform: translateY(calc((1 - var(--in, 0)) * 100vh)); }
+  .l-side { opacity: var(--side, 0); }
+  .l-line { position: absolute; left: calc(53.3 * var(--u)); right: calc(53.3 * var(--u)); top: var(--ly); height: 3px; margin-top: -1.5px; background: rgba(25, 25, 25, 0.15); }
+  .l-line i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--lp, 0) * 100%); background: var(--lc, #9DCDEA); transition: background-color 0.6s ease; }
+  .l-card { position: absolute; left: 50%; top: var(--ly); width: calc(822 * var(--u)); height: var(--ch); transform: translate(-50%, -50%);
+    border-radius: calc(30 * var(--u)); overflow: hidden; background: var(--lc, #9DCDEA); }
+  .l-card::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 0 0 calc(12.5 * var(--u)) var(--lc, #9DCDEA); transition: box-shadow 0.6s ease; }
+  .l-card figure { position: absolute; inset: 0; margin: 0; clip-path: inset(100% 0 0 0); transition: clip-path 1.1s var(--snap); }
+  .l-card figure img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.02); }
+  .l-card figure.on { clip-path: inset(0); z-index: 2; }
+  .l-card figure.was { clip-path: inset(0); z-index: 1; }
+  /* left: the current service big above the line; the ones still to come under it, fading */
+  .l-big { position: absolute; left: calc(53.3 * var(--u)); width: calc(460 * var(--u)); top: var(--ly); }
+  .l-big > div { position: absolute; left: 0; right: 0; bottom: calc(23 * var(--u)); }
+  .l-big h3 { margin: 0; font: 400 calc(54 * var(--u)) / 1.05 'FK Display', sans-serif; letter-spacing: -0.02em; white-space: nowrap; }
+  .l-big { display: none; }
+  .l-list { position: absolute; left: calc(53.3 * var(--u)); width: calc(330 * var(--u)); top: var(--ly); }   /* one stack: slides + scales (setL) */
+  .l-list a { position: absolute; left: 0; right: 0; top: 0; font: 400 calc(29 * var(--u)) / 1.3 'FK Display', sans-serif; letter-spacing: -0.01em; white-space: nowrap;
+    transform-origin: 0 0; transition: transform 0.9s var(--ease), opacity 0.6s ease; }
+  .l-list a:hover { opacity: 1 !important; }
+  /* right: copy above the line, Find out more under it, View all at the card's foot */
+  .l-copy { position: absolute; left: calc(1440 * var(--u)); width: calc(360 * var(--u)); top: var(--ly); }
+  .l-copy > div { position: absolute; left: 0; right: 0; bottom: calc(34 * var(--u)); }
+  .l-copy > div:not(.on), .l-big > div:not(.on) { pointer-events: none; }
+  .l-copy p { margin: 0; font: 300 calc(25 * var(--u)) / 1.5 'Space Grotesk', sans-serif; }
+  .l-proj { position: absolute; left: 0; right: 0; bottom: calc(52 * var(--u)); z-index: 5; display: grid; justify-items: center; }
+  .l-proj a { grid-area: 1 / 1; display: flex; align-items: center; height: calc(61 * var(--u)); padding: 0 calc(37 * var(--u)); border-radius: 99em; background: #FFF8E6; color: #191919;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; opacity: 0; transform: translateY(calc(10 * var(--u))); pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.6s var(--ease), background-color 0.3s; }
+  .l-proj a.on { opacity: 1; transform: none; pointer-events: auto; transition-delay: 0.45s, 0.45s, 0s; }
+  .l-proj a:hover { background: var(--lime); }
+  .l-btn { position: absolute; left: calc(1440 * var(--u)); top: calc(var(--ly) + 31 * var(--u)); width: calc(250 * var(--u)); height: calc(56 * var(--u)); justify-content: center; padding: 0;
+    font-size: calc(21 * var(--u)); }
+  .l-all { position: absolute; left: calc(1440 * var(--u)); top: calc(var(--ly) + var(--ch) / 2 - 40 * var(--u)); padding-bottom: calc(10 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; }
+
+  /* ================================================================================================================
+     OPTION M: title pinned in the middle, cards scroll up over it, then a 3D horizontal carousel of the four cards
+     ================================================================================================================ */
+  #m { height: 370vh; }
+  #m .pin { --ch: min(calc(900 * var(--u)), calc(100vh - 300 * var(--u))); --cw: calc(var(--ch) * 0.81); background: #EBEBE1; }
+  .m-title { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; transition: opacity 0.3s ease; }
+  .m-title .eyebrow { margin: 0 0 calc(30 * var(--u)); font: 400 calc(19 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: 0.15em; text-transform: uppercase; }
+  .m-title h2 { margin: 0; font: 400 calc(84 * var(--u)) / 1 'FK Display', sans-serif; letter-spacing: -0.02em; }
+  .m-stage { position: absolute; left: 0; right: 0; top: calc(50% + 25 * var(--u)); height: var(--ch); transform: translateY(-50%);
+    }
+  .m-slot { position: absolute; left: 50%; top: 0; width: var(--cw); height: var(--ch); margin-left: calc(var(--cw) / -2); perspective: calc(2400 * var(--u)); will-change: transform; transition: opacity 0.6s ease 0.08s; }
+  .m-card { position: absolute; inset: 0; border-radius: calc(30 * var(--u)); overflow: hidden; background: var(--c); cursor: pointer;
+    transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1), filter 0.8s ease, opacity 0.6s ease; }   /* ease-in-out turn */
+  /* a step is staggered so it reads as depth: the current card sets off first and sinks back to the side, the incoming
+     one waits a beat then comes forward over it (they swap stacking once it is the bigger, nearer one) */
+  .m-card[data-role="out"] { transition: transform 0.64s cubic-bezier(0.45, 0, 0.25, 1), filter 0.64s ease, opacity 0.48s ease; }
+  .m-card[data-role="in"] { transition: transform 0.68s cubic-bezier(0.55, 0, 0.35, 1) 0.2s, filter 0.68s ease 0.2s, opacity 0.48s ease; }
+  .m-card[data-role="in"] .m-img { transition-delay: 0.2s; }
+  .m-card::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 calc(13 * var(--u)) var(--c); }
+  /* places in the row: 0 front, 1 right (next), -1 left (previous), ±2 further out, hidden. Not a loop: no card on the
+     left at the first service, none on the right at the last. Side cards fanned outward like a hand of cards. */
+  .m-card[data-p="0"] { transform: translateZ(0); cursor: default; }
+  .m-card[data-p="1"] { transform: translateX(calc(var(--cw) * 0.66)) translateZ(calc(var(--cw) * -0.75)) rotate(7deg); filter: brightness(0.92); }
+  .m-card[data-p="-1"] { transform: translateX(calc(var(--cw) * -0.66)) translateZ(calc(var(--cw) * -0.75)) rotate(-7deg); filter: brightness(0.92); }
+  .m-card[data-p="2"] { transform: translateX(calc(var(--cw) * 1.1)) translateZ(calc(var(--cw) * -1.3)) rotate(12deg); opacity: 0; pointer-events: none; }
+  .m-card[data-p="-2"] { transform: translateX(calc(var(--cw) * -1.1)) translateZ(calc(var(--cw) * -1.3)) rotate(-12deg); opacity: 0; pointer-events: none; }
+  .m-img { position: absolute; left: calc(13 * var(--u)); right: calc(13 * var(--u)); top: calc(13 * var(--u)); bottom: calc(13 * var(--u)); overflow: hidden;
+    clip-path: inset(0 0 var(--mb, calc(var(--ch) * 0.27 - 13 * var(--u))) 0 round calc(18 * var(--u)) calc(18 * var(--u)) 0 0); }
+  /* photo 120% of its frame; drifts (--py) only while the cards arrive, then holds still */
+  .m-img img { position: absolute; left: 0; top: -10%; width: 100%; height: 120%; object-fit: cover; transform: translateY(var(--py, 0%)); }
+  .m-tag { position: absolute; left: calc(32 * var(--u)); top: calc(32 * var(--u)); z-index: 5; display: flex; align-items: center; height: calc(40 * var(--u)); padding: 0 calc(20 * var(--u));
+    border-radius: 99em; background: #FFF8E6; font: 400 calc(15 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; transition: background-color 0.3s, opacity 0.5s; }
+  .m-tag:hover { background: var(--lime); }
+  .m-text { position: absolute; left: calc(40 * var(--u)); right: calc(120 * var(--u)); bottom: calc(52 * var(--u)); transition: opacity 0.5s; }
+  .m-text h3 { margin: 0 0 calc(26 * var(--u)); font: 400 calc(48 * var(--u)) / 1.05 'FK Display', sans-serif; letter-spacing: -0.01em; }
+  .m-text p { margin: 0; font: 300 calc(21 * var(--u)) / 1.45 'Space Grotesk', sans-serif; }
+  .m-go { position: absolute; right: calc(40 * var(--u)); bottom: calc(52 * var(--u)); z-index: 5; width: calc(56 * var(--u)); height: calc(56 * var(--u)); display: flex; align-items: center; justify-content: center;
+    border-radius: calc(14 * var(--u)); background: #FFF8E6; transition: background-color 0.3s, opacity 0.5s; }
+  .m-go:hover { background: var(--lime); }
+  .m-go svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); fill: none; stroke: currentColor; stroke-width: 1.6; }
+  /* the text, pill and arrow vanish at once when a card leaves the middle, and only fade in once its mask has reshaped */
+  /* the text and arrow sit UNDER the photo (always there): the mask reveals them as it lifts; only the pill fades */
+  .m-img { z-index: 2; }
+  .m-text, .m-go { z-index: 1; }
+  .m-card:not([data-p="0"]) :is(.m-text, .m-go) { pointer-events: none; }
+  .m-card[data-p="0"] .m-tag { transition: opacity 0.45s ease 1s, background-color 0.3s; }
+  .m-card:not([data-p="0"]) .m-tag { opacity: 0; pointer-events: none; transition: opacity 0.12s ease, background-color 0.3s; }
+  /* the cards at the back are all photo: it fills the frame top to bottom (the front card keeps its text panel) */
+  .m-img { transition: clip-path 0.8s cubic-bezier(0.65, 0, 0.35, 1); }   /* mask reshapes; the photo itself never resizes */
+  .m-card:not([data-p="0"]) .m-img { clip-path: inset(0 0 0 0 round calc(18 * var(--u))); }
+  .m-all { position: absolute; right: calc(60 * var(--u)); bottom: calc(26 * var(--u)); z-index: 3; padding-bottom: calc(10 * var(--u)); border-bottom: 1px solid currentColor;
+    font: 400 calc(23 * var(--u)) / 1 'Space Grotesk', sans-serif; white-space: nowrap; transform: translateZ(1px); }
+  .m-prog { position: absolute; left: 50%; bottom: calc(26 * var(--u)); transform: translateX(-50%); display: flex; gap: calc(6 * var(--u)); }
+  .m-prog span { position: relative; width: calc(150 * var(--u)); height: calc(7 * var(--u)); border-radius: 99em; background: rgba(25, 25, 25, 0.1); overflow: hidden; }
+  .m-prog span i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p, 0) * 100%); border-radius: 99em; background: var(--c); }
+  /* progress + View all: one row just under the card, the bar from its left edge, View all to its right edge */
+  #m .pin { --row: calc(50% + 25 * var(--u) + var(--ch) / 2 + 50 * var(--u)); }
+  .m-prog { left: calc(50% - var(--cw) / 2); top: var(--row); bottom: auto; transform: translateY(-50%); }
+  .m-prog span { width: calc(120 * var(--u)); }
+  .m-all { right: calc(50% - var(--cw) / 2); top: var(--row); bottom: auto; transform: translateY(-50%); padding-bottom: calc(6 * var(--u)); }
+
+  .end { padding: calc(200 * var(--u)) calc(60 * var(--u)); font: 300 calc(22 * var(--u)) / 1.4 'Space Grotesk', sans-serif; opacity: 0.6; }
+</style>
+</head>
+<body>
+  <div id="chrome">
+    <a class="logo" href="index.html" aria-label="Halo home"><svg viewBox="0 0 80 34" fill="currentColor" aria-label="Halo">
+    <path d="M23.4679 33.3116L18.5155 33.3215L18.5141 18.525H4.95385V33.3201L0 33.3173V0.0312371L4.95385 0.0340769V13.9403H18.5141L18.5155 0.032657H23.4679V33.3116Z"/>
+    <path d="M27.5701 20.4518C29.1087 19.4622 31.1975 18.978 33.028 18.8971L41.6637 18.5179L41.612 16.6267C41.5967 16.0772 41.4124 15.5717 41.2141 15.0691C40.6081 13.7174 39.4004 13.0174 37.9748 12.7732C36.788 12.5715 35.604 12.5715 34.4214 12.7831C32.6049 13.1082 31.097 14.1305 30.7898 16.0417L30.7074 17.0129H25.896C25.9281 13.9843 27.1498 11.5009 29.7175 9.95613C32.334 8.39143 35.9629 8.14579 38.9215 8.62429C41.9737 9.11841 44.5232 10.7413 45.5787 13.7685C45.985 14.9342 46.2029 16.1269 46.2043 17.392L46.2126 33.3158H41.7084L41.7 30.5698C40.657 32.0309 39.2566 33.0404 37.5657 33.5402C36.4627 33.8753 35.3555 33.9917 34.1938 33.9903C31.9124 33.9874 29.5611 33.5288 27.6943 32.1728C26.34 31.1903 25.3947 29.7988 24.9982 28.1489C24.6882 26.8611 24.6631 25.5605 24.9368 24.267C25.2775 22.6583 26.2101 21.3265 27.5715 20.449L27.5701 20.4518ZM37.3116 29.4013C40.3833 28.4244 41.6469 25.7863 41.6609 22.6469L33.2416 23.0133C32.4485 23.0473 31.7141 23.212 31.0202 23.5131C30.054 23.9319 29.4857 24.7767 29.4341 25.8331C29.3754 27.0187 29.8459 28.112 30.8191 28.7822C32.5519 29.9777 35.3248 29.9877 37.313 29.3984L37.3116 29.4013Z"/>
+    <path d="M73.1781 32.897C69.9347 34.3183 65.739 34.3481 62.4816 33.0901C59.7449 32.0337 57.5822 29.972 56.387 27.2572C55.2393 24.6475 54.9726 21.636 55.3594 18.8119C55.9625 14.423 58.4576 10.818 62.5933 9.27175C65.6426 8.1316 69.4502 8.12024 72.5051 9.23626C76.5068 10.6973 79.0465 14.1064 79.7572 18.3348C80.1035 20.4007 80.0839 22.4765 79.6692 24.5297C78.9111 28.2852 76.6869 31.3593 73.1767 32.897H73.1781ZM70.0129 29.3615C72.7341 28.6075 74.4529 26.4295 75.0198 23.6891C75.3591 22.0435 75.3591 20.3666 75.0198 18.721C74.4641 16.0247 72.7928 13.8764 70.1595 13.0884C68.5412 12.6042 66.8169 12.5971 65.1889 13.0415C63.3361 13.5484 61.8393 14.7766 60.9569 16.4932C59.9306 18.4881 59.7282 20.9658 60.0759 23.1737C60.5436 26.1469 62.2763 28.5664 65.1889 29.3643C66.7624 29.796 68.4086 29.8059 70.0129 29.3615Z"/>
+    <path d="M53.6881 0H48.9479V33.3641H53.6881V0Z"/></svg></a>
+    <nav class="pnav" aria-label="Main"><div class="pnav-in"><a href="#" class="pitem">The Halo Structure<svg class="parrow" viewBox="0 0 10 13" aria-hidden="true"><path d="M5 0.5V12M1 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a><a href="#" class="pitem on" aria-current="page">What we offer<svg class="parrow" viewBox="0 0 10 13" aria-hidden="true"><path d="M5 0.5V12M1 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a><a href="#" class="pitem">Company<svg class="parrow" viewBox="0 0 10 13" aria-hidden="true"><path d="M5 0.5V12M1 8l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a><a href="#" class="pitem">Projects</a><a href="#" class="pitem">News &amp; Views</a></div></nav>
+    <div class="topcta"><a class="topcta-btn" href="#">Contact us</a></div>
+  </div>
+  <section class="intro">
+    <h1>Four ways we create space</h1>
+    <p>Thirteen layout options for a full-width services component. Each pins to the screen and steps through the four services as you scroll; every option also has four links to jump straight to a service.</p>
+  </section>
+
+  <section id="opt-a" class="opt-label"><b>A</b><div><h2>Split index</h2><p>The four service names are the navigation: the active one darkens as you scroll, with a line filling under it. The photo wipes up on the right, the copy rises in underneath.</p></div></section>
+  <div class="track" id="a"><div class="pin">
+    <div class="a-left">
+      <div class="a-kicker"><span class="dot" style="--c:var(--ink)"></span>What we offer</div>
+      <ul class="a-names"></ul>
+      <div class="a-copy"></div>
+    </div>
+    <div class="a-img"><span class="a-tag"></span></div>
+  </div></div>
+
+  <section id="opt-b" class="opt-label"><b>B</b><div><h2>Full-bleed</h2><p>Each service takes the whole screen. A segmented bar along the top (story style) fills as you scroll and doubles as the four links; the title is set huge over the photo.</p></div></section>
+  <header class="b-head"><div><p class="eyebrow">Our offer</p><h2>Four ways we create space</h2></div><a class="all" href="#">View all <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></header>
+  <div class="track" id="b"><div class="pin" data-dark>
+    <div class="b-bg"></div><div class="b-shade"></div>
+    <nav class="b-tabs" aria-label="Services"></nav>
+    <div class="b-copy"></div>
+  </div></div>
+
+  <section id="opt-c" class="opt-label"><b>C</b><div><h2>Rail</h2><p>The services sit side by side as big cards (the current card style, scaled up) and glide sideways as you scroll down. Tabs underneath with a sliding underline jump to each.</p></div></section>
+  <div class="track" id="c"><div class="pin">
+    <div class="c-rail"></div>
+    <nav class="c-tabs" aria-label="Services"><span class="c-line"></span></nav>
+  </div></div>
+
+  <section id="opt-d" class="opt-label"><b>D</b><div><h2>Stacked deck</h2><p>Each service card slides up over the last, which sinks back and dims, like a deck being dealt. A numbered index on the left shows where you are and jumps to any card.</p></div></section>
+  <div class="track" id="d"><div class="pin">
+    <div class="d-index"><h3>Four ways we<br>create space</h3><ul class="d-list"></ul><a class="pill" href="#">View all services <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></div>
+    <div class="d-deck"></div>
+  </div></div>
+
+  <section id="opt-e" class="opt-label"><b>E</b><div><h2>Colour field</h2><p>The whole section takes on each service's colour (the square-button colours), with the photo as a big framed card in the middle wiping up between services, the title to its left and the copy to its right. Chips along the bottom switch services.</p></div></section>
+  <div class="track" id="e"><div class="pin">
+    <div class="e-title"></div><div class="e-card"></div><div class="e-copy"></div>
+    <nav class="e-chips" aria-label="Services"></nav>
+  </div></div>
+
+  <section id="opt-f" class="opt-label"><b>F</b><div><h2>Split slot</h2><p>Half colour, half photo. As you scroll, the colour panels slide up while the photos slide down, like a slot machine settling on each service. The tabs bottom-left jump to each.</p></div></section>
+  <div class="track" id="f"><div class="pin">
+    <div class="f-col"><div class="f-strip f-left"></div><nav class="f-nav" aria-label="Services"></nav></div>
+    <div class="f-col"><div class="f-strip f-right"></div></div>
+  </div></div>
+
+  <section id="opt-g" class="opt-label"><b>G</b><div><h2>Accordion</h2><p>Four full-height columns in the service colours across the width. The active one opens out to show its photo, title and copy; the others fold to a narrow strip with the name running up it. Click any column to open it.</p></div></section>
+  <div class="track" id="g"><div class="pin"></div></div>
+
+  <section id="opt-h" class="opt-label"><b>H</b><div><h2>Growing window</h2><p>On the service's colour, its name is set huge across the screen and the photo grows from a small window in the middle to almost full screen as you scroll through it, then cuts to the next service on its colour.</p></div></section>
+  <div class="track" id="h"><div class="pin">
+    <nav class="h-nav" aria-label="Services"></nav>
+    <div class="h-win"></div>
+    <div class="h-title"></div><div class="h-title light" aria-hidden="true"></div>
+    <div class="h-copy"></div>
+  </div></div>
+
+  <section id="opt-i" class="opt-label"><b>I</b><div><h2>Fanned deck</h2><p>Four portrait photo cards, each framed in its service colour, fanned slightly like a hand of playing cards on the active service's colour. As you scroll, the active card straightens and comes to the front while the others fan out behind it (the ones you've seen to the left, the ones to come to the right). Click a card or a link to jump to it.</p></div></section>
+  <div class="track" id="i"><div class="pin">
+    <div class="i-title"></div>
+    <div class="i-deck"></div>
+    <div class="i-copy"></div>
+    <nav class="i-nav" aria-label="Services"></nav>
+  </div></div>
+
+  <section id="opt-j" class="opt-label"><b>J</b><div><h2>Centred card</h2><p>On a pale wash of the service colour: the heading and View all top left, the big photo card in the middle framed in the service colour, with the previous service as a small square bottom left and the next one top right. All three photos change with a mask wipe as you scroll; the name, copy and Find out more change on the right. Click a small square to jump to that service.</p></div></section>
+  <div class="track" id="j"><div class="pin"><canvas class="j-px" aria-hidden="true"></canvas>
+    <div class="j-head"><p class="eyebrow">Our offer</p><h2>Four ways we<br>create space</h2><a class="j-all" href="#">View all <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></div>
+    <div class="j-cap" aria-hidden="true"></div>
+    <a class="j-sm j-prev j-slot" href="#" aria-label="Previous service"></a>
+    <div class="j-card"><div class="j-img j-slot"><a class="j-view" href="#">View Project</a></div></div>
+    <a class="j-sm j-next j-slot" href="#" aria-label="Next service"></a>
+    <div class="j-prog" aria-hidden="true"><span class="seg" data-i="0"><i></i></span><span class="seg" data-i="1"><i></i></span><span class="seg" data-i="2"><i></i></span><span class="seg" data-i="3"><i></i></span><b>01 / 04</b></div>
+    <div class="j-copy"></div>
+  </div></div>
+
+  <section id="opt-k" class="opt-label"><b>K</b><div><h2>Wide card</h2><p>The homepage version, trying a 3D carousel for the photo: the current service's card faces you, with the previous and next turned in either side on a shallow ring (click one to go to it). The heading and View all stay put top left; the service name, copy and Find out more change bottom left above a four-segment progress line; the four services run along the bottom as tabs. The background colour wipes across left to right.</p></div></section>
+  <div class="track" id="k"><div class="pin k-wait"><div class="k-wash" aria-hidden="true"></div>
+    <div class="k-head"><p class="eyebrow">Our offer</p><h2>Four ways we<br>create space</h2><a class="k-all" href="#">View all <svg viewBox="0 0 20 20"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg></a></div>
+    <div class="k-copy"></div>
+    <div class="k-prog" aria-hidden="true"><span style="--c:#9DCDEA"><i></i></span><span style="--c:#FF9D00"><i></i></span><span style="--c:#B19170"><i></i></span><span style="--c:#CC89E6"><i></i></span></div>
+    <div class="k-stage"></div>
+    <nav class="k-tabs" aria-label="Services"></nav>
+  </div></div>
+
+  <section id="opt-l" class="opt-label"><b>L</b><div><h2>Title, then card over it</h2><p>"Our offer / Four ways we create space" scrolls into view and pins in the middle of the screen, then the component scrolls up over it, the photo card covering the title. Then the services step through: the current one's name big on the left above a full-width line that fills as you scroll, the ones still to come stacked underneath and moving up; the photo wipes between services; copy and Find out more on the right.</p></div></section>
+  <div class="track" id="l"><div class="pin">
+    <div class="l-title"><p class="eyebrow">Our offer</p><h2>Four ways we<br>create space</h2></div>
+    <div class="l-comp">
+      <div class="l-line l-side" aria-hidden="true"><i></i></div>
+      <div class="l-big l-side"></div>
+      <nav class="l-list l-side" aria-label="Services"></nav>
+      <div class="l-card"></div>
+      <div class="l-copy l-side"></div>
+      <a class="pill l-btn l-side" href="#">Find out more</a>
+      <a class="l-all l-side" href="#">View all →</a>
+    </div>
+  </div></div>
+
+  <section id="opt-m" class="opt-label"><b>M</b><div><h2>Card carousel</h2><p>"Our offer / Four ways we create space" pins in the middle of the screen, then the cards scroll up over it, the front one faster than the two behind (parallax), their photos drifting inside their frames as they arrive. Then scrolling turns a 3D horizontal carousel: the current service's card in front, the previous and next set back either side, the fourth behind. A four-part progress slider runs along the bottom.</p></div></section>
+  <div class="track" id="m"><div class="pin">
+    <div class="m-title"><p class="eyebrow">Our offer</p><h2>Four ways we<br>create space</h2></div>
+    <div class="m-stage"></div>
+    <div class="m-prog" aria-hidden="true"></div>
+  </div></div>
+
+  <p class="end">End of options.</p>
+
+<script>
+(() => {
+  const S = [
+    { t: 'Outdoor Structures', p: 'Elegant, engineered, demountable structures for sport, hospitality and brand events.', f: 'Featured: Wimbledon', c: '#9ECDEB', img: 'assets/services/hires/outdoor.jpg' },
+    { t: 'Indoor Structures', p: 'Raised platforms, exhibition systems and structural builds that transform interior environments.', f: 'Featured: Project', c: '#FF9D00', img: 'assets/services/hires/indoor.jpg' },
+    { t: 'Semi-permanent & meanwhile use', p: 'Spaces built to stay a season or a few years, bringing underused sites to life.', f: 'Featured: Wimbledon', c: '#B19070', img: 'assets/services/hires/semi-permanent.jpg' },
+    { t: 'Bespoke applications', p: 'Beyond the usual? We adapt our modular thinking to meet unconventional needs.', f: 'Featured: Wimbledon', c: '#CC89E4', img: 'assets/services/hires/bespoke.jpg' },
+  ];
+  const arrow = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>';
+  const n2 = i => String(i + 1).padStart(2, '0');
+  const lines = (text, d0 = 0) => `<span class="mask" style="--d:${d0}s"><span>${text}</span></span>`;
+  const $ = (s, r = document) => r.querySelector(s);
+
+  // ---- build each option ----------------------------------------------------------------------------------------
+  // A
+  $('#a .a-names').innerHTML = S.map((s, i) => `<li><a href="#" data-i="${i}" style="--c:${s.c}"><small>${n2(i)}</small>${s.t.replace(' & meanwhile use', '')}<span class="bar"><i></i></span></a></li>`).join('');
+  $('#a .a-copy').innerHTML = S.map((s, i) => `<div data-i="${i}">${lines(`<p>${s.p}</p>`)}${lines(`<span class="row"><a class="pill" href="#">View project ${arrow}</a><span class="feat">${s.f}</span></span>`, 0.08)}</div>`).join('');
+  $('#a .a-img').insertAdjacentHTML('afterbegin', S.map((s, i) => `<figure data-i="${i}"><img src="${s.img}" alt=""></figure>`).join(''));
+  // B
+  $('#b .b-bg').innerHTML = S.map((s, i) => `<figure data-i="${i}"><img src="${s.img}" alt=""></figure>`).join('');
+  $('#b .b-tabs').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}"><span class="seg"><i></i></span>${n2(i)}&nbsp;&nbsp;${s.t}</a>`).join('');
+  $('#b .b-copy').innerHTML = S.map((s, i) => `<div data-i="${i}"><div><div class="b-num">${lines(`<span class="dot" style="--c:${s.c}"></span>&nbsp;${n2(i)} / 04`)}</div><h3 class="b-title">${s.t.split(' & ').map((l, k) => lines(k ? '&amp; ' + l : l, 0.06 + k * 0.08)).join('')}</h3></div>
+    <div class="b-side">${lines(`<p>${s.p}</p>`, 0.15)}${lines(`<a class="pill" href="#">View project ${arrow}</a>`, 0.22)}</div></div>`).join('');
+  // C
+  $('#c .c-rail').innerHTML = S.map((s, i) => `<article class="c-panel" data-i="${i}"><figure><img src="${s.img}" alt=""></figure>
+    <div class="c-text"><span class="n"><span class="dot" style="--c:${s.c}"></span>${n2(i)} / 04</span><h3>${s.t.replace(' & ', '<br>& ')}</h3><p>${s.p}</p><span class="feat">${s.f}</span>
+    <a class="go" href="#" style="--c:${s.c}" aria-label="${s.t}">${arrow}</a></div></article>`).join('');
+  $('#c .c-tabs').insertAdjacentHTML('beforeend', S.map((s, i) => `<a href="#" data-i="${i}"><span class="dot" style="--c:${s.c}"></span>${s.t}</a>`).join(''));
+  // D
+  $('#d .d-list').innerHTML = S.map((s, i) => `<li><a href="#" data-i="${i}"><small>${n2(i)}</small>${s.t}<span class="dot" style="--c:${s.c}"></span></a></li>`).join('');
+  $('#d .d-deck').innerHTML = S.map((s, i) => `<article class="d-card" data-i="${i}" style="z-index:${i + 1}"><figure><img src="${s.img}" alt=""></figure>
+    <div class="c-text"><span class="n"><span class="dot" style="--c:${s.c}"></span>${n2(i)} / 04</span><h3>${s.t.replace(' & ', '<br>& ')}</h3><p>${s.p}</p><span class="feat">${s.f}</span>
+    <a class="go" href="#" style="--c:${s.c}" aria-label="${s.t}">${arrow}</a></div><span class="shade"></span></article>`).join('');
+
+  // E
+  $('#e .e-title').innerHTML = S.map((s, i) => `<div data-i="${i}"><div class="e-n">${lines(`${n2(i)} / 04`)}</div><h3>${s.t.split(' & ').map((l, k) => lines(k ? '&amp; ' + l : l, 0.05 + k * 0.08)).join('')}</h3></div>`).join('');
+  $('#e .e-card').innerHTML = S.map((s, i) => `<figure data-i="${i}"><img src="${s.img}" alt=""></figure>`).join('');
+  $('#e .e-copy').innerHTML = S.map((s, i) => `<div data-i="${i}">${lines(`<p>${s.p}</p>`, 0.12)}${lines(`<a class="pill" href="#">View project ${arrow}</a>`, 0.2)}<div style="margin-top:calc(22*var(--u))">${lines(`<span class="feat">${s.f}</span>`, 0.26)}</div></div>`).join('');
+  $('#e .e-chips').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}">${s.t}</a>`).join('');
+  // F
+  $('#f .f-left').innerHTML = S.map((s, i) => `<div class="f-panel" style="--c:${s.c}"><span class="big">${n2(i)}</span><h3>${s.t.replace(' & ', '<br>& ')}</h3><p>${s.p}</p><div><a class="pill" href="#">View project ${arrow}</a></div></div>`).join('');
+  $('#f .f-right').innerHTML = S.slice().reverse().map(s => `<figure><img src="${s.img}" alt=""></figure>`).join('');
+  $('#f .f-nav').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}">${n2(i)} ${s.t.replace(' & meanwhile use', '')}</a>`).join('');
+  // G
+  $('#g .pin').innerHTML = S.map((s, i) => `<a class="g-col" href="#" data-i="${i}" style="--c:${s.c}" aria-label="${s.t}"><figure><img src="${s.img}" alt=""></figure>
+    <span class="g-label"><small>${n2(i)}</small>${s.t}</span>
+    <span class="g-copy"><h3>${s.t.replace(' & meanwhile use', ' & meanwhile')}</h3><span><p>${s.p}</p><span class="pill">View project ${arrow}</span></span></span></a>`).join('');
+  // H
+  $('#h .h-nav').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}"><span>${n2(i)}</span>${s.t}</a>`).join('');
+  const hTitle = S.map((s, i) => `<div data-i="${i}"><h3>${lines(s.t.replace(' & meanwhile use', '').replace(' applications', '').replace(' Structures', ''))}</h3></div>`).join('');
+  document.querySelectorAll('#h .h-title').forEach(el => { el.innerHTML = hTitle; });
+  $('#h .h-win').innerHTML = S.map((s, i) => `<figure data-i="${i}"><img src="${s.img}" alt=""></figure>`).join('');
+  $('#h .h-copy').innerHTML = S.map((s, i) => `<div data-i="${i}">${lines(`<p>${s.p}</p>`, 0.1)}${lines(`<span class="row" style="display:flex;gap:calc(24*var(--u));align-items:center"><a class="pill" href="#">View project ${arrow}</a><span class="feat">${s.f}</span></span>`, 0.18)}</div>`).join('');
+
+  // I
+  // option I colours (James): a light background and a stronger card frame per service
+  const I_BG = ['#C7D9E5', '#F9B24B', '#BFA48E', '#D69CF2'], I_CARD = ['#9DCDEA', '#FF9D00', '#B19170', '#CC89E6'];
+  $('#i .i-deck').innerHTML = S.map((s, i) => `<a class="i-card" href="#" data-i="${i}" style="--c:${I_CARD[i]}" aria-label="${s.t}"><figure><img src="${s.img}" alt=""></figure></a>`).join('');
+  $('#i .i-title').innerHTML = S.map((s, i) => `<div data-i="${i}"><div class="n">${lines(`${n2(i)} / 04`)}</div><h3>${s.t.split(' & ').map((l, k) => lines(k ? '&amp; ' + l : l, 0.05 + k * 0.08)).join('')}</h3></div>`).join('');
+  $('#i .i-copy').innerHTML = S.map((s, i) => `<div data-i="${i}">${lines(`<p>${s.p}</p>`, 0.12)}${lines(`<span style="display:flex;gap:calc(24*var(--u));align-items:center"><a class="pill" href="#">View project ${arrow}</a></span>`, 0.2)}</div>`).join('');
+  $('#i .i-nav').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}">${n2(i)} ${s.t.replace(' & meanwhile use', '')}</a>`).join('');
+
+  // J
+  const jProj = [...Array(4).fill('Club St Tropez - Retail Pop-up')];   // placeholder project info, one per service
+  $('#j .j-cap').innerHTML = jProj.map((t, i) => `<div data-s="${i}">${lines(t)}</div>`).join('');
+  const jFigs = S.map((s, i) => `<figure data-s="${i}"><img src="${s.img}" alt=""></figure>`).join('');
+  document.querySelectorAll('#j .j-slot').forEach(el => el.insertAdjacentHTML('afterbegin', jFigs));
+  $('#j .j-copy').innerHTML = S.map((s, i) => `<div data-i="${i}"><h3>${s.t.replace(' & meanwhile use', '').split(' ').map(w => lines(w)).join('')}</h3>${lines(`<p>${s.p}</p>`, 0.1)}${lines(`<a class="pill" href="#">Find out more</a>`, 0.18)}</div>`).join('');
+
+  // J: the background changes with the homepage's pixel effect (src/bgpixels.js): modular pixels in close shades of the
+  // new colour sweep in (down the screen going forward, up going back), stretch in, then melt into the flat colour
+  const PX = { across: 16, coverMs: 650, stretchMs: 200, meltMs: 280, jitter: 0.22, shadeRange: 0.035 };
+  const PX_SHAPES = [[1, 1, 6], [2, 1, 2], [1, 2, 2], [3, 1, 1], [1, 3, 1], [2, 2, 1]];
+  const hexRgb = c => [1, 3, 5].map(k => parseInt(c.substr(k, 2), 16));
+  const css = a => `rgb(${a.map(v => Math.round(Math.min(255, Math.max(0, v)))).join(',')})`;
+  const pale = c => hexRgb(c).map((v, k) => v * 0.45 + hexRgb('#EBEBE1')[k] * 0.55);   // 45% of the service colour on the page grey
+  let pxRun = null;
+  function jPixels(pin, to, up, axis) {
+    if (pxRun) { pxRun.cancelled = true; pxRun.pin.style.background = css(pxRun.to); }   // a sweep still running: snap it to its colour
+    const cv = pin.querySelector('.j-px'), cx = cv.getContext('2d'), run = pxRun = { to, pin, cancelled: false };
+    const dpr = Math.min(devicePixelRatio || 1, 2), w = Math.ceil(pin.clientWidth * dpr), h = Math.ceil(pin.clientHeight * dpr);
+    cv.width = w; cv.height = h;
+    const cell = Math.ceil(w / PX.across), cols = Math.ceil(w / cell) + 1, rows = Math.ceil(h / cell) + 1, gw = w / cell, gh = h / cell;
+    const used = new Uint8Array(cols * rows), tiles = [];
+    const free = (c, r, sw, sh) => { if (c + sw > cols || r + sh > rows) return false; for (let y = r; y < r + sh; y++) for (let x = c; x < c + sw; x++) if (used[y * cols + x]) return false; return true; };
+    const pick = () => { let q = Math.random() * 13; for (const sh of PX_SHAPES) { q -= sh[2]; if (q < 0) return sh; } return PX_SHAPES[0]; };
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (used[r * cols + c]) continue;
+      let sh = pick(); if (!free(c, r, sh[0], sh[1])) sh = PX_SHAPES[0];
+      for (let y = r; y < r + sh[1]; y++) for (let x = c; x < c + sh[0]; x++) used[y * cols + x] = 1;
+      if (c >= gw || r >= gh) continue;
+      const d = (Math.random() * 2 - 1) * PX.shadeRange * 255, pos = axis === 'x' ? 1 - (c + sh[0] / 2) / gw : (r + sh[1] / 2) / gh;
+      tiles.push({ x: c, y: r, w: sh[0], h: sh[1], shade: to.map(v => v + d), axisX: sh[0] > sh[1] || (sh[0] === sh[1] && Math.random() < 0.5),
+        flip: Math.random() < 0.5, k: (up ? pos : 1 - pos) + Math.random() * PX.jitter });
+    }
+    tiles.sort((a, b) => a.k - b.k);
+    const e = 1 / cell, ease3 = u => 1 - Math.pow(1 - u, 3);
+    let melt = 0;
+    const draw = (t, g) => {
+      const tw = t.axisX ? t.w * g : t.w, th = t.axisX ? t.h : t.h * g;
+      if (tw <= 0 || th <= 0) return;
+      cx.fillStyle = css(t.shade.map((v, k) => v + (to[k] - v) * melt));
+      cx.fillRect((t.flip && t.axisX ? t.x + t.w - tw : t.x) - e, (t.flip && !t.axisX ? t.y + t.h - th : t.y) - e, tw + 2 * e, th + 2 * e);
+    };
+    cx.setTransform(cell, 0, 0, cell, 0, 0);
+    const n = tiles.length, t0 = performance.now();
+    (function sweep(now) {
+      if (run.cancelled) return;
+      let fin = 0;
+      for (let k = 0; k < n; k++) {
+        const t = tiles[k];
+        if (t.done) { fin++; continue; }
+        let g = (now - t0 - (k / n) * PX.coverMs) / PX.stretchMs;
+        if (g < 0) continue;
+        if (g >= 1) { g = 1; t.done = true; fin++; }
+        cx.clearRect(t.x - e, t.y - e, t.w + 2 * e, t.h + 2 * e); draw(t, ease3(g));
+      }
+      if (fin < n) return requestAnimationFrame(sweep);
+      const m0 = performance.now();
+      (function meltStep(now2) {
+        if (run.cancelled) return;
+        melt = Math.min(1, (now2 - m0) / PX.meltMs);
+        cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, w, h); cx.setTransform(cell, 0, 0, cell, 0, 0);
+        for (const t of tiles) draw(t, 1);
+        if (melt < 1) return requestAnimationFrame(meltStep);
+        pin.style.background = css(to); cv.width = cv.height = 0; pxRun = null;
+      })(m0);
+    })(t0);
+  }
+
+  // K
+  $('#k .k-stage').innerHTML = S.map((s, i) => `<a class="k-slide" href="#" data-i="${i}" data-p="${i === 0 ? 0 : i === 1 ? 1 : i === 3 ? -1 : 2}" style="--c:${I_CARD[i]}" aria-label="${s.t}"><img src="${s.img}" alt=""><span class="k-view">View Project</span></a>`).join('');
+  $('#k .k-copy').innerHTML = S.map((s, i) => `<div data-i="${i}">${lines(`<h3>${s.t.replace(' & meanwhile use', '')}</h3>`)}${lines(`<p>${s.p}</p>`, 0.1)}${lines(`<a class="pill" href="#">Find out more</a>`, 0.18)}</div>`).join('');
+  $('#k .k-tabs').innerHTML = S.map((s, i) => `<a href="#" data-i="${i}">${s.t}</a>`).join('');
+
+  const PXM = { across: 14, coverMs: 700, stretchMs: 220, jitter: 0.25 };   // photo pixel reveal
+  const PXM_SHAPES = [[1, 1, 6], [2, 1, 2], [1, 2, 2], [3, 1, 1], [1, 3, 1], [2, 2, 1]];
+  let pxmRun = null;
+  function pixelReveal(cv, img, back, onDone) {
+    if (pxmRun) pxmRun.finish();   // one still running: complete it at once
+    if (!img.complete || !img.naturalWidth) { onDone(); return; }
+    const box = cv.parentElement, dpr = Math.min(devicePixelRatio || 1, 2), W = Math.ceil(box.clientWidth * dpr), H = Math.ceil(box.clientHeight * dpr);
+    cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d'), iw = img.naturalWidth, ih = img.naturalHeight;
+    const sc = Math.max(W / iw, H / ih) * 1.02, ox = (W - iw * sc) / 2, oy = (H - ih * sc) / 2;   // object-fit: cover at 102%
+    const cell = Math.ceil(W / PXM.across), cols = Math.ceil(W / cell) + 1, rows = Math.ceil(H / cell) + 1, gw = W / cell, gh = H / cell;
+    const used = new Uint8Array(cols * rows), tiles = [];
+    const free = (c, r, sw, sh) => { if (c + sw > cols || r + sh > rows) return false; for (let y = r; y < r + sh; y++) for (let x = c; x < c + sw; x++) if (used[y * cols + x]) return false; return true; };
+    const pick = () => { let q = Math.random() * 13; for (const sh of PXM_SHAPES) { q -= sh[2]; if (q < 0) return sh; } return PXM_SHAPES[0]; };
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (used[r * cols + c]) continue;
+      let sh = pick(); if (!free(c, r, sh[0], sh[1])) sh = PXM_SHAPES[0];
+      for (let y = r; y < r + sh[1]; y++) for (let x = c; x < c + sh[0]; x++) used[y * cols + x] = 1;
+      if (c >= gw || r >= gh) continue;
+      const pos = (c + sh[0] / 2) / gw;
+      tiles.push({ x: c * cell, y: r * cell, w: sh[0] * cell, h: sh[1] * cell, axisX: sh[0] > sh[1] || (sh[0] === sh[1] && Math.random() < 0.5),
+        flip: Math.random() < 0.5, k: (back ? 1 - pos : pos) + Math.random() * PXM.jitter });
+    }
+    tiles.sort((a, b) => a.k - b.k);
+    const ease3 = u => 1 - Math.pow(1 - u, 3);
+    const draw = (t, g) => {   // the part of the photo under this tile, grown to g along its axis
+      let dw = t.axisX ? t.w * g : t.w, dh = t.axisX ? t.h : t.h * g;
+      let dx = t.flip && t.axisX ? t.x + t.w - dw : t.x, dy = t.flip && !t.axisX ? t.y + t.h - dh : t.y;
+      dx = Math.floor(dx); dy = Math.floor(dy); dw = Math.min(Math.ceil(dw) + 1, W - dx); dh = Math.min(Math.ceil(dh) + 1, H - dy);
+      if (dw <= 0 || dh <= 0) return;
+      cx.drawImage(img, (dx - ox) / sc, (dy - oy) / sc, dw / sc, dh / sc, dx, dy, dw, dh);
+    };
+    const n = tiles.length, t0 = performance.now();
+    const run = pxmRun = { done: false, finish() { if (run.done) return; run.done = true; pxmRun = null; onDone(); cv.width = cv.height = 0; } };
+    (function step(now) {
+      if (run.done) return;
+      let fin = 0;
+      for (let k = 0; k < n; k++) {
+        const t = tiles[k];
+        if (t.in) { fin++; continue; }
+        let g = (now - t0 - (k / n) * PXM.coverMs) / PXM.stretchMs;
+        if (g < 0) continue;
+        if (g >= 1) { g = 1; t.in = true; fin++; }
+        draw(t, ease3(g));
+      }
+      if (fin < n) requestAnimationFrame(step); else run.finish();
+    })(t0);
+  }
+
+  // K: the background change, a flat layer of the new colour wiping across (left to right, or right to left going back)
+  function kWipe(pin, color, back) {
+    const wash = pin.querySelector('.k-wash');
+    clearTimeout(wash._t);
+    if (wash._to) pin.style.background = wash._to;   // a wipe still running: settle it first
+    wash._to = color;
+    wash.style.transition = 'none'; wash.style.background = color; wash.style.clipPath = back ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
+    wash.getBoundingClientRect();
+    wash.style.transition = 'clip-path 1.1s var(--snap)'; wash.style.clipPath = 'inset(0)';
+    wash._t = setTimeout(() => { pin.style.background = wash._to; wash._to = null; wash.style.transition = 'none'; wash.style.clipPath = 'inset(0 100% 0 0)'; }, 1150);
+  }
+
+  // L (its own scroll logic: an entrance phase, then the four services)
+  {
+    const tk = document.getElementById('l'), pin = tk.querySelector('.pin'), comp = tk.querySelector('.l-comp');
+    const two = t => { const w = t.replace(' & meanwhile use', ' &amp; meanwhile use').split(' '); return [w[0], w.slice(1).join(' ')]; };
+    tk.querySelector('.l-card').innerHTML = S.map((s, i) => `<figure data-s="${i}"><img src="${s.img}" alt=""></figure>`).join('');
+    tk.querySelector('.l-big').innerHTML = S.map((s, i) => `<div data-s="${i}"><h3>${two(s.t).map(l => lines(l)).join('')}</h3></div>`).join('');
+    tk.querySelector('.l-list').innerHTML = S.map((s, i) => `<a href="#" data-s="${i}">${s.t.replace(' & meanwhile use', '<br>&amp; meanwhile use').replace(' Structures', '<br>Structures').replace(' applications', '<br>applications')}</a>`).join('');
+    tk.querySelector('.l-copy').innerHTML = S.map((s, i) => `<div data-s="${i}">${lines(`<p>${s.p}</p>`, 0.1)}</div>`).join('');
+    const items = (sel) => [...tk.querySelectorAll(sel)];
+    // the project shown in each photo, as a pill link at the foot of the card (Semi-permanent's is a placeholder)
+    const PROJ = ['Wimbledon ‘25 Fan Village', 'Club St Tropez Retail Pop-up', 'Club St Tropez Retail Pop-up', 'Formula E Redbull Activations'];
+    tk.querySelector('.l-card').insertAdjacentHTML('beforeend', '<div class="l-proj">' + PROJ.map((p, i) => `<a href="#" data-s="${i}">${p} →</a>`).join('') + '</div>');
+    const figs = items('.l-card figure'), bigs = items('.l-big > div'), names = items('.l-list a'), copies = items('.l-copy > div'), projs = items('.l-proj a');
+    const ENTER = 0.18, OP = [0.8, 0.5, 0.25];
+    let act = -1;
+    function setL(i) {
+      if (i === act) return;
+      const prev = act, back = prev > i; act = i;
+      pin.style.setProperty('--lc', I_CARD[i]);
+      pin.style.backgroundColor = I_BG[i];   // each service's light background (as option K)
+      [...bigs, ...copies].forEach(el => el.classList.toggle('on', +el.dataset.s === i));
+      // names: the current one leaves the list (it's the big title); passed ones rise away, the rest stack under the line
+      // the stack: the current name scaled up just above the line, passed ones above it, the rest under the line;
+      // every name keeps its place in the stack, so the whole thing slides as you go (y = top in design px from the line)
+      const U = innerWidth / 1920, BIG = 1.86, SM = 75, GAP = 31;   // small name: 2 lines of 29 x 1.3
+      names.forEach(a => { const k = +a.dataset.s - i;
+        const y = k === 0 ? -23 - SM * BIG : k > 0 ? 34 + (k - 1) * (SM + GAP) : -23 - SM * BIG - 20 - SM + (k + 1) * (SM + GAP);
+        a.style.transform = `translateY(${y * U}px) scale(${k === 0 ? BIG : 1})`;
+        a.style.opacity = k === 0 ? 1 : k > 0 ? OP[k - 1] : [0.45, 0.28, 0.15][-k - 1];
+        a.style.pointerEvents = k === 0 ? 'none' : ''; });
+      projs.forEach(p => p.classList.toggle('on', +p.dataset.s === i));
+      const was = figs.find(fg => fg.classList.contains('on')), fig = figs[i];
+      figs.forEach(fg => fg.classList.remove('was'));
+      if (prev >= 0) { fig.style.transition = 'none'; fig.style.clipPath = back ? 'inset(0 0 100% 0)' : 'inset(100% 0 0 0)'; fig.getBoundingClientRect(); fig.style.transition = ''; fig.style.clipPath = ''; }
+      if (was && was !== fig) { was.classList.remove('on'); was.classList.add('was'); }
+      fig.classList.add('on');
+    }
+    function updL() {
+      const r = tk.getBoundingClientRect(), t = Math.min(Math.max(-r.top / (r.height - innerHeight), 0), 1);
+      const e = Math.min(t / ENTER, 1), ee = 1 - Math.pow(1 - e, 3);
+      pin.style.setProperty('--in', ee.toFixed(4));
+      pin.style.setProperty('--side', Math.min(Math.max((e - 0.75) / 0.25, 0), 1).toFixed(3));
+      const sp = Math.min(Math.max((t - ENTER) / (1 - ENTER), 0), 1);
+      pin.style.setProperty('--lp', sp.toFixed(4));
+      setL(Math.min(3, Math.floor(sp * 4)));
+      requestAnimationFrame(updL);
+    }
+    requestAnimationFrame(updL);
+    tk.querySelector('.l-list').addEventListener('click', e => {
+      const a = e.target.closest('a[data-s]'); if (!a) return; e.preventDefault();
+      const top = tk.getBoundingClientRect().top + scrollY, span = tk.offsetHeight - innerHeight;
+      scrollToY(top + span * (ENTER + (1 - ENTER) * (+a.dataset.s + 0.05) / 4));
+    });
+  }
+
+  // M (its own scroll logic: the cards come up over the title, then the carousel turns through the four services)
+  {
+    const tk = document.getElementById('m'), pin = tk.querySelector('.pin'), stage = tk.querySelector('.m-stage');
+    const mTitle = tk.querySelector('.m-title');
+    const PROJ = ['Wimbledon ‘25 Fan Village', 'Club St Tropez Retail Pop-up', 'Club St Tropez Retail Pop-up', 'Formula E Redbull Activations'];
+    const arrowSvg = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13.5M11 4.5l5.5 5.5-5.5 5.5"/></svg>';
+    stage.innerHTML = S.map((s, i) => `<div class="m-slot" data-s="${i}"><div class="m-card" data-s="${i}" style="--c:${I_CARD[i]}">
+      <div class="m-img"><img src="${s.img}" alt=""></div>
+      <a class="m-tag" href="#">${PROJ[i]} →</a>
+      <div class="m-text"><h3>${s.t.replace(' & meanwhile use', ' &amp;<br>meanwhile use').replace(' Structures', '<br>Structures').replace(' applications', '<br>applications')}</h3><p>${s.p}</p></div>
+      <a class="m-go" href="#" aria-label="Find out more">${arrowSvg}</a></div></div>`).join('') ;
+    pin.insertAdjacentHTML('beforeend', '<a class="m-all" href="#">View all →</a>');
+    tk.querySelector('.m-prog').innerHTML = S.map((s, i) => `<span style="--c:${I_CARD[i]}"><i></i></span>`).join('');
+    const slots = [...stage.querySelectorAll('.m-slot')], cards = slots.map(sl => sl.firstElementChild), segs = [...tk.querySelectorAll('.m-prog span')];
+    // the front photo's mask stops a set gap above that card's own text (so longer copy never runs into the photo)
+    const sizeMasks = () => { const U = innerWidth / 1920; cards.forEach(c => {
+      c.style.setProperty('--mb', `${Math.max(0, c.offsetHeight - c.querySelector('.m-text').offsetTop + 34 * U - 13 * U)}px`); }); };
+    sizeMasks(); addEventListener('resize', sizeMasks); document.fonts && document.fonts.ready.then(sizeMasks);
+    const ENTER = 0.7778, BEHIND = 0.62;   // arrival share of the scroll; the cards behind travel 62% as far as the front one
+    // stacking swaps halfway through the move: the card coming to the middle passes behind the one leaving until they cross
+    let zTimer = 0;
+    const setZ = () => cards.forEach(c => { c.dataset.z = 3 - Math.abs(+c.dataset.p); });
+    const place = (i, now) => { cards.forEach(c => { const d = +c.dataset.s - i, p = Math.max(-2, Math.min(2, d));
+        c.dataset.role = now ? '' : p === 0 ? 'in' : c.dataset.p === '0' ? 'out' : ''; c.dataset.p = p; });
+      clearTimeout(zTimer); if (now) setZ(); else zTimer = setTimeout(setZ, 376); };   // the moment the two cards are clear of each other
+    // one service at a time: the carousel only ever steps to the next/previous card, and after each step the scroll is
+    // held inside that card's stretch for LOCK ms, so a hard swipe can't fly through two
+    const FIRST = 0.15;   // the first service's share of a normal service's scroll
+    const LOCK = 1040;   // held until the new card's text is fully revealed (0.2 s wait + 0.8 s mask)
+    let act = -1, lastStep = 0, lockUntil = 0, range = null, lastWheel = 0, gesture = 0;
+    // a new swipe = wheel input after a 180ms pause; trackpad momentum from the swipe that just stepped doesn't count
+    const noteWheel = () => { const n = performance.now(); if (n - lastWheel > 180) gesture = n; lastWheel = n; };
+    let live = false;
+    const calcRange = now => !live ? null : (now < lockUntil || gesture <= lockUntil) ? [act, act] : [act - 1, act + 1];
+    const yAt = k => tk.getBoundingClientRect().top + scrollY + (tk.offsetHeight - innerHeight) * (ENTER + (1 - ENTER) * Math.max(0, k - 1 + FIRST) / 4);
+    const clampY = y => { if (!range) return y;
+      const lo = range[0] < 0 || (range[0] === 0 && !landed) ? -Infinity : yAt(range[0]) + 2, hi = range[1] >= 3 ? Infinity : yAt(range[1] + 1) - 2;
+      return Math.min(Math.max(y, lo), hi); };
+    // smooth.js asks this on every wheel tick (note the swipe first, so a fresh one is let through straight away)
+    // (smooth.js loads after this script, so the hook is attached on the first frame)
+    let lockY = null;   // while held: the scroll position the page is pinned at
+    const limit = y => { noteWheel(); range = calcRange(performance.now()); return lockY != null ? lockY : clampY(y); };
+    // one swipe = one card (James): once the first card has landed, the START of each new wheel gesture turns the carousel
+    // one service in its direction and eases the page to that service, however far the swipe would have scrolled; the
+    // page is then held until the card's text is in. Past the first / last service the page scrolls on as normal.
+    // (Touch and keys still step by scroll position, in frame.)
+    addEventListener('wheel', ev => {
+      const n = performance.now(), fresh = n - lastWheel > 180; noteWheel();
+      if (!fresh || ev.ctrlKey || !ev.deltaY || !live || act < 0 || !landed || n < lockUntil) return;
+      const to = act + Math.sign(ev.deltaY); if (to < 0 || to > 3) return;
+      act = to; lastStep = n; lockUntil = n + LOCK; place(act);
+      lockY = yAt(act) + 2;
+      if (window.haloSmooth) haloSmooth.to(lockY); else scrollTo(0, lockY);
+    }, { passive: true });
+    // the side cards fan out on their own (timed, not tied to the scroll) once the middle card has landed over the title,
+    // and tuck back in if you scroll back up before it
+    const FAN_MS = 900, TILT = 7;
+    let fanP = 0, fanLast = 0, landed = false;
+    function updM() {
+      const r = tk.getBoundingClientRect(), t = Math.min(Math.max(-r.top / (r.height - innerHeight), 0), 1);
+      const e = Math.min(t / ENTER, 1), ee = 1 - Math.pow(1 - e, 3), H = innerHeight;
+      // the first service's stretch is short (FIRST of a normal one) so the carousel turns soon after the first card lands
+      const sp = Math.min(Math.max((t - ENTER) / (1 - ENTER), 0), 1), f = sp * 4 + (1 - FIRST), i = Math.min(3, Math.floor(f)), local = i === 0 ? (f - 1 + FIRST) / FIRST : f - i;
+      if (window.haloSmooth && haloSmooth.limit !== limit) haloSmooth.limit = limit;
+      const now = performance.now(); live = r.top < innerHeight && r.bottom > 0;
+      // the landing counts as a step (checked BEFORE stepping: a fast scroll can pass the landing and the next card's
+      // start in one frame): the swipe that brought the card in can't also turn the carousel; brief hold, then the next swipe does
+      if (live && act >= 0 && e >= 0.99 && !landed) { landed = true; lastStep = now; lockUntil = now + 250; } else if (e < 0.8) landed = false;
+      if (act < 0 || !live) { if (i !== act) { act = i; place(i, true); } }            // off screen (or first frame): just follow
+      else if (i !== act && now > lockUntil && gesture > lockUntil) { act += Math.sign(i - act); lastStep = now; lockUntil = now + LOCK; place(act); }
+      range = calcRange(now);
+      if (now < lockUntil) { if (lockY == null && range) lockY = clampY(window.haloSmooth ? haloSmooth.target : scrollY); } else lockY = null;
+      // keep the scroll in range: with smooth scroll, clamp its target (not the current position, which would throw away
+    // wheel input still easing in); otherwise (touch / keys) the position itself
+    if (range) { if (window.haloSmooth) { const g = haloSmooth.target, y = lockY != null ? lockY : clampY(g); if (Math.abs(y - g) > 1) haloSmooth.to(y); }
+      else { const y = clampY(scrollY); if (Math.abs(y - scrollY) > 1) scrollTo(0, y); } }
+      // arrival: each card rises from below; the front one travels the full way, the ones behind less (parallax).
+      // Their photos drift inside their frames only during this arrival (still once the carousel starts turning).
+      // the middle card rises and eases to a stop; the cards behind ride up tucked under it, then fan out once it is over the title
+      const rise = 1 - Math.pow(1 - e, 2);   // lands exactly at the end of the arrival (no dead scroll after it)
+      // the title hides once the middle card has covered it, so it never shows through the gaps while the cards swap
+      mTitle.style.opacity = e < 0.86 ? 1 : 0;   // gentler ease-out (was cubic): spends longer over the title
+      const tilt = TILT * Math.pow(1 - e, 2);    // comes in at a slight angle, straightening as it lands
+      // on the first service the next card is hidden at the side; it fades in (CSS opacity transition on the slot) while
+      // the first card moves out and it moves into the middle
+      const appear = act > 0 ? 1 : 0;
+      slots.forEach((sl, k) => { const p = cards[k].dataset.p, front = p === '0';
+        sl.style.zIndex = cards[k].dataset.z;
+        sl.style.opacity = front ? 1 : appear;
+        const y = (1 - rise) * H;
+        sl.style.transform = `translateY(${y.toFixed(1)}px) rotate(${(front ? tilt : 0).toFixed(2)}deg)`;
+        cards[k].style.setProperty('--py', `${((1 - ee) * (front ? 9 : 5)).toFixed(2)}%`); });
+      const lp = i === act ? Math.min(local * 1.05, 1) : i > act ? 1 : 0;
+      segs.forEach((sg, k) => sg.style.setProperty('--p', k < act ? 1 : k > act ? 0 : lp));
+      requestAnimationFrame(updM);
+    }
+    requestAnimationFrame(updM);
+    stage.addEventListener('click', e => {   // a card at the side: jump to it
+      const c = e.target.closest('.m-card'); if (!c || c.dataset.p === '0' || e.target.closest('a')) return;
+      const top = tk.getBoundingClientRect().top + scrollY, span = tk.offsetHeight - innerHeight;
+      scrollToY(yAt(+c.dataset.s + 0.05));
+    });
+  }
+
+  // ---- scroll: each track's progress (0..1 while its pin is stuck) -> which service, and how far through it -------
+  const tracks = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'].map(id => ({ id, el: document.getElementById(id), active: -1 }));
+  const prog = tk => { const r = tk.el.getBoundingClientRect(); return Math.min(Math.max(-r.top / (r.height - innerHeight), 0), 1); };
+  const ease = x => 1 - Math.pow(1 - x, 3);
+  function setActive(tk, i) {
+    if (i === tk.active) return;
+    const prev = tk.active; tk.active = i;
+    tk.el.querySelectorAll('[data-i]').forEach(el => { const k = +el.dataset.i; el.classList.toggle('on', k === i); el.classList.toggle('was', k === prev && k !== i); });
+    if (tk.id === 'a') { const s = S[i]; $('#a .a-tag').innerHTML = `<span class="dot" style="--c:${s.c}"></span>${n2(i)} — ${s.f.replace('Featured: ', '')}`; }
+    if (tk.id === 'b' || tk.id === 'e' || tk.id === 'h' || tk.id === 'i' || tk.id === 'j') tk.el.querySelector('.pin').style.setProperty('--bgc', tk.id === 'i' ? I_BG[i] : S[i].c);
+    if (tk.id === 'i') deckTo(tk, i, prev);
+    if (tk.id === 'k') {   // K: frame / pill / progress colour, a left-to-right colour wipe, and the carousel turning
+      const pin = tk.el.querySelector('.pin'), back = prev > i;
+      pin.style.setProperty('--kc', I_CARD[i]);
+      if (prev < 0) pin.style.background = '#FFF8E6';   // cream until the entrance
+      else if (tk.kIn) kWipe(pin, I_BG[i], back);
+      // carousel: each slide's place on the ring relative to the current one (0 front, 1 next, -1 previous, 2 behind)
+      tk.el.querySelectorAll('.k-slide').forEach(sl => { const d = ((+sl.dataset.i - i) % 4 + 4) % 4; sl.dataset.p = d === 3 ? -1 : d; });
+    }
+    if (tk.id === 'j') {   // background: a pixel sweep to the new service's pale colour (straight in on the first show)
+      const pin = tk.el.querySelector('.pin');
+      if (prev < 0) pin.style.background = css(pale(S[i].c)); else jPixels(pin, pale(S[i].c), prev > i);
+    }
+    if (tk.id === 'j') tk.el.querySelector('.j-prog b').textContent = `0${i + 1} / 04`;
+    if (tk.id === 'j') {   // centre = this service, top right = next, bottom left = previous (wrapping round)
+      const back = prev > i;
+      [['.j-img', i], ['.j-next', (i + 1) % 4], ['.j-prev', (i + 3) % 4]].forEach(([sel, k]) => {
+        const slot = tk.el.querySelector(sel), was = slot.querySelector('figure.on'), fig = slot.querySelector(`figure[data-s="${k}"]`);
+        if (sel !== '.j-img') slot.dataset.i = k;
+        if (sel === '.j-next') tk.el.querySelectorAll('.j-cap > div').forEach(c => c.classList.toggle('on', +c.dataset.s === k));   // the small squares jump to their service
+        if (was === fig) return;
+        slot.querySelectorAll('figure.was').forEach(x => x.classList.remove('was'));
+        if (prev >= 0) {   // park the incoming photo at the edge its wipe starts from (bottom going forward, top going back)
+          fig.style.transition = 'none'; fig.style.clipPath = back ? 'inset(0 0 100% 0)' : 'inset(100% 0 0 0)';
+          fig.getBoundingClientRect(); fig.style.transition = ''; fig.style.clipPath = '';
+        }
+        if (was) { was.classList.remove('on'); was.classList.add('was'); }
+        fig.classList.add('on');
+        clearTimeout(slot._t);   // once covered, drop the old photo (it hairlined through the new one's rounded edges)
+        slot._t = setTimeout(() => slot.querySelectorAll('figure.was').forEach(x => { x.style.transition = 'none'; x.classList.remove('was'); }), 1150);
+      });
+    }
+    if (tk.id === 'c') { const t = tk.el.querySelector(`.c-tabs a[data-i="${i}"]`), line = $('#c .c-line'); line.style.width = t.offsetWidth + 'px'; line.style.transform = `translateX(${t.offsetLeft}px)`; }
+  }
+  // option I: a deck, the active service's card in front and the rest stacked behind in order, fanned slightly. Stepping
+  // forward one, the front card falls off the bottom and rises back in at the back; stepping back, the back card drops
+  // away and rises up at the front. Bigger jumps (the links) just re-deal the stack.
+  const slot = (p, u) => (p === 0 ? 'translate(0px, 0px) rotate(0deg) scale(1)'
+    : `translate(${p * 30 * u}px, ${p * 10 * u}px) rotate(${p * 4.5}deg) scale(${1 - p * 0.035})`);
+  function deckTo(tk, i, prev) {
+    const u = innerWidth / 1920, drop = innerHeight * 1.1, cards = [...tk.el.querySelectorAll('.i-card')];
+    const step = prev < 0 ? 0 : i - prev;
+    cards.forEach(cd => {
+      clearTimeout(cd._t);
+      const j = +cd.dataset.i, p = ((j - i) % 4 + 4) % 4;
+      // the front card and one behind it are shown; the rest stay invisible until they're dealt forward
+      const settle = () => { cd.style.transition = ''; cd.style.zIndex = 10 - p; cd.style.transform = slot(p, u); cd.style.opacity = p > 1 ? 0 : 1; };
+      if (step === 1 && j === prev) {          // was in front: fall off the bottom (the next card fans up behind it), then hide at the back
+        cd.style.zIndex = 20; cd.style.opacity = 1;
+        cd.style.transition = 'transform 0.55s cubic-bezier(0.55, 0, 0.8, 0.4)';
+        cd.style.transform = `translate(${-40 * u}px, ${drop}px) rotate(-14deg) scale(1)`;
+        cd._t = setTimeout(() => { settle(); cd.style.transition = 'none'; }, 560);
+      } else if (step === 1 && j === i) {       // the next card (already showing behind) straightens to the front as the old one falls
+        cd.style.transition = 'none'; cd.style.zIndex = 10 - p; cd.style.transform = slot(1, u); cd.style.opacity = 1;
+        cd.getBoundingClientRect();
+        settle();
+      } else if (step === -1 && j === i) {      // stepping back: the previous card rises up from below, in front
+        cd.style.transition = 'none'; cd.style.zIndex = 20; cd.style.opacity = 1;
+        cd.style.transform = `translate(0px, ${drop}px) rotate(0deg) scale(1)`;
+        cd.getBoundingClientRect();
+        cd.style.transition = 'transform 0.8s var(--ease)'; cd.style.transform = slot(0, u);
+        cd._t = setTimeout(settle, 820);
+      } else settle();
+    });
+  }
+  function update() {
+    for (const tk of tracks) {
+      const p = prog(tk), f = p * 4, i = Math.min(3, Math.floor(f)), local = f - i;
+      setActive(tk, i);
+      if (tk.id === 'k' && !tk.kIn && tk.el.getBoundingClientRect().top / innerHeight < 0.75) {   // K entrance: first colour wipes in, content follows 0.2s in
+        tk.kIn = true;
+        const pin = tk.el.querySelector('.pin');
+        kWipe(pin, I_BG[tk.active], false);
+        setTimeout(() => pin.classList.remove('k-wait'), 200);
+      }
+      if (tk.id === 'k') tk.el.querySelectorAll('.k-prog span').forEach((sg, k) => sg.style.setProperty('--p', k < i ? 1 : k > i ? 0 : Math.min(local * 1.05, 1)));   // K: four segments, the current one filling
+      // per-service fill (A: line under the name, B: story segments)
+      tk.el.querySelectorAll('.bar i, .seg i').forEach(b => { const k = +b.closest('[data-i]').dataset.i; b.style.setProperty('--p', k < i ? 1 : k > i ? 0 : Math.min(local * 1.1, 1)); });
+      if (tk.id === 'c') {   // the rail glides continuously, settling on each card (a short hold either side)
+        const panels = tk.el.querySelectorAll('.c-panel'), step = panels[1].offsetLeft - panels[0].offsetLeft;
+        const hold = 0.22, k = Math.min(Math.max((local - hold) / (1 - 2 * hold), 0), 1), pos = i + (i < 3 ? ease(k) : 0);
+        tk.el.querySelector('.c-rail').style.transform = `translateX(${-pos * step + (innerWidth - panels[0].offsetWidth) / 2 - parseFloat(getComputedStyle(tk.el.querySelector('.c-rail')).paddingLeft)}px)`;
+        panels.forEach((pn, j) => { const dist = Math.abs(j - pos); pn.style.opacity = 1 - Math.min(dist, 1) * 0.55; pn.style.setProperty('--s', 1 + Math.min(dist, 1) * 0.1); });
+      }
+      if (tk.id === 'f') {   // colour strip up, photo strip down, settling on each service (a hold either side)
+        const hold = 0.22, k = Math.min(Math.max((local - hold) / (1 - 2 * hold), 0), 1), pos = i + (i < 3 ? ease(k) : 0), vh = innerHeight;
+        tk.el.querySelector('.f-left').style.transform = `translateY(${-pos * vh}px)`;
+        tk.el.querySelector('.f-right').style.transform = `translateY(${(pos - 3) * vh}px)`;
+      }
+      if (tk.id === 'h') {   // the window grows through each service's slot, then cuts back small for the next
+        const g = ease(Math.min(local / 0.85, 1)), W = innerWidth, H = innerHeight, m = W * 0.03;
+        const w = 0.24 * W + g * (0.56 * W - 0.24 * W), hh = 0.3 * H + g * (0.56 * H - 0.3 * H);   // grows to 56% x 56%: the links + copy stay on the colour
+        const pin = tk.el.querySelector('.pin');
+        const t0 = 0.44 * H - hh / 2, l0 = (W - w) / 2;
+        pin.style.setProperty('--clip', `inset(${t0}px ${l0}px ${H - t0 - hh}px ${l0}px round ${26 - g * 8}px)`);
+        pin.style.setProperty('--w', w + 'px'); pin.style.setProperty('--hh', hh + 'px'); pin.style.setProperty('--r', (26 - g * 8) + 'px'); pin.style.setProperty('--is', 1.25 - g * 0.23);
+      }
+      if (tk.id === 'd') {   // card j slides up over j-1 during its slot; the ones underneath sink back and dim
+        const cards = tk.el.querySelectorAll('.d-card');
+        cards.forEach((cd, j) => {
+          const enter = j === 0 ? 1 : ease(Math.min(Math.max((f - (j - 1) - 0.55) / 0.45, 0), 1));   // arrives in the second half of the previous slot
+          const above = Math.max(0, Math.min(3, f - 0.55) - j);   // how many cards now sit on top of it
+          const sink = Math.min(above, 1.5);
+          cd.style.transform = `translateY(${(1 - enter) * 105}%) translateY(${-sink * 22}px) scale(${1 - sink * 0.045})`;
+          cd.querySelector('.shade').style.opacity = Math.min(sink * 0.22, 0.35);
+        });
+      }
+    }
+    requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+
+  // ---- links: jump to a service (eased scroll to the start of its slot) ---------------------------------------------
+  function scrollToY(y) {
+    const from = scrollY, d = y - from, t0 = performance.now(), dur = Math.min(1200, 400 + Math.abs(d) * 0.25);
+    (function step(now) { const k = Math.min((now - t0) / dur, 1), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; scrollTo(0, from + d * e); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('.a-names a, .b-tabs a, .c-tabs a, .d-list a, .e-chips a, .f-nav a, .g-col, .h-nav a, .i-nav a, .i-card, .j-sm, .k-tabs a, .k-slide');
+    if (a) {
+      e.preventDefault();
+      const tk = a.closest('.track'), top = tk.getBoundingClientRect().top + scrollY, span = tk.offsetHeight - innerHeight, i = +a.dataset.i;
+      // land just inside the service's slot (D: once its card has arrived)
+      const at = tk.id === 'd' ? (i === 0 ? 0.02 : (i - 1 + 1.02) / 4) : (i + (tk.id === 'c' || tk.id === 'f' ? 0.5 : tk.id === 'h' ? 0.6 : 0.08)) / 4;
+      return scrollToY(top + span * at);
+    }
+    const sw = e.target.closest('.switch a');
+    if (sw) { e.preventDefault(); scrollToY(document.querySelector(sw.getAttribute('href')).getBoundingClientRect().top + scrollY); }
+  });
+})();
+</script>
+<script src="src/invert.js"></script>
+<script src="src/smooth.js"></script>
+</body>
+</html>
