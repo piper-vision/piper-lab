@@ -329,6 +329,25 @@
   #services, #services-b2 { --u: calc(100vw / 1920); --b: calc(13 * var(--u)); position: relative; z-index: 4; height: 370vh; color: #191919; }
   /* Option B2 (James): Option B with wide landscape cards. Photo on top, the name big bottom left and the copy beside it;
      the side cards peek out either side, turned in a little less */
+  /* Option B (James): no progress bar; a text progress row across the bottom instead (src/services-m.js): the four
+     names in a line under the card, the current one dark with a dot; View all at the right-hand end */
+  #services .svm-prog { display: none; }
+  /* the cards behind softly out of focus, like the hero gallery's far photos (James); eases in / out with the cards' own filter transitions */
+  #services .svm-card:is([data-p="1"], [data-p="-1"]) { filter: brightness(0.92) blur(calc(4 * var(--u))); }
+  #services .svm-card[data-p="0"] { filter: brightness(1) blur(0px); }
+  .svm-list { position: absolute; left: 50%; top: var(--row); transform: translate(-50%, -50%); z-index: 3; margin: 0; padding: 0; list-style: none;
+    display: flex; align-items: center; gap: calc(44 * var(--u)); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+  #services.svm-on .svm-list { opacity: 1; pointer-events: auto; }
+  .svm-list li { position: relative; padding-left: 0; cursor: pointer; color: rgba(25, 25, 25, 0.42);
+    font: 400 calc(22 * var(--u)) / 1 'Space Grotesk', sans-serif;
+    transition: color 0.45s ease, padding-left 0.45s cubic-bezier(0.65, 0, 0.35, 1); }
+  .svm-list li:hover { color: rgba(25, 25, 25, 0.7); }
+  .svm-list li.on { color: #191919; padding-left: calc(22 * var(--u)); }
+  .svm-list li::before { content: ''; position: absolute; left: 0; top: 50%; width: calc(10 * var(--u)); height: calc(10 * var(--u)); margin-top: calc(-5 * var(--u));
+    border-radius: 50%; background: #191919; transform: scale(0); transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1); }
+  .svm-list li.on::before { transform: scale(1); }
+  #services .svm-all { left: auto; right: calc(60 * var(--u)); }
+  @media (max-width: 767px) { .svm-list { display: none; } }
   #services-b2 .svm-pin { --cw: min(calc(var(--ch) * 1.57), calc(100vw - 360 * var(--u))); }
   #services-b2 .svm-card[data-p="1"] { transform: translateX(calc(var(--cw) * 0.3)) translateZ(calc(var(--cw) * -0.38)) rotate(3deg); }
   #services-b2 .svm-card[data-p="-1"] { transform: translateX(calc(var(--cw) * -0.3)) translateZ(calc(var(--cw) * -0.38)) rotate(-3deg); }

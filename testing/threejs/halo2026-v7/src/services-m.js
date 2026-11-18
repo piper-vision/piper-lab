@@ -42,6 +42,13 @@
     <a class="svm-go" href="#" aria-label="Find out more">${arrow}</a></div></div>`).join('');
   sec.querySelector('.svm-prog').innerHTML = CARD.map(c => `<span style="--c:${c}"><i></i></span>`).join('');
   const slots = [...stage.querySelectorAll('.svm-slot')], cards = slots.map(sl => sl.firstElementChild), segs = [...sec.querySelectorAll('.svm-prog span')];
+  // B (James): a text progress row across the bottom: the four names, the current one dark with its colour dot, the others grey;
+  // it fades in once the first card has landed (.svm-on); click a name to go to it
+  const list = wide ? null : document.createElement('ol');
+  if (list) { list.className = 'svm-list';
+    list.innerHTML = S.map((s, k) => `<li data-i="${k}"><span>${s.t.replace(/<br>/g, ' ')}</span></li>`).join('');
+    sec.querySelector('.svm-pin').appendChild(list); }
+  const items = list ? [...list.children] : [];
 
   // the middle photo's mask stops a set gap above that card's own text
   const sizeMasks = () => cards.forEach(c => { const b = c.querySelector('.svm-img').offsetLeft;
@@ -208,7 +215,7 @@
       return;
     }
     const rise = wide ? 1 : 1 - Math.pow(1 - e, 2);   // lands exactly at the end of the arrival (no dead scroll after it)
-    if (!wide) title.style.opacity = e < 0.86 ? 1 : 0;   // hidden once covered, so it never shows through the gaps between cards (B2: src/services-b2gl.js hides it)
+    if (!wide) { title.style.opacity = e < 0.86 ? 1 : 0; sec.classList.toggle('svm-on', e >= 0.86); items.forEach((it, k) => it.classList.toggle('on', k === act)); }   // hidden once covered, so it never shows through the gaps between cards (B2: src/services-b2gl.js hides it)
     if (wide) sec.classList.toggle('svm-in', e >= 0.35);
     // the background: the current service's colour once the first card covers the title, the page colour before that
     // the first colour pixels in just as the first card is about to reach the title (its top within PX_LEAD design px of the
@@ -240,6 +247,11 @@
   }
   requestAnimationFrame(frame);
 
+  if (list) list.addEventListener('click', ev => {   // a name in the list: go to it
+    const it = ev.target.closest('li'); if (!it) return;
+    const y = yAt(+it.dataset.i + 0.05);
+    if (window.haloSmooth) haloSmooth.to(y); else scrollTo({ top: y, behavior: 'smooth' });
+  });
   stage.addEventListener('click', ev => {   // a side card: go to it
     const c = ev.target.closest('.svm-card'); if (!c || c.dataset.p === '0' || ev.target.closest('a')) return;
     const y = yAt(+c.dataset.s + 0.05);
