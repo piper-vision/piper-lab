@@ -451,15 +451,15 @@
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-kit { width: calc(586.7 * var(--u)); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-badge { opacity: 0; }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team { left: calc(666.7 * var(--u)); width: calc(1200 * var(--u)); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-img { width: calc(1178.6 * var(--u)); height: calc(var(--kh) - 498.3 * var(--u)); }   /* 49 clear above The Team, as closed */
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-img { width: calc(1178.6 * var(--u)); height: calc(var(--kh) - 427 * var(--u)); }   /* taller (James mock: 600 at full card height), 49 clear above The Team */
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-pill { left: calc(29.3 * var(--u)); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tint { background-color: #E6FF00; }
-    #kit.in:has(.kt-team:is(:hover, :focus-within)) .kt-img .kt-pic { transform: translateY(0) scale(1); transition: transform 0.8s var(--kt-ease); }
+    #kit.in:has(.kt-team:is(:hover, :focus-within)) .kt-img .kt-pic { transform: translateY(calc(15 * var(--u))) scale(1.04);   /* V2 loop: raised hand and helmets clear the top, legs below (James mock); 1.04 so it covers the left edge too (the picture sits 20 right of centre) */ transition: transform 0.8s var(--kt-ease); }
     #kit.in .kt-img .kt-pic { transition: transform 0.8s var(--kt-ease); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-label { top: calc(var(--kh) - 440 * var(--u)); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-t { top: calc(var(--kh) - 399.4 * var(--u)); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tp { opacity: 1; transition: opacity 0.45s ease 0.5s; }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tmore { opacity: 1; pointer-events: auto; transition: opacity 0.45s ease 0.6s; }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-label { top: calc(var(--kh) - 369 * var(--u)); }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-t { top: calc(var(--kh) - 328.4 * var(--u)); }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tp { top: calc(var(--kh) - 219 * var(--u)); opacity: 1; transition: opacity 0.45s ease 0.5s; }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tmore { left: auto; right: calc(41.3 * var(--u)); opacity: 1;   /* right-hand side: the copy now runs down to its level */ pointer-events: auto; transition: opacity 0.45s ease 0.6s; }
   }
   #kit.in .kt-card { clip-path: inset(0 0 0 0); }
   .kt-ring rect { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.2, 1) var(--d, 0s); }
@@ -488,11 +488,11 @@
   .kt-img .kt-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   /* the team picture (James' new illustration) under a multiply tint: #E9E9DF closed, lime as the card opens */
   /* fixed size (the open card's width), centred: as the card opens the frame just crops less of it, so the picture never rescales */
-  .kt-img .kt-pic { position: absolute; left: 50%; top: calc(-230 * var(--u)); width: calc(1178.6 * var(--u)); height: auto; aspect-ratio: 1000 / 948; max-width: none; margin-left: calc(-569.3 * var(--u)); }   /* nudged 20 right so the closed card shows both figures */
+  .kt-img .kt-pic { position: absolute; left: 50%; top: calc(-230 * var(--u)); width: calc(1178.6 * var(--u)); height: auto; aspect-ratio: 1 / 1; object-fit: cover; max-width: none;   /* the team loop (assets/kit/team-loop.mp4 = Halo-Team-V2, 1000 x 1000, James), was team-new.jpg */ margin-left: calc(-569.3 * var(--u)); }   /* nudged 20 right so the closed card shows both figures */
   /* closed: the picture shown smaller (scaled about its upper middle); opening scales it up to full size. A plain transform
      transition, so it grows smoothly instead of being refitted every frame */
   #kit .kt-img .kt-pic { transform-origin: 50% 32%; transform: scale(0.75); transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s); }
-  #kit.in .kt-img .kt-pic { transform: translateY(calc(60 * var(--u))) scale(0.6); }   /* down a touch: her head clears the Halo pill */
+  #kit.in .kt-img .kt-pic { transform: translateY(calc(85 * var(--u))) scale(0.72); }   /* closed: big enough to fill the frame top to bottom even on a full-height card (0.6 left a gap below, James) */
   .kt-tint { position: absolute; inset: 0; background: #E9E9DF; mix-blend-mode: multiply; pointer-events: none; transition: background-color 0.8s var(--kt-ease); }
   .kt-pill { position: absolute; left: calc(386.7 * var(--u)); top: calc(29.3 * var(--u)); width: calc(149.3 * var(--u)); height: calc(56.4 * var(--u)); box-sizing: border-box;
     padding: calc(10.7 * var(--u)) 0 0 calc(32 * var(--u)); border-radius: 99em; background: #E6FF00; border: 1px solid #191919; }
@@ -1006,7 +1006,7 @@
     <a class="kt-more" href="#">Learn more →</a>
   </article>
   <article class="kt-card kt-team">
-    <div class="kt-img"><img class="kt-pic" data-src="assets/kit/team-new.jpg" alt="Illustration: two Halo crew members in hard hats planning on site"><i class="kt-tint" aria-hidden="true"></i><span class="kt-pill"><img data-src="assets/kit/team-logo.svg" alt="Halo"></span></div>
+    <div class="kt-img"><video class="kt-pic" src="assets/kit/team-loop.mp4" autoplay muted loop playsinline preload="auto" aria-label="Animation: two Halo crew members in hard hats planning on site"></video><i class="kt-tint" aria-hidden="true"></i><span class="kt-pill"><img data-src="assets/kit/team-logo.svg" alt="Halo"></span></div>
     <p class="kt-label"><span class="km"><span>The Team</span></span></p>
     <h3 class="kt-t"><span class="km"><span>The people that</span></span><span class="km"><span>make it work.</span></span></h3>
     <p class="kt-tp">Great systems need great people. Our crew bring the experience, organisation and on-site know-how that turn modular components into spaces that work – quickly, safely and reliably.</p>
