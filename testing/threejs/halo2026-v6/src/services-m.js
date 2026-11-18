@@ -111,20 +111,27 @@
 
   // one service per swipe: after a step the scroll is held inside that card's stretch until a new swipe starts
   let act = -1, lastStep = 0, lockUntil = 0, range = null, lastWheel = 0, gesture = 0, live = false, passGesture = -1;
-  const noteWheel = () => { const n = performance.now(); if (n - lastWheel > K.GESTURE) gesture = n; lastWheel = n; };
+  // a new swipe: a pause in wheel input longer than K.GESTURE, OR the scroll suddenly speeding up. A Mac trackpad keeps sending
+  // momentum events (always slowing down) for a second or more after the finger lifts, and the next swipe usually runs
+  // straight on from that tail with no pause, so the pause alone missed it (James: B and E stuck in Safari)
+  const swipeStart = (() => { let last = 0, mags = [];
+    return (d, n) => { const m = Math.abs(d); let fresh = n - last > K.GESTURE;
+      if (!fresh && mags.length >= 3) { const avg = (mags[mags.length - 1] + mags[mags.length - 2] + mags[mags.length - 3]) / 3; if (m >= 8 && m > avg * 1.6) fresh = true; }
+      if (fresh) mags = []; mags.push(m); if (mags.length > 6) mags.shift(); last = n; return fresh; }; })();
+  const noteWheel = (fresh, n) => { if (fresh) gesture = n; lastWheel = n; };
   const calcRange = now => !live ? null : (now < lockUntil || gesture <= lockUntil) ? [act, act] : [act - 1, act + 1];
   const yAt = k => sec.getBoundingClientRect().top + scrollY + (sec.offsetHeight - innerHeight) * (K.ENTER + (1 - K.ENTER) * Math.max(0, k - 1 + FIRST) / 4);
   const clampY = y => { if (!range) return y;
     const lo = range[0] < 0 || (range[0] === 0 && !landed) ? -Infinity : yAt(range[0]) + 2, hi = range[1] >= 3 ? Infinity : yAt(range[1] + 1) - 2;
     return Math.min(Math.max(y, lo), hi); };
   let lockY = null;   // while held: the scroll position the page is pinned at
-  const limit = y => { noteWheel(); range = calcRange(performance.now()); return lockY != null ? lockY : clampY(y); };   // smooth.js wheel hook
+  const limit = y => { range = calcRange(performance.now()); return lockY != null ? lockY : clampY(y); };   // (the wheel handler below has already noted the event)   // smooth.js wheel hook
   // one swipe = one card (James): once the first card has landed, the START of each new wheel gesture turns the carousel
   // one service in its direction and eases the page to that service, however far the swipe would have scrolled; the
   // page is then held until the card's text is in. Past the first / last service the page scrolls on as normal.
   // (Touch and keys still step by scroll position, in frame.)
   addEventListener('wheel', ev => {
-    const n = performance.now(), fresh = n - lastWheel > K.GESTURE; noteWheel();
+    const n = performance.now(), fresh = swipeStart(ev.deltaMode === 1 ? ev.deltaY * 16 : ev.deltaY, n); noteWheel(fresh, n);
     // native scrolling (Safari, or ?smooth=0: no smooth.js to clamp): hold the page by cancelling the wheel inside the
     // carousel instead of pulling it back every frame, which fought the trackpad's momentum
     if (!window.haloSmooth && live && act >= 0 && landed && !ev.ctrlKey && ev.deltaY) {

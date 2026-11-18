@@ -122,10 +122,17 @@
       if (k < 1) requestAnimationFrame(step); else { glideRun = null; if (SM) SM.K.ease = baseEase; }
     })(t0);
   }
+  // a new swipe: a pause in wheel input longer than GESTURE, OR the scroll suddenly speeding up. A Mac trackpad keeps sending
+  // momentum events (always slowing down) for a second or more after the finger lifts, and the next swipe usually runs
+  // straight on from that tail with no pause, so the pause alone missed it (James: B and E stuck in Safari)
+  const swipeStart = (() => { let last = 0, mags = [];
+    return (d, n) => { const m = Math.abs(d); let fresh = n - last > GESTURE;
+      if (!fresh && mags.length >= 3) { const avg = (mags[mags.length - 1] + mags[mags.length - 2] + mags[mags.length - 3]) / 3; if (m >= 8 && m > avg * 1.6) fresh = true; }
+      if (fresh) mags = []; mags.push(m); if (mags.length > 6) mags.shift(); last = n; return fresh; }; })();
   // capture phase on window: runs before smooth.js's wheel handler, which it can stop
   addEventListener('wheel', ev => {
     if (E.hidden || ev.ctrlKey) return;
-    const now = performance.now(), fresh = now - lastWheel > GESTURE; lastWheel = now;
+    const now = performance.now(), d0 = ev.deltaMode === 1 ? ev.deltaY * 16 : ev.deltaY, fresh = swipeStart(d0, now); lastWheel = now;
     if (fresh) gestureId++;
     if (gestureId === passId) return;   // this swipe is leaving past the first / last card: let all of it through
     const y0 = eY(0), y3 = eY(3), cur = window.haloSmooth ? haloSmooth.target : scrollY;
