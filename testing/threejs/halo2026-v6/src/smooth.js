@@ -3,11 +3,12 @@
 // so nothing fights. Everything that reads scrollY (bar widening, word fade, reveals) just sees a
 // smoother scrollY.
 (() => {
-  // Safari: native scrolling (James: this JS easing ran at ~25 fps there; Safari's own trackpad / wheel scrolling is
-  // already smooth). ?smooth=1 forces it on, ?smooth=0 off, in any browser, for comparing.
+  // Macs: native scrolling (James): macOS trackpad / Magic Mouse scrolling is already smooth, and this JS easing ran at
+  // ~25 fps in Safari. On by default everywhere else (Windows wheels step in jumps). ?smooth=1 forces it on, ?smooth=0
+  // off, in any browser, for comparing.
   const q = new URLSearchParams(location.search).get('smooth');
-  const safari = /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
-  if (q === '0' || (safari && q !== '1')) return;
+  const mac = /mac/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent);
+  if (q === '0' || (mac && q !== '1')) return;
   const K = {
     ease: 0.1,       // share of the remaining distance covered per 60 fps frame (lower = smoother, floatier)
     wheel: 1,        // wheel distance multiplier
