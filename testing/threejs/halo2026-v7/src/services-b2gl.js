@@ -24,7 +24,9 @@ import * as THREE from 'three';
   const EASE = { out: bez(0.45, 0, 0.25, 1), in: bez(0.55, 0, 0.35, 1), base: bez(0.65, 0, 0.35, 1), op: bez(0.25, 0.1, 0.25, 1) };
 
   // ---- renderer / camera ---------------------------------------------------------------------------------------------
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  // edge smoothing (MSAA) only on standard screens: Retina already draws at 2x, and MSAA at that size was a large part of
+  // the cost on a MacBook (James: B2's frame rate)
+  const renderer = new THREE.WebGLRenderer({ antialias: (devicePixelRatio || 1) < 1.5, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const cv = renderer.domElement;
@@ -109,7 +111,7 @@ import * as THREE from 'three';
       g.beginPath(); g.moveTo(3, 10); g.lineTo(16.5, 10); g.moveTo(11, 4.5); g.lineTo(16.5, 10); g.lineTo(11, 15.5); g.stroke(); g.restore(); }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     if (textures[k]) textures[k].dispose();
-    textures[k] = t; meshes[k].material.map = t; meshes[k].material.needsUpdate = true;
+    textures[k] = t; meshes[k].material.map = t; meshes[k].material.needsUpdate = true; dirty = true;
   }
   // redraw a card when its photo arrives, and when its pill / arrow is hovered (the HTML ones are invisible but on top)
   cards.forEach((card, k) => {
@@ -122,14 +124,16 @@ import * as THREE from 'three';
   // ---- motion: a ring carousel -----------------------------------------------------------------------------------------
   // The cards stand round a circle, each facing out, ANG degrees apart, the radius chosen so neighbours' edges just meet
   // (plus GAP): the ring turns as one piece, so no card ever passes through another and nothing pops (James). The
-  // current service (the HTML card with data-p 0) is turned to the front, easing over TURN_MS.
+  // current service (the HTML card with data-p 0) is turned to the front.
   // The ring follows the current service on a soft spring (James: a timed curve felt rigid): it picks up speed, settles
   // with a slight overshoot; while it's moving it eases back a touch (SINK) and the cards lean with the motion (LEAN)
   const SLIDE = { w: 6.5, z: 0.85 }, ANG = 36, GAP = 0.05, SPRING = { w: 7.2, z: 0.78 }, SINK = 0.06, LEAN = 3.5, FADE = 7;
   const RAD = (0.5 + GAP) / Math.tan(ANG / 2 * Math.PI / 180);   // in card widths
-  let ring = null, vel = 0, lastT = 0, slide = 0, svel = 0;   // slide: the carousel's offset to the right (px)
-  const title = sec.querySelector('.svm-title');   // ring: the service index facing front (fractional while turning); vel: per second
+  // ring: the service index facing front (fractional while turning); vel: per second; slide: the carousel's offset to the right (px)
+  let ring = null, vel = 0, lastT = 0, slide = 0, svel = 0;
+  const title = sec.querySelector('.svm-title');
   const shown = cards.map(() => 0);     // each card's drawn opacity, eased towards its target (no popping in)
+  let lastKey = '', dirty = true;       // dirty: force a draw (new textures, a resize)
   function frame(now) {
     requestAnimationFrame(frame);
     if (sec.hidden) return;
@@ -153,7 +157,7 @@ import * as THREE from 'three';
     cards.forEach((card, k) => {
       const a = +card.dataset.s - ring, ang = a * ANG * Math.PI / 180;
       // the slot's own move (the arrival: up from below, tilted, straightening), from its inline transform
-      const m = /translateY(([-d.]+)px)s*rotate(([-d.]+)deg)/.exec(slots[k].style.transform || '');
+      const m = /translateY\(([-\d.]+)px\)\s*rotate\(([-\d.]+)deg\)/.exec(slots[k].style.transform || '');
       const g = groups[k]; g.position.set(slide, m ? -parseFloat(m[1]) : 0, 0); g.rotation.z = m ? -parseFloat(m[2]) * Math.PI / 180 : 0;
       const mesh = meshes[k];
       mesh.position.set(RAD * cw * Math.sin(ang), 0, RAD * cw * (Math.cos(ang) - 1) - SINK * cw * speed);
@@ -164,7 +168,13 @@ import * as THREE from 'three';
       mesh.material.color.setScalar(1 - 0.08 * Math.min(d, 1));
       mesh.material.opacity = op; mesh.visible = op > 0.002; mesh.material.transparent = op < 0.999; mesh.material.depthWrite = true;
     });
-    if (onScreen) renderer.render(scene, camera);
+    // draw only when something on screen has changed (the ring turning, the slide, a fade, a new texture): at rest it costs
+    // nothing, instead of redrawing a full-screen canvas every frame (James: frame rate on a MacBook)
+    if (onScreen) {
+      let key = slide.toFixed(1) + '|' + ring.toFixed(4) + '|' + vel.toFixed(3);
+      for (let k = 0; k < cards.length; k++) key += '|' + groups[k].position.y.toFixed(1) + ',' + groups[k].rotation.z.toFixed(4) + ',' + meshes[k].material.opacity.toFixed(3);
+      if (key !== lastKey || dirty) { renderer.render(scene, camera); lastKey = key; dirty = false; }
+    }
   }
   addEventListener('resize', () => { ready = false; });
   pin.addEventListener('click', ev => {

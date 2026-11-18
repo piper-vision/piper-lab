@@ -213,8 +213,7 @@
     // B2 (James): its cards don't rise, so the colour pixels in behind the title as the section arrives (its top a quarter
     // of the way up the screen), before the carousel slides in
     const bgOn = wide ? r.top < innerHeight * 0.25 : slots[fk].getBoundingClientRect().top < tb + PX_LEAD * innerWidth / 1920;
-    if (wide) {   // B2 (James): stays the page grey; a grey pixel sweep plays behind the title as the section arrives (and back out going up)
-      if (bgOn !== greyOn) { greyOn = bgOn; pixelTo(BASE, !bgOn, true); }
+    if (wide) {   // B2 (James): stays the page grey, no pixel transition
     } else {
     const bgWant = bgOn ? BG[act] : BASE;
     if (bgWant !== bgNow) { if (bgWant === BASE || bgNow === BASE) pixelTo(bgWant, bgWant === BASE); else fadeTo(bgWant); }
