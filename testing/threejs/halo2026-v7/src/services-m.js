@@ -59,7 +59,10 @@
   // tiles in close shades of the new colour sweep over the old one (up going forward, down going back), each stretching
   // in, then melt into the flat colour, which becomes the pin's background. The first comes in as the first card
   // reaches the title; scrolling back above that returns to the page's #EBEBE1. Between services: a plain fade.
-  const BG = ['#C7D9E5', '#F9B24B', '#BFA48E', '#D69CF2'], BASE = '#EBEBE1';
+  const BASE = '#EBEBE1';
+  // B's background stays the page grey (James); the service colours were ['#D5E3EB', '#FAC578', '#CFBBAA', '#E0B4F5'] (25% lighter
+  // versions of #C7D9E5 #F9B24B #BFA48E #D69CF2): put them back here to bring the colour changes and pixel sweep back
+  const BG = [BASE, BASE, BASE, BASE];
   const PX_LEAD = 300;   // design px: the pixels start when the rising card's top is this far below the title's foot (was 60)
   const PX = { across: 16, coverMs: 650, stretchMs: 200, meltMs: 280, jitter: 0.22, shade: 0.035 };
   const PX_SHAPES = [[1, 1, 6], [2, 1, 2], [1, 2, 2], [3, 1, 1], [1, 3, 1], [2, 2, 1]];

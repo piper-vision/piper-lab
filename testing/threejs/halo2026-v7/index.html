@@ -334,6 +334,10 @@
   #services .svm-prog { display: none; }
   #services .svm-card { box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.06); }   /* the same soft shadow as Option C's deck cards (James) */
   #services .svm-card[data-p="0"] { box-shadow: 0 calc(24 * var(--u)) calc(70 * var(--u)) rgba(0, 0, 0, 0.18); }   /* the middle card lifted off the page (James) */
+  /* the shadows ease with each card's own move instead of switching at once (James): the same timings as the cards */
+  #services .svm-card { transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1), filter 0.8s ease, opacity 0.6s ease, box-shadow 0.8s ease; }
+  #services .svm-card[data-role="out"] { transition: transform 0.64s cubic-bezier(0.45, 0, 0.25, 1), filter 0.64s ease, opacity 0.48s ease, box-shadow 0.64s ease; }
+  #services .svm-card[data-role="in"] { transition: transform 0.68s cubic-bezier(0.55, 0, 0.35, 1) 0.2s, filter 0.68s ease 0.2s, opacity 0.48s ease, box-shadow 0.68s ease 0.2s; }
   .svm-list { position: absolute; left: 50%; top: var(--row); transform: translate(-50%, -50%); z-index: 3; margin: 0; padding: 0; list-style: none;
     display: flex; align-items: center; gap: calc(44 * var(--u)); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
   #services.svm-on .svm-list { opacity: 1; pointer-events: auto; }
