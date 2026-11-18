@@ -30,6 +30,10 @@
   // B2: a short arrival (James: it took ages to get to the cards), and no rise from below: the ring sweeps in from the right
   // in WebGL (src/services-b2gl.js) once the pin has held the title a moment (.svm-in); the title stays put under it
   if (wide) K.ENTER = 0.3;
+  if (wide) K.LOCK = 620;   // B2: the page is held 620 ms after a step, not 900 (James: a little quicker through the cards); the ring is most of the way round by then
+  // the cards' stretches after the arrival: B leaves a whole service's stretch after the last card; B2 (James: too many
+  // scrolls to get past the last card) ends just after it, so a swipe on from the last card moves straight on
+  const SLOTS = wide ? 2.35 : 4;
   const stage = sec.querySelector('.svm-stage'), title = sec.querySelector('.svm-title');
   stage.innerHTML = S.map((s, i) => `<div class="svm-slot"><div class="svm-card" data-s="${i}" style="--c:${CARD[i]}">
     <div class="svm-img"><img src="${s.img}" alt="${s.alt}"></div>
@@ -129,7 +133,7 @@
       if (fresh) mags = []; mags.push(m); if (mags.length > 6) mags.shift(); last = n; return fresh; }; })();
   const noteWheel = (fresh, n) => { if (fresh) gesture = n; lastWheel = n; };
   const calcRange = now => !live ? null : (now < lockUntil || gesture <= lockUntil) ? [act, act] : [act - 1, act + 1];
-  const yAt = k => sec.getBoundingClientRect().top + scrollY + (sec.offsetHeight - innerHeight) * (K.ENTER + (1 - K.ENTER) * Math.max(0, k - 1 + FIRST) / 4);
+  const yAt = k => sec.getBoundingClientRect().top + scrollY + (sec.offsetHeight - innerHeight) * (K.ENTER + (1 - K.ENTER) * Math.max(0, k - 1 + FIRST) / SLOTS);
   // coming back up into the section from below (James: it popped up and skipped a card): the page first scrolls up to
   // the last card and stops there, as the first card does on the way down; a NEW swipe then steps back one card
   let fromBelow = false, bottomAt = 0;   // bottomAt: when the page came to rest on the last card
@@ -181,7 +185,7 @@
     const t = Math.min(Math.max(-r.top / (r.height - innerHeight), 0), 1);
     const e = Math.min(t / K.ENTER, 1), ee = 1 - Math.pow(1 - e, 3), H = innerHeight;
     // the first service's stretch is short (FIRST of a normal one) so the carousel turns soon after the first card lands
-    const sp = Math.min(Math.max((t - K.ENTER) / (1 - K.ENTER), 0), 1), f = sp * 4 + (1 - FIRST), i = Math.min(3, Math.floor(f)), local = i === 0 ? (f - 1 + FIRST) / FIRST : f - i;
+    const sp = Math.min(Math.max((t - K.ENTER) / (1 - K.ENTER), 0), 1), f = sp * SLOTS + (1 - FIRST), i = Math.min(3, Math.floor(f)), local = i === 0 ? (f - 1 + FIRST) / FIRST : f - i;
     // the landing counts as a step (checked BEFORE stepping: a fast scroll can pass the landing and the next card's
     // start in one frame): the swipe that brought the card in can't also turn the carousel; brief hold, then the next swipe does
     if (live && act >= 0 && e >= 0.99 && !landed) { landed = true; lastStep = now; lockUntil = now + 250; } else if (e < 0.8) landed = false;
@@ -231,7 +235,8 @@
       sl.style.transform = `translateY(${y.toFixed(1)}px) rotate(${(front ? tilt : 0).toFixed(2)}deg)`;
       cards[k].style.setProperty('--py', `${((1 - ee) * (front ? 9 : 5)).toFixed(2)}%`); });
     const lp = i === act ? Math.min(local * 1.05, 1) : i > act ? 1 : 0;
-    segs.forEach((sg, k) => sg.style.setProperty('--p', k < act ? 1 : k > act ? 0 : lp));
+    // B2 (James: the last segment never filled): each segment fills as its card comes to the front (CSS eases it)
+    segs.forEach((sg, k) => sg.style.setProperty('--p', wide ? (k <= act ? 1 : 0) : k < act ? 1 : k > act ? 0 : lp));
   }
   requestAnimationFrame(frame);
 

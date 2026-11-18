@@ -343,6 +343,7 @@
   #services-b2.gl .svm-card { opacity: 0 !important; filter: none !important; }
   #services-b2.gl .svm-card:not([data-p="0"]) { pointer-events: none; }   /* side cards: the drawn ones are where you click (src/services-b2gl.js) */
   .svm-gl { position: absolute; left: 0; top: 0; pointer-events: none; }
+  #services-b2 .svm-prog span i { transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1); }   /* fills as each card arrives (src/services-m.js) */
   #services-b2 .svm-prog { left: 50%; transform: translate(-50%, -50%); }   /* progress bar centred under the card; View all stays at its right edge (James) */
   #services-b2 .svm-text { right: calc(130 * var(--u)); display: grid; grid-template-columns: 1fr calc(460 * var(--u)); gap: calc(50 * var(--u)); align-items: center; }   /* the copy centred on the title (James) */
   #services-b2 .svm-text h3 { margin: 0; white-space: nowrap; font-size: calc(66 * var(--u));   /* two lines, as the mock ('Semi-permanent / & meanwhile use') */ line-height: 1; letter-spacing: -0.02em; }
