@@ -440,11 +440,11 @@
   #kit { --kt-ease: cubic-bezier(0.65, 0, 0.35, 1); }
   .kt-img, .kt-pill, .kt-team .kt-label, .kt-team .kt-t, .kt-badge { transition-property: clip-path, width, height, left, top, opacity; transition-duration: 1s, 0.8s, 0.8s, 0.8s, 0.8s, 0.4s;
     transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1), var(--kt-ease), var(--kt-ease), var(--kt-ease), var(--kt-ease), ease; }
-  .kt-tmore { position: absolute; left: calc(41.3 * var(--u)); top: calc(var(--kh) - 81.4 * var(--u));   /* level with the Kit card's Learn more */ padding-bottom: calc(13.3 * var(--u)); border-bottom: 1px solid #191919;
+  .kt-tmore { position: absolute; right: calc(41.3 * var(--u)); top: calc(var(--kh) - 81.4 * var(--u));   /* level with the Kit card's Learn more */ padding-bottom: calc(13.3 * var(--u)); border-bottom: 1px solid #191919;
     color: #191919; text-decoration: none; font: 400 calc(24 * var(--u)) / 1 'Space Grotesk', sans-serif; letter-spacing: -0.02em;
     opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
   .kt-tmore:hover { opacity: 0.6 !important; }
-  .kt-tp { position: absolute; left: calc(41.3 * var(--u)); top: calc(var(--kh) - 290 * var(--u)); width: calc(560 * var(--u)); margin: 0; color: #191919;
+  .kt-tp { position: absolute; left: calc(41.3 * var(--u)); top: calc(var(--kh) - 219 * var(--u));   /* its open place, always: it only fades, so a top change on close jumped it (James) */ width: calc(560 * var(--u)); margin: 0; color: #191919;
     font: 300 calc(21.33 * var(--u)) / 1.375 'Space Grotesk', sans-serif; opacity: 0; pointer-events: none;
     transition: opacity 0.2s ease; }   /* fades only (no slide): any movement fought the card opening and read as a bounce */
   @media (hover: hover) and (min-width: 768px) {
@@ -458,8 +458,8 @@
     #kit.in .kt-img .kt-pic { transition: transform 0.8s var(--kt-ease); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-label { top: calc(var(--kh) - 369 * var(--u)); }
     #kit:has(.kt-team:is(:hover, :focus-within)) .kt-team .kt-t { top: calc(var(--kh) - 328.4 * var(--u)); }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tp { top: calc(var(--kh) - 219 * var(--u)); opacity: 1; transition: opacity 0.45s ease 0.5s; }
-    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tmore { left: auto; right: calc(41.3 * var(--u)); opacity: 1;   /* right-hand side: the copy now runs down to its level */ pointer-events: auto; transition: opacity 0.45s ease 0.6s; }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tp { opacity: 1; transition: opacity 0.45s ease 0.5s; }
+    #kit:has(.kt-team:is(:hover, :focus-within)) .kt-tmore { opacity: 1; pointer-events: auto; transition: opacity 0.45s ease 0.6s; }
   }
   #kit.in .kt-card { clip-path: inset(0 0 0 0); }
   .kt-ring rect { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s cubic-bezier(0.65, 0, 0.2, 1) var(--d, 0s); }
