@@ -67,8 +67,21 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 // always 2x, like Options A/B: the lines come out a whole number of pixels and
 // are smoothed down, so they look the same weight on every screen
 renderer.setPixelRatio(2);
-renderer.setSize(...size());
-Object.assign(renderer.domElement.style, { width: '100%', height: '100%', display: 'block' });
+// The drawing buffer is allocated at the widest the card gets and only re-allocated when that grows or the height /
+// window changes. While the Kit card narrows (the Team card opening) it just draws into the visible left part
+// (setViewport) and the card clips the rest: re-allocating a 2x canvas every frame of that 0.8 s resize was the
+// expensive part (Safari dipped to ~70 fps, James)
+let allocW = 0, allocH = 0, allocWin = 0;
+function allocate() {
+  const [w, h] = size();
+  if (w > allocW || h !== allocH || innerWidth !== allocWin) {
+    allocW = innerWidth !== allocWin ? w : Math.max(allocW, w); allocH = h; allocWin = innerWidth;
+    renderer.setSize(allocW, allocH, false);
+    Object.assign(renderer.domElement.style, { width: allocW + 'px', height: allocH + 'px', display: 'block' });
+  }
+  renderer.setViewport(0, 0, w, h);
+}
+allocate();
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -583,8 +596,7 @@ function sizeLines() {
   }
 }
 function resize() {
-  renderer.setSize(...size());
-  renderer.domElement.style.width = renderer.domElement.style.height = '100%';
+  allocate();
   frameCamera();
   sizeLines();
   // resizing wipes the canvas, and this runs after the frame's draw: redraw now, or while the Kit card animates its width
